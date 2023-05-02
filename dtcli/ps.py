@@ -1,0 +1,1 @@
+"""Datatrail Detailed Status Command."""

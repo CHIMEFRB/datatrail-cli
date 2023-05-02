@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "datatrail-cli"
+version = "0.1.0"
+description = "CHIME/FRB Datatrail CLI"
+authors = ["CHIME FRB Project Office"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "dtcli"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+click = "^8.1.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
