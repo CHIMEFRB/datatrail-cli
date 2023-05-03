@@ -10,6 +10,7 @@ pretty.install()
 terminal = console.Console()
 
 
+# Main CLI
 @click.group()
 def cli():
     """Datatrail Command Line Interface."""

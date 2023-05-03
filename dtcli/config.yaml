@@ -1,0 +1,26 @@
+#DO NOT CHANGE ANYTHING BELOW WITHOUT ASKING THE PROJECT OFFICE"#
+server:
+  dev: "http://localhost:1234/datatrail"
+  local: "https://frb.chimenet.ca/datatrail"
+  chime: "https://frb.chimenet.ca/datatrail"
+  canfar: "https://frb.chimenet.ca/datatrail"
+  kko: "https://frb.chimenet.ca/datatrail"
+  gbo: "https://frb.chimenet.ca/datatrail"
+  hco: "https://frb.chimenet.ca/datatrail"
+vospace_certfile: # Location of the cadcproxy file to use for authentication
+  dev: ".ssl/cadcproxy.pem"
+  local: ".ssl/cadcproxy.pem"
+  chime: "/data/chime/intensity/processed/canfar/cert/cadcproxy.pem"
+  canfar: "/arc/projects/chime_frb/cert/cadcproxy.pem"
+  kko: "/data/kko/intensity/processed/canfar/cert/cadcproxy.pem"
+  gbo: "/data/gbo/intensity/processed/canfar/cert/cadcproxy.pem"
+  hco: "/data/hco/intensity/processed/canfar/cert/cadcproxy.pem"
+root_mounts: # path after this is data/<telescope>/<intensity/baseband/...>/<raw>...
+  dev: "./"
+  local: "./"
+  chime: "/"
+  canfar: "/arc/projects/chime_frb/"
+  arc: "/arc/projects/chime_frb/"
+  kko: "/"
+  gbo: "/"
+  hco: "/"
