@@ -30,8 +30,6 @@ def version():
     terminal.print(
         f"datatrail-server {'0.1.1'}",
         style="green",
-        justify="left",
-        new_line_start=True,
     )
 
 
