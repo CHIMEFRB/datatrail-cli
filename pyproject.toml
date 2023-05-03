@@ -11,9 +11,9 @@ packages = [{include = "dtcli"}]
 python = "^3.8"
 click = "^8.1.3"
 requests = "^2.29.0"
+rich = "^13.3.5"
 
 [tool.poetry.scripts]
-dtcli = "dtcli.cli:cli"
 datatrail = "dtcli.cli:cli"
 
 [tool.poetry.group.dev.dependencies]
