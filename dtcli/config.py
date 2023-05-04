@@ -93,6 +93,7 @@ def init(site: str):
 
 
 def procure(config: Path = CONFIG) -> Dict[str, Any]:
+    """Load configuration file."""
     with open(CONFIG) as stream:
         config = yaml.safe_load(stream)
     return config

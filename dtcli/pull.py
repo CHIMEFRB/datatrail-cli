@@ -1,11 +1,14 @@
 """Datatrail Pull Command."""
 
 import click
+from chime_frb_api import get_logger
 from rich.console import Console
 from rich.prompt import Confirm
 
-# from dtcli import SITE
-# from dtcli.src.functions import find_missing_dataset_files, get_files
+from dtcli.config import procure
+from dtcli.src.functions import find_missing_dataset_files, get_files
+
+logger = get_logger()
 
 
 @click.command(name="pull", help="Download a dataset.")
@@ -21,6 +24,14 @@ from rich.prompt import Confirm
 @click.option("--force", "-f", is_flag=True, help="No questions asked.")
 def pull(scope, dataset, directory, verbose, force):
     """Download a dataset."""
+    try:
+        config = procure()
+        SITE = config["site"]
+    except Exception:
+        logger.error(
+            "No configuration file found. Create one with `datatrail config init`.",
+        )
+        return None
     console = Console()
     console.print(f"Searching for files for {dataset} {scope}...")
     files = find_missing_dataset_files(scope, dataset)
@@ -38,4 +49,5 @@ def pull(scope, dataset, directory, verbose, force):
         )
 
     if is_download:
-        get_files(files["missing"], directory)
+        obtained = get_files(files["missing"], directory)
+        console.print(obtained)

@@ -1,10 +1,13 @@
 """Datatrail Detailed Status Command."""
 
 import click
+from chime_frb_api import get_logger
 from rich.console import Console
 from rich.table import Table
 
-# from dtcli.src import functions
+from dtcli.src import functions
+
+logger = get_logger()
 
 
 @click.command(name="ps", help="Details of a dataset.")
@@ -12,7 +15,11 @@ from rich.table import Table
 @click.argument("dataset", required=True, type=click.STRING, nargs=1)
 def ps(scope: str, dataset: str):
     """Detailed status of a dataset."""
-    files, policies = functions.ps(scope, dataset)
+    try:
+        files, policies = functions.ps(scope, dataset)
+    except Exception as e:
+        logger.error(e)
+        return None
 
     # Files table
     file_table = Table(

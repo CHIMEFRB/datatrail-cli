@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 import requests
 from chime_frb_api import get_logger
 
-from dtcli import CERTFILE, MOUNTS, SERVER, SITE
+from dtcli.config import procure
 from dtcli.utilities import utilities
 from dtcli.utilities.cadcclient import CADCClient
 
@@ -16,6 +16,14 @@ logger = get_logger()
 
 def list(scope: Optional[str] = None, *args) -> Dict[str, Any]:
     """List scopes and datasets."""
+    # Load configuration.
+    try:
+        config = procure()
+        SERVER = config["server"]
+    except Exception:
+        return {
+            "error": "No configuration file found. Create one with `datatrail config init`."
+        }
     # List all scopes.
     if not scope:
         try:
@@ -42,8 +50,18 @@ def list(scope: Optional[str] = None, *args) -> Dict[str, Any]:
         return {}
 
 
-def ps(scope: str, dataset: str, base_url: str = SERVER):
+def ps(scope: str, dataset: str, base_url: Optional[str] = None):
     """List detailed information about a dataset."""
+    # Load configuration.
+    try:
+        config = procure()
+        SERVER = config["server"]
+    except Exception:
+        raise FileNotFoundError(
+            "No configuration file found. Create one with `datatrail config init`."
+        )
+    if not base_url:
+        base_url = SERVER
     try:
         files_response = get_dataset_file_info(scope, dataset)
 
@@ -55,11 +73,16 @@ def ps(scope: str, dataset: str, base_url: str = SERVER):
 
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
-        return "Datatrail Server at CHIME is not responding."
+        raise ConnectionError("Datatrail Server at CHIME is not responding.")
 
 
-def get_dataset_file_info(scope: str, dataset: str, base_url: str = SERVER):
+def get_dataset_file_info(scope: str, dataset: str, base_url: Optional[str] = None):
     """List detailed information about a dataset."""
+    # Load configuration.
+    config = procure()
+    SERVER = config["server"]
+    if not base_url:
+        base_url = SERVER
     try:
         payload = {"scope": scope, "name": dataset}
         url = base_url + "/query/dataset/find"
@@ -72,6 +95,9 @@ def get_dataset_file_info(scope: str, dataset: str, base_url: str = SERVER):
 
 def find_missing_dataset_files(scope: str, dataset: str) -> Dict:
     """List missing files for a dataset."""
+    # Load configuration.
+    config = procure()
+    SITE = config["site"]
     # find dataset
     dataset_locations = get_dataset_file_info(scope, dataset)
     if isinstance(dataset_locations, str):
@@ -103,15 +129,20 @@ def find_missing_dataset_files(scope: str, dataset: str) -> Dict:
 
 def get_files(
     files: List[str],
-    root_dir: str = MOUNTS[SITE],
-) -> Dict[str, Any]:
+    root_dir: Optional[str] = None,
+):
     """Download all files from a dataset which only contains files."""
+    # Load configuration.
+    config = procure()
+    SITE = config["site"]
+    MOUNTS = config["root_mounts"]
     # download missing files.
     if len(files) > 0:
         print(f"{len(files)} files missing.")
         print(f"Downloading {len(files)} missing files.")
         files = [f.replace("cadc:CHIMEFRB/", "") for f in files]
-        root_dir = MOUNTS[SITE]
+        if not root_dir:
+            root_dir = MOUNTS[SITE]
         destinations = [root_dir + f for f in files]
 
         # make directory structure if it does not exist.
@@ -121,12 +152,20 @@ def get_files(
         os.makedirs(dir_path, exist_ok=True)
 
         # copy files.
-        c = CADCClient(cadcprox_config=CERTFILE)
-        c.get(files, destinations, num_processors=1)
+        c = CADCClient()
+        for f, d in zip(files, destinations):
+            c.get(f, d)
+        # c.get(files, destinations)
         if SITE != "local":
             os.system(f"chgrp -R chime-frb-rw {dir_path}")
             os.system(f"chmod -R g+w {dir_path}")
-        print(f"Missing files copied to folder {dir_path}")
+        if dir_path:
+            files_obtained = [f.split("/")[-1] for f in destinations]
+            return {
+                "directory": dir_path,
+                "files": files_obtained,
+                "num_files": len(files_obtained),
+            }
 
     else:
         print("There are no files for this dataset at the Minoc server at CANFAR!!!")

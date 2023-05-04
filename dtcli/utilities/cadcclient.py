@@ -12,7 +12,7 @@ from cadcdata import StorageInventoryClient
 from cadctap import CadcTapClient
 from cadcutils import net
 
-from dtcli import CERTFILE
+from dtcli.config import procure
 
 LOG_FORMAT: str = "[%(asctime)s] %(levelname)s "
 LOG_FORMAT += "%(module)s::%(funcName)s():l%(lineno)d: "
@@ -20,6 +20,13 @@ LOG_FORMAT += "%(message)s"
 logging.basicConfig(format=LOG_FORMAT, level=logging.ERROR)
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+try:
+    config = procure()
+    CERTFILE = config["vospace_certfile"]
+except Exception as e:
+    log.error(e)
+    CERTFILE = None
 
 default_cadcprox_config = CERTFILE
 
