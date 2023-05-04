@@ -34,7 +34,7 @@ def version():
     )
 
 
-cli.add_command(ls.ls)
+cli.add_command(ls.list)
 cli.add_command(ps.ps)
 cli.add_command(pull.pull)
 
