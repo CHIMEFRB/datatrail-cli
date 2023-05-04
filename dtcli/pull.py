@@ -4,8 +4,8 @@ import click
 from rich.console import Console
 from rich.prompt import Confirm
 
-from dtcli import SITE
-from dtcli.src.functions import find_missing_dataset_files, get_files
+# from dtcli import SITE
+# from dtcli.src.functions import find_missing_dataset_files, get_files
 
 
 @click.command(name="pull", help="Download a dataset.")

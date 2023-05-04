@@ -4,7 +4,7 @@ import click
 from pkg_resources import get_distribution
 from rich import console, pretty
 
-from dtcli import ls, ps, pull
+from dtcli import config, ls, ps, pull
 
 pretty.install()
 terminal = console.Console()
@@ -37,6 +37,7 @@ def version():
 cli.add_command(ls.list)
 cli.add_command(ps.ps)
 cli.add_command(pull.pull)
+cli.add_command(config.config)
 
 if __name__ == "__main__":
     cli()

@@ -4,7 +4,7 @@ import click
 from rich.console import Console
 from rich.table import Table
 
-from dtcli.src import functions
+# from dtcli.src import functions
 
 
 @click.command(name="ps", help="Details of a dataset.")
@@ -43,7 +43,7 @@ def ps(scope: str, dataset: str):
     policy_table.add_column("Storage Element", footer=policies["belongs_to"][0]["name"])
     policy_table.add_column("Priority")
     policy_table.add_column("Default")
-    policy_table.add_column("Delete After \[days]")
+    policy_table.add_column(r"Delete After \[days]")
 
     rp = policies["replication_policy"]
     for idx, se in enumerate(rp["preferred_storage_elements"]):

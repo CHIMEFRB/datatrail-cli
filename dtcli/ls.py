@@ -5,7 +5,7 @@ from chime_frb_api import get_logger
 from rich.console import Console
 from rich.table import Table
 
-from dtcli.src import functions
+# from dtcli.src import functions
 
 logger = get_logger()
 

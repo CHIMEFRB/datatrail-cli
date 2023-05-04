@@ -18,6 +18,7 @@ cadcutils = "^1.5.1.1"
 numpy = "^1.24.3"
 cadcdata = "^2.4"
 cadctap = "^0.9.11"
+mergedeep = "^1.3.4"
 
 [tool.poetry.scripts]
 datatrail = "dtcli.cli:cli"
