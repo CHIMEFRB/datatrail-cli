@@ -14,18 +14,36 @@ from dtcli.utilities.cadcclient import CADCClient
 logger = get_logger()
 
 
-def list(scope: Optional[str] = None, *args) -> Dict[str, Any]:
+def list(
+    scope: Optional[str] = None,
+    dataset: Optional[str] = None,
+    verbose: int = 0,
+    quiet: bool = False,
+) -> Dict[str, Any]:
     """List scopes and datasets."""
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+    elif quiet:
+        logger.setLevel("ERROR")
     # Load configuration.
+    logger.debug("Loading configuration.")
     try:
         config = procure()
         SERVER = config["server"]
+        logger.debug("Configuration loaded successfully.")
     except Exception:
+        logger.error(
+            "No configuration file found. Create one with `datatrail config init`."
+        )
         return {
             "error": "No configuration file found. Create one with `datatrail config init`."
         }
     # List all scopes.
     if not scope:
+        logger.info("Finding all scopes in Datatrail.")
         try:
             url = SERVER + "/query/dataset/scopes"
             r = requests.get(url)
@@ -44,14 +62,19 @@ def list(scope: Optional[str] = None, *args) -> Dict[str, Any]:
 
     # List all datasets in dataset for scope.
     elif scope and dataset:
+        logger.info(f"Finding all child datasets for: {dataset} in {scope}.")
         try:
             url = SERVER + f"/query/dataset/children/{scope}/{dataset}"
+            logger.debug(f"URL: {url}")
             r = requests.get(url)
+            logger.debug(f"Status: {r.status_code}.")
             response = utilities.decode_response(r)
+            logger.debug(f"Reponse: {response}")
             if "object has no attribute" in response:
                 return {"error": f"The dataset {dataset} has no children."}
             return {"datasets": response["contains"]}
         except requests.exceptions.ConnectionError as e:
+            logger.error(e)
             return {"error": "Datatrail Server at CHIME is not responding."}
 
     else:
