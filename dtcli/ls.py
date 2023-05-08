@@ -1,5 +1,7 @@
 """Datatrail List Command."""
 
+from typing import Optional
+
 import click
 from chime_frb_api import get_logger
 from rich.console import Console
@@ -8,6 +10,8 @@ from rich.table import Table
 from dtcli.src import functions
 
 logger = get_logger()
+
+console = Console()
 
 
 @click.command(help="List scopes & datasets")
@@ -27,13 +31,20 @@ def list(scope: str = None, datasets: str = None):
         table.add_column("Scopes")
         for s in results["scopes"]:
             table.add_row(s)
-        console = Console()
         console.print(table)
 
     # Display datasets in scope.
     if "datasets" in results.keys():
-        pass
+        table = Table(
+            title=f"Datatrail: Child Datasets {datasets} {scope}",
+            header_style="magenta",
+            title_style="bold magenta",
+        )
+        table.add_column("Datasets", justify="center")
+        table.add_row("\t".join(results["datasets"]))
+        with console.pager(styles=False):
+            console.print(table)
 
     # No contact with server.
     if "error" in results.keys():
-        logger.error(results["error"])
+        console.print(results["error"], style="red bold")

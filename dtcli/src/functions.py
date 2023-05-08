@@ -39,12 +39,20 @@ def list(scope: Optional[str] = None, *args) -> Dict[str, Any]:
     # If scope defined, list all datasets in scope.
 
     # List all top-level datasets in scope.
-    elif scope and len(args) == 0:
+    elif scope and not dataset:
         return {"error": "Please provide a dataset."}
 
     # List all datasets in dataset for scope.
-    elif scope and len(args) == 1:
-        return {}
+    elif scope and dataset:
+        try:
+            url = SERVER + f"/query/dataset/children/{scope}/{dataset}"
+            r = requests.get(url)
+            response = utilities.decode_response(r)
+            if "object has no attribute" in response:
+                return {"error": f"The dataset {dataset} has no children."}
+            return {"datasets": response["contains"]}
+        except requests.exceptions.ConnectionError as e:
+            return {"error": "Datatrail Server at CHIME is not responding."}
 
     else:
         return {}
@@ -68,6 +76,10 @@ def ps(scope: str, dataset: str, base_url: Optional[str] = None):
         url = base_url + f"/query/dataset/{scope}/{dataset}"
         r = requests.get(url)
         policy_response = utilities.decode_response(r)
+        if "object has no attribute" in policy_response or isinstance(
+            files_response, str
+        ):
+            raise Exception(f"Could not find {dataset} {scope} in Datatrail.")
 
         return files_response, policy_response
 
@@ -87,7 +99,10 @@ def get_dataset_file_info(scope: str, dataset: str, base_url: Optional[str] = No
         payload = {"scope": scope, "name": dataset}
         url = base_url + "/query/dataset/find"
         r = requests.post(url, json=payload)
-        return utilities.decode_response(r)
+        response = utilities.decode_response(r)
+        if "object has no attribute" in response:
+            return f"Could not find {dataset} {scope} in Datatrail."
+        return response
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         return "Datatrail Server at CHIME is not responding."
