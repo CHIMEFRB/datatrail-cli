@@ -1,6 +1,7 @@
 """Datatrail Command Line Interface."""
 
 import click
+from click_aliases import ClickAliasedGroup
 from pkg_resources import get_distribution
 from rich import console, pretty
 
@@ -11,7 +12,7 @@ terminal = console.Console()
 
 
 # Main CLI
-@click.group()
+@click.group(cls=ClickAliasedGroup)
 def cli():
     """Datatrail Command Line Interface."""
     pass
@@ -34,7 +35,7 @@ def version():
     )
 
 
-cli.add_command(ls.list)
+cli.add_command(ls.list, aliases=["ls"])
 cli.add_command(ps.ps)
 cli.add_command(pull.pull)
 cli.add_command(config.config)

@@ -5,13 +5,14 @@ from typing import Any, Dict
 
 import click
 import yaml
+from click_aliases import ClickAliasedGroup
 from mergedeep import merge
 from rich import print, prompt
 
 CONFIG: Path = Path.home() / ".datatrail" / "config.yaml"
 
 
-@click.group()
+@click.group(cls=ClickAliasedGroup)
 def config():
     """Datatrail CLI Configuration."""
     pass
@@ -44,7 +45,7 @@ def get(key: str):
             print(exc)
 
 
-@config.command(name="list", help="List all configuration values.")
+@config.command(name="list", aliases=["ls"], help="List all configuration values.")
 def list():
     """List all configuration values."""
     with open(CONFIG) as stream:
