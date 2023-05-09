@@ -64,6 +64,7 @@ def list(
 
     # Display datasets in scope.
     if "datasets" in results.keys():
+        results["datasets"] = sorted(results["datasets"],key=int, reverse=True)
         table = Table(
             title=f"Datatrail: Child Datasets {datasets} {scope}",
             header_style="magenta",
