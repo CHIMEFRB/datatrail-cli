@@ -1,5 +1,6 @@
 """Datatrail CLI Configuration."""
 
+import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -8,6 +9,14 @@ import yaml
 from click_aliases import ClickAliasedGroup
 from mergedeep import merge
 from rich import print, prompt
+from rich.logging import RichHandler
+
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="WARNING", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+)
+
+log = logging.getLogger("config")
 
 CONFIG: Path = Path.home() / ".datatrail" / "config.yaml"
 
@@ -116,8 +125,12 @@ def procure(config: Path = CONFIG, key: Optional[str] = None) -> Any:
     Returns:
         Dict[str, Any]: Configuration.
     """
-    with open(CONFIG.as_posix()) as stream:
-        configuration = yaml.safe_load(stream)
-    if key:
-        return configuration[key]
-    return configuration
+    try:
+        with open(CONFIG.as_posix()) as stream:
+            configuration = yaml.safe_load(stream)
+        if key:
+            return configuration[key]
+        return configuration
+    except Exception as exception:
+        log.exception(exception)
+        configuration = None

@@ -1,16 +1,23 @@
 """Datatrail Detailed Status Command."""
 
+import logging
 import os
 from pathlib import Path
+
 import click
-from chime_frb_api import get_logger
 from rich.console import Console
+from rich.logging import RichHandler
 from rich.table import Table
 
 from dtcli.src import functions
 from dtcli.utilities import cadcclient
 
-logger = get_logger()
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+)
+
+logger = logging.getLogger("ps")
 
 
 @click.command(name="ps", help="Details of a dataset.")

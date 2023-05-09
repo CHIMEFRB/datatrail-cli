@@ -1,5 +1,6 @@
 """Class to facilitate data transfer on CANFAR using the CADC tools."""
 
+import logging
 import os
 import sys
 from io import StringIO
@@ -11,12 +12,17 @@ import dill
 from cadcdata import StorageInventoryClient
 from cadctap import CadcTapClient
 from cadcutils import net
-from chime_frb_api import get_logger
+from rich.logging import RichHandler
 
 from dtcli.config import procure
 from dtcli.utilities.utilities import split
 
-log = get_logger("cadcclient")
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+)
+
+logger = logging.getLogger("cadcclient")
 
 
 class DillProcess(Process):
@@ -88,17 +94,17 @@ def get(
         for index, filename in enumerate(source):
             filename = namespace + "/" + filename
             storage.cadcget(filename, destination[index])  # type: ignore
-            log.debug(f"{filename} ➜ {destination[index]} ✔")
+            logger.debug(f"{filename} ➜ {destination[index]} ✔")
     except cadcutils.exceptions.NotFoundException as error:  # type: ignore
-        log.error(f"CADC Exception: {error}")
+        logger.error(f"CADC Exception: {error}")
         raise error
     except cadcutils.exceptions.HttpException as error:  # type: ignore
-        log.error(f"CADC Exception: {error}")
+        logger.error(f"CADC Exception: {error}")
         raise error
     except Exception as error:
-        log.error(f"Error: {error}")
+        logger.error(f"Error: {error}")
         raise error
-    log.info(f"Process {os.getpid()} finished.")
+    logger.info(f"Process {os.getpid()} finished.")
 
 
 def pget(
@@ -120,7 +126,7 @@ def pget(
     """
     sources: List[List[Any]] = split(source, processors)
     destinations: List[List[Any]] = split(destination, processors)
-    log.info(f"Starting {processors} processes.")
+    logger.info(f"Starting {processors} processes.")
     processes: List[DillProcess] = []
     for process in range(processors):
         mp = DillProcess(
@@ -152,12 +158,12 @@ def info(
     uris: List[str] = []
     for filename in filenames:
         uris.append(namespace + "/" + filename)
-    log.info(f"Getting info for {len(uris)} files on {namespace}.")
+    logger.info(f"Getting info for {len(uris)} files on {namespace}.")
     for uri in uris:
         try:
             information.append(storageClient.cadcinfo(uri).__dict__)  # type: ignore
         except cadcutils.exceptions.NotFoundException as error:  # type: ignore
-            log.debug(f"CADC Exception: {error}")
+            logger.debug(f"CADC Exception: {error}")
     if summary:
         aggregate: Dict[str, Any] = {
             "ids": set(),
@@ -198,9 +204,10 @@ def size(directory: str, namespace: str = "cadc:CHIMEFRB", timeout: int = 60) ->
     Example:
         >>> size("/data/chime/intensity/raw/2023/01/01/")
     """
+    logger.info("Getting size of {directory}...")
     query = f"select sum(contentLength/1024.0/1024.0/1024.0) as numGB from inventory.Artifact where uri like '{namespace}/{directory}%'"  # noqa
     query = query.replace("//", "/")
-    log.info(f"Running query: {query}")
+    logger.info(f"Running query: {query}")
     buffer = StringIO()
     sys.stdout = buffer
     _, _, queryClient = _connect()

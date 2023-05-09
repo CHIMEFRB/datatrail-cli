@@ -1,12 +1,19 @@
 """Utility functions."""
 
-from typing import Any, List
+from typing import Any, Dict, List, Union
 
 from requests.models import Response
 
 
-def decode_response(response: Response):
-    """Decode response."""
+def decode_response(response: Response) -> Union[Dict, str]:
+    """Decode response.
+
+    Args:
+        response (Response): Request response.
+
+    Returns:
+        Union[Dict, str]: JSON response or text.
+    """
     if response.status_code in [200, 201]:
         return response.json()
     else:

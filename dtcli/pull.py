@@ -1,17 +1,24 @@
 """Datatrail Pull Command."""
 
+import logging
 from os import cpu_count, path
 
 import click
-from chime_frb_api import get_logger
 from rich.console import Console
+from rich.logging import RichHandler
 from rich.prompt import Confirm
 
 from dtcli.config import procure
 from dtcli.src.functions import find_missing_dataset_files, get_files
 from dtcli.utilities.cadcclient import size
 
-logger = get_logger()
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+)
+
+logger = logging.getLogger("pull")
+
 console = Console()
 
 
@@ -34,10 +41,17 @@ console = Console()
     default=1,
     help="Number of parallel fetch processes to use.",
 )
-@click.option("--verbose", "-v", is_flag=True, help="Verbose output.")
+@click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
+@click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.option("--force", "-f", is_flag=True, help="Do not prompt for confirmation.")
 def pull(
-    scope: str, dataset: str, directory: str, cores: int, verbose: bool, force: bool
+    scope: str,
+    dataset: str,
+    directory: str,
+    cores: int,
+    verbose: int,
+    quiet: bool,
+    force: bool,
 ) -> None:
     """Download a dataset.
 
@@ -45,16 +59,34 @@ def pull(
         scope (str): Scope of dataset.
         dataset (str): Name of dataset.
         directory (str): Directory to pull data to.
-        verbose (bool): Verbosity.
-        force (bool): Automatically download files.
         cores(int): Number of parallel fetch processes to use.
+        verbose (int): Verbosity: v=INFO, vv=DUBUG.
+        quiet (bool): Minimal logging.
+        force (bool): Automatically download files.
     """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+    elif quiet:
+        logger.setLevel("ERROR")
+    logger.debug("`pull` called with:")
+    logger.debug(f"scope: {scope} [{type(scope)}]")
+    logger.debug(f"dataset: {dataset} [{type(dataset)}]")
+    logger.debug(f"verbose: {verbose} [{type(verbose)}]")
+    logger.debug(f"quiet: {quiet} [{type(quiet)}]")
+
     # Load configuration file.
     try:
+        logger.debug("Loading config.")
         config = procure()
         site = config["site"]
+        logger.debug(f"Site set to: {site}.")
         if directory is None:
             directory = config["root_mounts"][site]
+            logger.info(f"No directory, setting to: {directory}.")
     except Exception:
         logger.exception(
             "Configuration Missing!! Run `datatrail config init`.",

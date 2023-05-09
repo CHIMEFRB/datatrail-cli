@@ -1,18 +1,22 @@
 """Functions for CLI."""
 
+import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
-from chime_frb_api import get_logger
+from rich.logging import RichHandler
 
 from dtcli.config import procure
 from dtcli.utilities import cadcclient, utilities
 
-# from dtcli.utilities.cadcclient import CADCClient
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+)
 
-logger = get_logger()
+logger = logging.getLogger("functions")
 
 
 def list(
@@ -24,13 +28,14 @@ def list(
     """List Datatrail Scopes & Datasets.
 
     Args:
-        scope (Optional[str], optional): _description_. Defaults to None.
-        dataset (Optional[str], optional): _description_. Defaults to None.
-        verbose (int, optional): _description_. Defaults to 0.
-        quiet (bool, optional): _description_. Defaults to False.
+        scope (Optional[str], optional): Scope of dataset. Defaults to None.
+        dataset (Optional[str], optional): Name of dataset. Defaults to None.
+        verbose (int, optional): Verbosity. Defaults to 0.
+        quiet (bool, optional): Minimal logging. Defaults to False.
 
     Returns:
-        Dict[str, Any]: _description_
+        Dict[str, Any]: Keys 'error', 'scopes', or 'datasets'. Values are the
+            results or error message.
     """
     logger.setLevel("WARNING")
     if verbose == 1:
@@ -93,7 +98,17 @@ def list(
 def ps(
     scope: str, dataset: str, base_url: Optional[str] = None
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    """List detailed information about a dataset."""
+    """List detailed information about a dataset.
+
+    Args:
+        scope (Optional[str], optional): Scope of dataset. Defaults to None.
+        dataset (Optional[str], optional): Name of dataset. Defaults to None.
+        base_url (Optional[str], optional): Datatrail URL. Defaults to None.
+
+    Returns:
+        Tuple[Dict[str, Any], Dict[str, Any]]: Dictionary of dataset files,
+            and dictionary of dataset's policies.
+    """
     # Load configuration.
     try:
         config = procure()
@@ -122,8 +137,19 @@ def ps(
         raise ConnectionError("Datatrail Server at CHIME is not responding.")
 
 
-def get_dataset_file_info(scope: str, dataset: str, base_url: Optional[str] = None):
-    """List detailed information about a dataset."""
+def get_dataset_file_info(
+    scope: str, dataset: str, base_url: Optional[str] = None
+) -> Dict[str, Any]:
+    """List detailed information about a dataset.
+
+    Args:
+        scope (Optional[str], optional): Scope of dataset. Defaults to None.
+        dataset (Optional[str], optional): Name of dataset. Defaults to None.
+        base_url (Optional[str], optional): Datatrail URL. Defaults to None.
+
+    Returns:
+        Dict[str, Any]: JSON response from server or error string.
+    """
     # Load configuration.
     config = procure()
     server = config["server"]
@@ -135,15 +161,23 @@ def get_dataset_file_info(scope: str, dataset: str, base_url: Optional[str] = No
         r = requests.post(url, json=payload)
         response = utilities.decode_response(r)
         if "object has no attribute" in response:
-            return f"Could not find {dataset} {scope} in Datatrail."
+            return {"error": f"Could not find {dataset} {scope} in Datatrail."}
         return response
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
-        return "Datatrail Server at CHIME is not responding."
+        return {"error": "Datatrail Server at CHIME is not responding."}
 
 
 def find_missing_dataset_files(scope: str, dataset: str) -> Dict:
-    """List missing files for a dataset."""
+    """List missing files for a dataset.
+
+    Args:
+        scope (str): Scope of dataset. Defaults to None.
+        dataset (str): Name of dataset. Defaults to None.
+
+    Returns:
+        Dict: Dictionary of results.
+    """
     # Load configuration.
     config = procure()
     SITE = config["site"]

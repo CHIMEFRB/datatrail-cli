@@ -1,15 +1,21 @@
 """Datatrail List Command."""
 
+import logging
 from typing import Optional
 
 import click
-from chime_frb_api import get_logger
 from rich.console import Console
+from rich.logging import RichHandler
 from rich.table import Table
 
 from dtcli.src import functions
 
-logger = get_logger()
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+)
+
+logger = logging.getLogger("ls")
 
 console = Console()
 
@@ -64,7 +70,7 @@ def list(
 
     # Display datasets in scope.
     if "datasets" in results.keys():
-        results["datasets"] = sorted(results["datasets"],key=int, reverse=True)
+        results["datasets"] = sorted(results["datasets"], key=int, reverse=True)
         table = Table(
             title=f"Datatrail: Child Datasets {datasets} {scope}",
             header_style="magenta",
