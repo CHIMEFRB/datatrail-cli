@@ -1,0 +1,71 @@
+---
+site_name: Datatrail CLI
+site_author: Tarik Zegmott
+site_description: "Datatrail CLI"
+repo_name: chimefrb/datatrail-cli
+repo_url: "https://github.com/chimefrb/datatrail-cli"
+copyright: Copyright &copy; 2016 - 2023 CHIME/FRB Collaboration
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: yellow
+  font:
+    text: Roboto
+    code: Roboto Mono
+  language: en
+  features:
+    - tabs
+
+plugins:
+  - search
+  - mkdocstrings
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - abbr
+  - attr_list
+  - def_list
+  - footnotes
+  - mkdocs-click
+  - meta
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight:
+      use_pygments: true
+      linenums_style: pymdownx.inline
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: squidfunk
+      repo: mkdocs-material
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: "!!python/name:pymdownx.superfences.fence_code_format"
+  - pymdownx.tabbed
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Command Line Interface:
+    - Reference: cli.md
