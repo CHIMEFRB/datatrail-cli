@@ -2,14 +2,15 @@
 
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from chime_frb_api import get_logger
 
 from dtcli.config import procure
-from dtcli.utilities import utilities
-from dtcli.utilities.cadcclient import CADCClient
+from dtcli.utilities import cadcclient, utilities
+
+# from dtcli.utilities.cadcclient import CADCClient
 
 logger = get_logger()
 
@@ -20,7 +21,17 @@ def list(
     verbose: int = 0,
     quiet: bool = False,
 ) -> Dict[str, Any]:
-    """List scopes and datasets."""
+    """List Datatrail Scopes & Datasets.
+
+    Args:
+        scope (Optional[str], optional): _description_. Defaults to None.
+        dataset (Optional[str], optional): _description_. Defaults to None.
+        verbose (int, optional): _description_. Defaults to 0.
+        quiet (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        Dict[str, Any]: _description_
+    """
     logger.setLevel("WARNING")
     if verbose == 1:
         logger.setLevel("INFO")
@@ -32,20 +43,18 @@ def list(
     logger.debug("Loading configuration.")
     try:
         config = procure()
-        SERVER = config["server"]
+        server = config["server"]
         logger.debug("Configuration loaded successfully.")
     except Exception:
         logger.error(
             "No configuration file found. Create one with `datatrail config init`."
         )
-        return {
-            "error": "No configuration file found. Create one with `datatrail config init`."
-        }
+        return {"error": "No config. Create one with `datatrail config init`."}
     # List all scopes.
     if not scope:
         logger.info("Finding all scopes in Datatrail.")
         try:
-            url = SERVER + "/query/dataset/scopes"
+            url = server + "/query/dataset/scopes"
             r = requests.get(url)
             response = utilities.decode_response(r)
             return {"scopes": response}
@@ -64,7 +73,7 @@ def list(
     elif scope and dataset:
         logger.info(f"Finding all child datasets for: {dataset} in {scope}.")
         try:
-            url = SERVER + f"/query/dataset/children/{scope}/{dataset}"
+            url = server + f"/query/dataset/children/{scope}/{dataset}"
             logger.debug(f"URL: {url}")
             r = requests.get(url)
             logger.debug(f"Status: {r.status_code}.")
@@ -81,22 +90,24 @@ def list(
         return {}
 
 
-def ps(scope: str, dataset: str, base_url: Optional[str] = None):
+def ps(
+    scope: str, dataset: str, base_url: Optional[str] = None
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """List detailed information about a dataset."""
     # Load configuration.
     try:
         config = procure()
-        SERVER = config["server"]
+        server = config["server"]
     except Exception:
         raise FileNotFoundError(
             "No configuration file found. Create one with `datatrail config init`."
         )
     if not base_url:
-        base_url = SERVER
+        base_url = server
     try:
         files_response = get_dataset_file_info(scope, dataset)
 
-        url = base_url + f"/query/dataset/{scope}/{dataset}"
+        url: str = str(base_url) + f"/query/dataset/{scope}/{dataset}"
         r = requests.get(url)
         policy_response = utilities.decode_response(r)
         if "object has no attribute" in policy_response or isinstance(
@@ -115,12 +126,12 @@ def get_dataset_file_info(scope: str, dataset: str, base_url: Optional[str] = No
     """List detailed information about a dataset."""
     # Load configuration.
     config = procure()
-    SERVER = config["server"]
+    server = config["server"]
     if not base_url:
-        base_url = SERVER
+        base_url = server
     try:
         payload = {"scope": scope, "name": dataset}
-        url = base_url + "/query/dataset/find"
+        url = str(base_url) + "/query/dataset/find"
         r = requests.post(url, json=payload)
         response = utilities.decode_response(r)
         if "object has no attribute" in response:
@@ -167,43 +178,24 @@ def find_missing_dataset_files(scope: str, dataset: str) -> Dict:
 
 def get_files(
     files: List[str],
-    root_dir: Optional[str] = None,
+    site: str,
+    directory: str,
+    cores: int,
 ):
     """Download all files from a dataset which only contains files."""
     # Load configuration.
     config = procure()
-    SITE = config["site"]
-    MOUNTS = config["root_mounts"]
+    mounts = config["root_mounts"]
     # download missing files.
     if len(files) > 0:
         print(f"{len(files)} files missing.")
         print(f"Downloading {len(files)} missing files.")
         files = [f.replace("cadc:CHIMEFRB/", "") for f in files]
-        if not root_dir:
-            root_dir = MOUNTS[SITE]
-        destinations = [root_dir + f for f in files]
-
+        if not directory:
+            directory = mounts[site]
+        destinations = [directory + "/" + f for f in files]
         # make directory structure if it does not exist.
-        dir_path = os.path.join(*(destinations[0].split("/")[:-1]))
-        if SITE != "local":
-            dir_path = "/" + dir_path
-        os.makedirs(dir_path, exist_ok=True)
-
-        # copy files.
-        c = CADCClient()
-        for f, d in zip(files, destinations):
-            c.get(f, d)
-        # c.get(files, destinations)
-        if SITE != "local":
-            os.system(f"chgrp -R chime-frb-rw {dir_path}")
-            os.system(f"chmod -R g+w {dir_path}")
-        if dir_path:
-            files_obtained = [f.split("/")[-1] for f in destinations]
-            return {
-                "directory": dir_path,
-                "files": files_obtained,
-                "num_files": len(files_obtained),
-            }
-
-    else:
-        print("There are no files for this dataset at the Minoc server at CANFAR!!!")
+        folders = {os.path.dirname(path) for path in destinations}
+        for folder in folders:
+            os.makedirs(folder, exist_ok=True)
+        cadcclient.pget(source=files, destination=destinations, processors=cores)

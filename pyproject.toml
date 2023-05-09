@@ -15,7 +15,6 @@ rich = "^13.3.5"
 chime-frb-api = "^3.1.0"
 pyaml = "^21.10.1"
 cadcutils = "^1.5.1.1"
-numpy = "^1.24.3"
 cadcdata = "^2.4"
 cadctap = "^0.9.11"
 mergedeep = "^1.3.4"
@@ -26,6 +25,7 @@ datatrail = "dtcli.cli:cli"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.2.0"
+types-requests = "^2.30.0.0"
 
 [build-system]
 requires = ["poetry-core"]

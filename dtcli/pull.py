@@ -1,5 +1,7 @@
 """Datatrail Pull Command."""
 
+from os import cpu_count
+
 import click
 from chime_frb_api import get_logger
 from rich.console import Console
@@ -9,6 +11,7 @@ from dtcli.config import procure
 from dtcli.src.functions import find_missing_dataset_files, get_files
 
 logger = get_logger()
+console = Console()
 
 
 @click.command(name="pull", help="Download a dataset.")
@@ -17,26 +20,47 @@ logger = get_logger()
 @click.option(
     "--directory",
     "-d",
-    type=click.Path(exists=True),
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, writable=True, resolve_path=True
+    ),
+    default=procure(),
     help="Directory to pull data to.",
 )
+@click.option(
+    "--cores",
+    "-c",
+    type=click.IntRange(min=1, max=cpu_count() or 1),
+    default=1,
+    help="Number of parallel fetch processes to use.",
+)
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output.")
-@click.option("--force", "-f", is_flag=True, help="No questions asked.")
-def pull(scope, dataset, directory, verbose, force):
-    """Download a dataset."""
+@click.option("--force", "-f", is_flag=True, help="Do not prompt for confirmation.")
+def pull(
+    scope: str, dataset: str, directory: str, cores: int, verbose: bool, force: bool
+) -> None:
+    """Download a dataset.
+
+    Args:
+        scope (str): Scope of dataset.
+        dataset (str): Name of dataset.
+        directory (str): Directory to pull data to.
+        verbose (bool): Verbosity.
+        force (bool): Automatically download files.
+        cores(int): Number of parallel fetch processes to use.
+    """
     try:
         config = procure()
-        SITE = config["site"]
+        site = config["site"]
     except Exception:
-        logger.error(
-            "No configuration file found. Create one with `datatrail config init`.",
+        logger.exception(
+            "Configuration Missing!! Run `datatrail config init`.",
         )
-        return None
-    console = Console()
+        raise click.Abort()
+
     console.print(f"Searching for files for {dataset} {scope}...")
     files = find_missing_dataset_files(scope, dataset)
     console.print(
-        f"\t- {len(files['existing'])} files found at {SITE}.",
+        f"\t- {len(files['existing'])} files found at {site}.",
     )
     console.print(
         f"\t- {len(files['missing'])} files can be downloaded from minoc.\n",
@@ -49,5 +73,7 @@ def pull(scope, dataset, directory, verbose, force):
         )
 
     if is_download:
-        obtained = get_files(files["missing"], directory)
+        obtained = get_files(
+            files["missing"], site=site, directory=directory, cores=cores
+        )
         console.print(obtained)
