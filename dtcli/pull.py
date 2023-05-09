@@ -23,7 +23,7 @@ console = Console()
     type=click.Path(
         exists=True, file_okay=False, dir_okay=True, writable=True, resolve_path=True
     ),
-    default=procure(),
+    default=None,
     help="Directory to pull data to.",
 )
 @click.option(
@@ -51,6 +51,8 @@ def pull(
     try:
         config = procure()
         site = config["site"]
+        if directory is None:
+            directory = config["root_mounts"][site]
     except Exception:
         logger.exception(
             "Configuration Missing!! Run `datatrail config init`.",
