@@ -1,6 +1,6 @@
 """Datatrail Pull Command."""
 
-from os import cpu_count
+from os import cpu_count, path
 
 import click
 from chime_frb_api import get_logger
@@ -9,6 +9,7 @@ from rich.prompt import Confirm
 
 from dtcli.config import procure
 from dtcli.src.functions import find_missing_dataset_files, get_files
+from dtcli.utilities.cadcclient import size
 
 logger = get_logger()
 console = Console()
@@ -48,6 +49,7 @@ def pull(
         force (bool): Automatically download files.
         cores(int): Number of parallel fetch processes to use.
     """
+    # Load configuration file.
     try:
         config = procure()
         site = config["site"]
@@ -59,14 +61,19 @@ def pull(
         )
         raise click.Abort()
 
+    # Find files missing from localhost.
     console.print(f"Searching for files for {dataset} {scope}...")
     files = find_missing_dataset_files(scope, dataset)
+    to_download_size = size(path.commonpath(files["missing"]))
     console.print(
         f"\t- {len(files['existing'])} files found at {site}.",
     )
     console.print(
-        f"\t- {len(files['missing'])} files can be downloaded from minoc.\n",
+        f"\t- {len(files['missing'])} files can be downloaded from minoc.",
     )
+    console.print(f"\t\t- Size to download: {to_download_size:.2f} GB.\n")
+
+    # Confirm download.
     if force:
         is_download = True
     else:
@@ -74,6 +81,7 @@ def pull(
             f"Download {len(files['missing'])} files?",
         )
 
+    # Download missing files.
     if is_download:
         obtained = get_files(
             files["missing"], site=site, directory=directory, cores=cores
