@@ -1,11 +1,14 @@
 """Datatrail Detailed Status Command."""
 
+import os
+from pathlib import Path
 import click
 from chime_frb_api import get_logger
 from rich.console import Console
 from rich.table import Table
 
 from dtcli.src import functions
+from dtcli.utilities import cadcclient
 
 logger = get_logger()
 
@@ -13,7 +16,8 @@ logger = get_logger()
 @click.command(name="ps", help="Details of a dataset.")
 @click.argument("scope", required=True, type=click.STRING, nargs=1)
 @click.argument("dataset", required=True, type=click.STRING, nargs=1)
-def ps(scope: str, dataset: str):
+@click.option("-s", "--show-files", is_flag=True, help="Show file names.")
+def ps(scope: str, dataset: str, show_files: bool):
     """Detailed status of a dataset."""
     try:
         files, policies = functions.ps(scope, dataset)
@@ -21,21 +25,43 @@ def ps(scope: str, dataset: str):
         logger.error(e)
         return None
 
-    # Files table
-    file_table = Table(
-        title=f"Datatrail: Files for {dataset} {scope}",
+    # Info table
+    info_table = Table(
+        title=f"Datatrail: {dataset} {scope} at Minoc",
         header_style="magenta",
         title_style="bold magenta",
     )
-    file_table.add_column("Storage Element", style="bold")
-    file_table.add_column("File Path", style="green", overflow="fold")
+    info_table.add_column("Storage Element", style="bold")
+    info_table.add_column("Number of Files", style="green")
+    info_table.add_column("Size of Files [GB]", style="green")
+    if files["file_replica_locations"].get("minoc"):
+        minoc_files = files["file_replica_locations"]["minoc"]
+        size = cadcclient.size(os.path.commonpath(minoc_files))
+        info_table.add_row("minoc", f"{len(minoc_files)}", f"{size:.2f}")
+    else:
+        info_table.add_row("minoc", str(0), str(0))
+
+    # Files table
+    file_table = Table(
+        # header_style="magenta",
+        title_style="magenta",
+    )
+    file_table.add_column(
+        f"Datatrail: Files for {dataset} {scope}", style="bold magenta"
+    )
 
     for se in files["file_replica_locations"]:
-        for idx, fp in enumerate(files["file_replica_locations"][se]):
+        common_path = os.path.commonpath(files["file_replica_locations"][se])
+        names = [Path(_).name for _ in files["file_replica_locations"][se]]
+        for idx, fn in enumerate(names):
             if idx == 0:
-                file_table.add_row(se, fp)
+                file_table.add_row(f"Storage Element: [magenta]{se}")
+                file_table.add_row(f"Common Path: {common_path}", style="bold green")
+                file_table.add_row(f"[green]- {fn}")
+                # file_table.add_row(se, common_path, fn)
             else:
-                file_table.add_row("", fp)
+                file_table.add_row(f"- {fn}", style="green")
+                # file_table.add_row("", "", fn)
         file_table.add_section()
 
     # Policy table
@@ -83,5 +109,9 @@ def ps(scope: str, dataset: str):
     policy_table.add_section()
 
     console = Console()
-    console.print(file_table)
-    console.print(policy_table)
+    if show_files:
+        with console.pager():
+            console.print(file_table)
+    else:
+        console.print(info_table)
+        console.print(policy_table)
