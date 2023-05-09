@@ -3,7 +3,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from rich.logging import RichHandler
@@ -86,7 +86,7 @@ def list(
             logger.debug(f"Reponse: {response}")
             if "object has no attribute" in response:
                 return {"error": f"The dataset {dataset} has no children."}
-            return {"datasets": response["contains"]}
+            return {"datasets": response["contains"]}  # type: ignore
         except requests.exceptions.ConnectionError as e:
             logger.error(e)
             return {"error": "Datatrail Server at CHIME is not responding."}
@@ -130,7 +130,7 @@ def ps(
         ):
             raise Exception(f"Could not find {dataset} {scope} in Datatrail.")
 
-        return files_response, policy_response
+        return files_response, policy_response  # type: ignore
 
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
@@ -162,7 +162,7 @@ def get_dataset_file_info(
         response = utilities.decode_response(r)
         if "object has no attribute" in response:
             return {"error": f"Could not find {dataset} {scope} in Datatrail."}
-        return response
+        return response  # type: ignore
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         return {"error": "Datatrail Server at CHIME is not responding."}
