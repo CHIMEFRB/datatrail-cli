@@ -9,12 +9,6 @@ import yaml
 from click_aliases import ClickAliasedGroup
 from mergedeep import merge
 from rich import print, prompt
-from rich.logging import RichHandler
-
-FORMAT = "%(message)s"
-logging.basicConfig(
-    level="WARNING", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
-)
 
 log = logging.getLogger("config")
 
@@ -37,7 +31,7 @@ def set(key: str, value: str):
         key (str): Key to set.
         value (str): Value to set.
     """
-    print(f"Setting {key} to {value}")
+    print(f"Attempting to set {key} to {value}")
     with open(CONFIG) as stream:
         config = yaml.safe_load(stream)
     with open(CONFIG, "w") as stream:

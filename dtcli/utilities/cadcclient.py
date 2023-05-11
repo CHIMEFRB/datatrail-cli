@@ -12,17 +12,13 @@ import dill
 from cadcdata import StorageInventoryClient
 from cadctap import CadcTapClient
 from cadcutils import net
-from rich.logging import RichHandler
+from rich.traceback import install
 
 from dtcli.config import procure
 from dtcli.utilities.utilities import split
 
-FORMAT = "%(message)s"
-logging.basicConfig(
-    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
-)
-
 logger = logging.getLogger("cadcclient")
+install()
 
 
 class DillProcess(Process):
@@ -63,12 +59,17 @@ def _connect(
         Tuple[net.Subject, StorageInventoryClient, CadcTapClient]:
             Returns a tuple of the cert, storage, and query clients.
     """
-    if not certfile:
-        certfile = procure(key="vospace_certfile")
-    cert = net.Subject(certificate=certfile)
-    storage = StorageInventoryClient(cert, resource_id=storage_resource_id)
-    query = CadcTapClient(cert, resource_id=query_resource_id)
-    return cert, storage, query
+    try:
+        if not certfile:
+            certfile = procure(key="vospace_certfile")
+        cert = net.Subject(certificate=certfile)
+        storage = StorageInventoryClient(cert, resource_id=storage_resource_id)
+        query = CadcTapClient(cert, resource_id=query_resource_id)
+        return cert, storage, query
+    # TODO: Handle invalid cert
+    except ValueError as error:
+        logger.error(error)
+        raise error
 
 
 def get(

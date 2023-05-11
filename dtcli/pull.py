@@ -5,17 +5,11 @@ from os import cpu_count, path
 
 import click
 from rich.console import Console
-from rich.logging import RichHandler
 from rich.prompt import Confirm
 
 from dtcli.config import procure
 from dtcli.src.functions import find_missing_dataset_files, get_files
 from dtcli.utilities.cadcclient import size
-
-FORMAT = "%(message)s"
-logging.basicConfig(
-    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
-)
 
 logger = logging.getLogger("pull")
 
@@ -94,16 +88,21 @@ def pull(
         raise click.Abort()
 
     # Find files missing from localhost.
-    console.print(f"Searching for files for {dataset} {scope}...")
+    console.print(f"\nSearching for files for {dataset} {scope}...\n")
     files = find_missing_dataset_files(scope, dataset)
     to_download_size = size(path.commonpath(files["missing"]))
     console.print(
-        f"\t- {len(files['existing'])} files found at {site}.",
+        f" - {len(files['existing'])} files found at {site}.",
+        style="green",
     )
     console.print(
-        f"\t- {len(files['missing'])} files can be downloaded from minoc.",
+        f" - {len(files['missing'])} files can be downloaded from minoc.",
+        style="yellow",
     )
-    console.print(f"\t\t- Size to download: {to_download_size:.2f} GB.\n")
+    console.print(
+        f"     - Size to download: {to_download_size:.2f} GB.\n",
+        style="yellow",
+    )
 
     # Confirm download.
     if force:

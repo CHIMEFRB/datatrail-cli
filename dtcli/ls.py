@@ -6,15 +6,9 @@ from typing import Optional
 
 import click
 from rich.console import Console
-from rich.logging import RichHandler
 from rich.table import Table
 
 from dtcli.src import functions
-
-FORMAT = "%(message)s"
-logging.basicConfig(
-    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
-)
 
 logger = logging.getLogger("ls")
 

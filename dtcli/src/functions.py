@@ -6,15 +6,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
-from rich.logging import RichHandler
 
 from dtcli.config import procure
 from dtcli.utilities import cadcclient, utilities
-
-FORMAT = "%(message)s"
-logging.basicConfig(
-    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
-)
 
 logger = logging.getLogger("functions")
 
@@ -215,8 +209,18 @@ def get_files(
     site: str,
     directory: str,
     cores: int,
-):
-    """Download all files from a dataset which only contains files."""
+) -> None:
+    """Download all files from a dataset which only contains files.
+
+    Args:
+        files (List[str]): Paths of files to download.
+        site (str): Local machine.
+        directory (str): Path to download files to. Default depends on site.
+        cores (int): Number of processors to initiate download on.
+
+    Returns:
+        None
+    """
     # Load configuration.
     config = procure()
     mounts = config["root_mounts"]
