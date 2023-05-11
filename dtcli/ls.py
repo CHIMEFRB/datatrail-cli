@@ -65,11 +65,28 @@ def list(
             table.add_row(s)
         console.print(table)
 
-    # Display datasets in scope.
+    if "larger_datasets" in results.keys():
+        results["larger_datasets"] = sorted(results["larger_datasets"])
+
+        if write:
+            with open(f"./larger_datasets_list_{scope}.txt", "w") as file:
+                json.dump(results, file)
+
+        table = Table(
+            title=f"Datatrail: Larger Datasets {scope}",
+            header_style="magenta",
+            title_style="bold magenta",
+        )
+        table.add_column("Larger datasets", justify="center")
+        table.add_row("\t".join(results["larger_datasets"]))
+        with console.pager(styles=False):
+            console.print(table)
+
+    # Display datasets in parent dataset for scope.
     if "datasets" in results.keys():
         results["datasets"] = sorted(results["datasets"], key=int, reverse=True)
         if write:
-            with open(f"./events_list_{scope}_{datasets}.txt", "w") as file:
+            with open(f"./dataset_list_for_{scope}_{datasets}.txt", "w") as file:
                 json.dump(results, file)
 
         table = Table(

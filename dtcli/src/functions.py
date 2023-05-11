@@ -66,7 +66,15 @@ def list(
 
     # List all top-level datasets in scope.
     elif scope and not dataset:
-        return {"error": "Please provide a dataset."}
+        logger.info("Finding all larger datasets in Datatrail.")
+        try:
+            url = server + f"/query/dataset/larger/{scope}"
+            r = requests.get(url)
+            response = utilities.decode_response(r)
+            return ("larger_datasets": response)
+        except requests.exceptions.ConnectionError as error:
+            logger.error(error)
+            return {"error": f"{error}"}
 
     # List all datasets in dataset for scope.
     elif scope and dataset:
