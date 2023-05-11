@@ -35,6 +35,21 @@ mkdocs-material = "^9.1.11"
 mkdocstrings = "^0.21.2"
 mkdocs-click = "^0.8.0"
 
+[tool.flake8]
+max-line-length=89
+max-complexity=15
+extend-ignore = "E203"
+
+[tool.black]
+line-length=89
+
+[tool.pycodestyle]
+max-line-length=89
+ignore = "E203"
+
+[tool.isort]
+profile = "black"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
