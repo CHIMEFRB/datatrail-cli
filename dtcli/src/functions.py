@@ -13,12 +13,12 @@ from dtcli.utilities import cadcclient, utilities
 logger = logging.getLogger("functions")
 
 
-def list(
+def list(  # noqa: C901
     scope: Optional[str] = None,
     dataset: Optional[str] = None,
     verbose: int = 0,
     quiet: bool = False,
-) -> Dict[str, Any]:  # noqa: C901
+) -> Dict[str, Any]:
     """List Datatrail Scopes & Datasets.
 
     Args:
@@ -68,10 +68,13 @@ def list(
     elif scope and not dataset:
         logger.info("Finding all larger datasets in Datatrail.")
         try:
-            url = server + f"/query/dataset/larger/{scope}"
+            url = server + f"/query/dataset/larger?scope={scope}"
             r = requests.get(url)
             response = utilities.decode_response(r)
-            return {"larger_datasets": response}
+            if isinstance(response, dict):
+                return response
+            else:
+                raise requests.exceptions.ConnectionError(response)
         except requests.exceptions.ConnectionError as error:
             logger.error(error)
             return {"error": f"{error}"}
