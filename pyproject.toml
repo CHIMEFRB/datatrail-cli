@@ -26,6 +26,7 @@ datatrail = "dtcli.cli:cli"
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.2.0"
 types-requests = "^2.30.0.0"
+pre-commit = "^3.3.1"
 
 
 [tool.poetry.group.docs.dependencies]
