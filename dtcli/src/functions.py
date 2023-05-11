@@ -18,7 +18,7 @@ def list(
     dataset: Optional[str] = None,
     verbose: int = 0,
     quiet: bool = False,
-) -> Dict[str, Any]:
+) -> Dict[str, Any]:  # noqa: C901
     """List Datatrail Scopes & Datasets.
 
     Args:
@@ -71,7 +71,7 @@ def list(
             url = server + f"/query/dataset/larger/{scope}"
             r = requests.get(url)
             response = utilities.decode_response(r)
-            return ("larger_datasets": response)
+            return {"larger_datasets": response}
         except requests.exceptions.ConnectionError as error:
             logger.error(error)
             return {"error": f"{error}"}
