@@ -1,5 +1,6 @@
 """Datatrail List Command."""
 
+import json
 import logging
 from typing import Optional
 
@@ -35,11 +36,13 @@ console = Console()
 )
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Only errors shown in logs.")
+@click.option("--write", is_flag=True, help="Write the events to file.")
 def list(
     scope: Optional[str] = None,
     datasets: Optional[str] = None,
     verbose: int = 0,
     quiet: bool = False,
+    write: bool = False,
 ):
     """List Datatrail Scopes & Datasets."""
     logger.setLevel("WARNING")
@@ -71,6 +74,10 @@ def list(
     # Display datasets in scope.
     if "datasets" in results.keys():
         results["datasets"] = sorted(results["datasets"], key=int, reverse=True)
+        if write:
+            with open(f"./events_list_{scope}_{datasets}.txt", "w") as file:
+                json.dump(results, file)
+
         table = Table(
             title=f"Datatrail: Child Datasets {datasets} {scope}",
             header_style="magenta",
