@@ -17,9 +17,9 @@ cadcutils = "^1.5.1.1"
 cadcdata = "^2.4"
 cadctap = "^0.9.11"
 mergedeep = "^1.3.4"
-click-aliases = {git = "git@github.com:tjzegmott/click-aliases.git"}
 dill = "^0.3.6"
 lxml = "^4.9.2"
+click-aliasing = "^1.0.0"
 
 [tool.poetry.scripts]
 datatrail = "dtcli.cli:cli"

@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 import click
 import yaml
-from click_aliases import ClickAliasedGroup
+from click_aliasing import ClickAliasedGroup
 from mergedeep import merge
 from rich import print, prompt
 

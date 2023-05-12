@@ -1,7 +1,7 @@
 """Datatrail Command Line Interface."""
 
 import click
-from click_aliases import ClickAliasedGroup
+from click_aliasing import ClickAliasedGroup
 from pkg_resources import get_distribution
 from rich import console, pretty
 
