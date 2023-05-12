@@ -1,5 +1,6 @@
 """Tests for Datatrail CLI."""
 
+from os import cpu_count
 from pathlib import Path
 
 import pytest
@@ -114,14 +115,14 @@ def test_cli_pull_help(runner: CliRunner) -> None:
         runner (CliRunner): Click runner.
     """
     result = runner.invoke(datatrail, ["pull", "--help"])
-    expected_response = """Usage: cli pull [OPTIONS] SCOPE DATASET
+    expected_response = f"""Usage: cli pull [OPTIONS] SCOPE DATASET
 
   Download a dataset.
 
 Options:
   -d, --directory DIRECTORY  Directory to pull data to.
   -c, --cores INTEGER RANGE  Number of parallel fetch processes to use.
-                             [1<=x<=8]
+                             [1<=x<={cpu_count()}]
   -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
   -q, --quiet                Set log level to ERROR.
   -f, --force                Do not prompt for confirmation.
