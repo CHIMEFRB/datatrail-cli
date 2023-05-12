@@ -7,7 +7,7 @@
 <h4 align="center">
   <a href="https://">Install</a>
   ·
-  <a href="https://">Docs</a>
+  <a href="https://chimefrb.github.io/datatrail-cli/">Docs</a>
 </h4>
 
 <p align="center">
