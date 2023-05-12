@@ -60,6 +60,10 @@ jobs:
           poetry config virtualenvs.path ~/.cache/pypoetry/venv
           poetry install
 
+      - name: Obtain CADC certificate
+        run: |
+          cadc-get-cert --netrc-file ${{ secrets.CANFAR_NETRC }} --days-valid 1
+
       - name: Run Tests
         run: |
           poetry run pytest tests/ --cov . --cov-report=lcov
