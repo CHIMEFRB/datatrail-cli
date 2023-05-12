@@ -42,6 +42,8 @@ The commands available to you are:
     combination.
 - `pull`: This allows you to download all files belonging to the 'scope' and
 'dataset' provided.
+- `config`: Edit the `.datatrail/config.yaml` configuration file.
+- `version`: List the CLI and server version.
 
 Detailed information on all of the CLI commands can be found on the
 [Reference](cli) page.
