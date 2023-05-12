@@ -10,10 +10,29 @@ jobs:
   mkdocs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
-      - run: pip install poetry
-      - run: poetry install --without dev
-      - run: poetry run mkdocs gh-deploy --force
+          python-version: 3.9
+
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.CHIMEFRB_BOT_SSH_PRIVATE_KEY }}
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+
+      - name: Installation
+        run: |
+          pip install poetry
+          poetry install --without dev
+
+      - name: Create docs
+        run: poetry run mkdocs gh-deploy --force
