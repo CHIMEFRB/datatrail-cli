@@ -30,3 +30,20 @@
     <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr-raw/CHIMEFRB/datatrail-cli?style=for-the-badge&logoColor=D9E0EE&labelColor=302D41">
     <img alt="GitHub" src="https://img.shields.io/github/license/CHIMEFRB/datatrail-cli?style=for-the-badge">
 </p>
+
+## 🛠️ Installation
+
+### Install from PYPI
+
+```shell
+pip install datatrail-cli
+```
+
+### Clone the repository
+
+```shell
+git clone https://github.com/CHIMEFRB/datatrail-cli
+cd datatrail-cli
+pip install .
+```
+
