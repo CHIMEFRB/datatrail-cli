@@ -2,7 +2,7 @@
 
 !!! example "Installation"
 
-    The Datatrail CLI can be installed using pip:
+    The Datatrail CLI can be installed from PYPI using pip:
 
     ``` shell
     pip install datatrail-cli
