@@ -46,4 +46,3 @@ git clone https://github.com/CHIMEFRB/datatrail-cli
 cd datatrail-cli
 pip install .
 ```
-
