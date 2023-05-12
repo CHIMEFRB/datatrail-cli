@@ -114,7 +114,5 @@ def pull(
 
     # Download missing files.
     if is_download:
-        obtained = get_files(
-            files["missing"], site=site, directory=directory, cores=cores
-        )
-        console.print(obtained)
+        get_files(files["missing"], site=site, directory=directory, cores=cores)
+    return None

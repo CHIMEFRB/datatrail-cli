@@ -248,3 +248,4 @@ def get_files(
         for folder in folders:
             os.makedirs(folder, exist_ok=True)
         cadcclient.pget(source=files, destination=destinations, processors=cores)
+    return None
