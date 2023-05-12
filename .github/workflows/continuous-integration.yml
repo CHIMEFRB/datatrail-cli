@@ -61,13 +61,28 @@ jobs:
           poetry config virtualenvs.path ~/.cache/pypoetry/venv
           poetry install
 
+      - name: Create NETRC file
+        run: |
+          export CANFAR_NETRC_FILE=$RUNNER_TEMP"/CANFAR_NETRC"
+          echo ${{ secrets.CANFAR_NETRC }} > $CANFAR_NETRC_FILE
+          echo CANFAR_NETRC_FILE=$CANFAR_NETRC_FILE >> "$GITHUB_ENV"
+
       - name: Obtain CADC certificate
         run: |
-          cadc-get-cert --netrc-file ${{ secrets.CANFAR_NETRC }} --days-valid 1
+          export CADC_CERT=$HOME"/.ssl/cadcproxy.pem"
+          cadc-get-cert --netrc-file ${{ env.CANFAR_NETRC_FILE }} --days-valid 1 --cert-filename $CADC_CERT
+          echo CADC_CERT=$CADC_CERT >> "$GITHUB_ENV"
 
       - name: Run Tests
         run: |
           poetry run pytest tests/ --cov . --cov-report=lcov
+
+      - name: Remove NETRC file and CADC certificate
+        run: |
+          echo "Removing file: "$CANFAR_NETRC_FILE
+          rm $CANFAR_NETRC_FILE
+          echo "Removing file: "$CADC_CERT
+          rm $CADC_CERT
 
       - name: Upload coverage
         uses: coverallsapp/github-action@master
