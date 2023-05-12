@@ -1,0 +1,48 @@
+on:
+  push:
+    branches:
+      - main
+name: Continuous Deployment
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release
+        id: release-please
+        uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: python
+          package-name: datatrail-cli
+
+      - name: Checkout code
+        if: ${{ steps.release-please.outputs.release_created }}
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.9
+        if: ${{ steps.release-please.outputs.release_created }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install poetry
+        if: ${{ steps.release-please.outputs.release_created }}
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade poetry
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project false
+
+      - name: Install datatrail-cli
+        if: ${{ steps.release-please.outputs.release_created }}
+        run: |
+          poetry install
+
+      - name: Publish to pypi
+        if: ${{ steps.release-please.outputs.release_created }}
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build --verbose
