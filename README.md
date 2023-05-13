@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="" width="110", height="100">
+    <img src="https://github.com/CHIMEFRB/datatrail-cli/blob/main/docs/images/Datatrail-logo.png" width="110", height="100">
 </div>
 
 <h1 align="center">Datatrail CLI</h1>
