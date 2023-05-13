@@ -21,7 +21,7 @@
       <img src="https://img.shields.io/github/stars/CHIMEFRB/datatrail-cli?style=for-the-badge&logo=apachespark&color=eed49f&logoColor=D9E0EE&labelColor=302D41"/>
     </a>
     <br>
-    <img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/CHIMEFRB/datatrail-cli?logoColor=D9E0EE&style=for-the-badge&logoColor=D9E0EE&labelColor=302D41">
+    <img alt="Coveralls" src="https://img.shields.io/coverallsCoverage/github/CHIMEFRB/datatrail-cli?logoColor=D9E0EE&style=for-the-badge&logoColor=D9E0EE&labelColor=302D41&logo=coveralls">
     <img alt="GitHub CD Workflow Status (with branch)" src="https://img.shields.io/github/actions/workflow/status/CHIMEFRB/datatrail-cli/continuous-deployment.yml?branch=main&label=Deployment&style=for-the-badge&logo=githubactions&logoColor=D9E0EE&labelColor=302D41">
     <img alt="GitHub CI Workflow Status (with branch)" src="https://img.shields.io/github/actions/workflow/status/CHIMEFRB/datatrail-cli/continuous-integration.yml?branch=main&label=Integration&style=for-the-badge&logo=githubactions&logoColor=D9E0EE&labelColor=302D41">
     <img alt="GitHub Workflow Status (with branch)" src="https://img.shields.io/github/actions/workflow/status/CHIMEFRB/datatrail-cli/docs.yml?branch=main&label=Docs&style=for-the-badge&logo=readthedocs&logoColor=D9E0EE&labelColor=302D41">
