@@ -1,5 +1,6 @@
 """Tests for Datatrail CLI."""
 
+import shutil
 from os import cpu_count
 from pathlib import Path
 
@@ -7,6 +8,19 @@ import pytest
 from click.testing import CliRunner
 
 from dtcli.cli import cli as datatrail
+
+
+@pytest.fixture
+def directory():
+    """Create a temporary directory.
+
+    Yields:
+        directory (Path): Path to temporary directory.
+    """
+    directory = Path("tmp_test")
+    directory.mkdir(exist_ok=True)
+    yield directory
+    shutil.rmtree(directory)
 
 
 @pytest.fixture
@@ -229,6 +243,76 @@ def test_cli_ps(runner: CliRunner) -> None:
     """
     result = runner.invoke(datatrail, ["ps", "chime.event.baseband.raw", "289007650"])
     assert result.exit_code == 0
+
+
+def test_cli_pull_no(runner: CliRunner) -> None:
+    result = runner.invoke(
+        datatrail,
+        [
+            "pull",
+            "chime.event.intensity.raw",
+            "222266914",
+        ],
+        input="n\n",
+    )
+    expect = """Searching for files for 222266914 chime.event.intensity.raw..."""
+    assert expect in result.output
+
+
+def test_cli_pull_yes(runner: CliRunner, directory: Path) -> None:
+    result = runner.invoke(
+        datatrail,
+        [
+            "pull",
+            "chime.event.intensity.raw",
+            "222266914",
+            "-d",
+            f"{directory.as_posix()}",
+        ],
+        input="y\n",
+    )
+    assert result.exit_code == 0
+    assert Path(
+        "tmp_test/data/chime/intensity/raw/2022/04/25/astro_222266914/0104/astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack"  # noqa
+    ).exists()
+
+
+def test_cli_pull_force(runner: CliRunner, directory: Path) -> None:
+    result = runner.invoke(
+        datatrail,
+        [
+            "pull",
+            "chime.event.intensity.raw",
+            "222266914",
+            "-f",
+            "-d",
+            f"{directory.as_posix()}",
+        ],
+    )
+    assert result.exit_code == 0
+    assert Path(
+        "tmp_test/data/chime/intensity/raw/2022/04/25/astro_222266914/0104/astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack"  # noqa
+    ).exists()
+
+
+def test_cli_pull_force_2cores(runner: CliRunner, directory: Path) -> None:
+    result = runner.invoke(
+        datatrail,
+        [
+            "pull",
+            "chime.event.intensity.raw",
+            "222266914",
+            "-f",
+            "-d",
+            f"{directory.as_posix()}",
+            "-c",
+            "2",
+        ],
+    )
+    assert result.exit_code == 0
+    assert Path(
+        "tmp_test/data/chime/intensity/raw/2022/04/25/astro_222266914/0104/astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack"  # noqa
+    ).exists()
 
 
 def test_cli_version(runner: CliRunner) -> None:
