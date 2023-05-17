@@ -53,11 +53,13 @@ def ps(scope: str, dataset: str, show_files: bool):
 
     for se in files["file_replica_locations"]:
         common_path = os.path.commonpath(files["file_replica_locations"][se])
-        names = [Path(_).name for _ in files["file_replica_locations"][se]]
+        names = [
+            Path(_).relative_to(common_path) for _ in files["file_replica_locations"][se]
+        ]
         for idx, fn in enumerate(names):
             if idx == 0:
                 file_table.add_row(f"Storage Element: [magenta]{se}")
-                file_table.add_row(f"Common Path: {common_path}", style="bold green")
+                file_table.add_row(f"Common Path: {common_path}/", style="bold green")
                 file_table.add_row(f"[green]- {fn}")
                 # file_table.add_row(se, common_path, fn)
             else:
