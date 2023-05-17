@@ -12,6 +12,7 @@
 
     ``` shell
     git clone ssh+git://git@github.com/chimefrb/datatrail-cli
+    cd datatrail-cli
 
     # If you don't have Poetry:
     pip install poetry
