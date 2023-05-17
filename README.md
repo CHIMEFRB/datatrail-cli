@@ -46,3 +46,40 @@ git clone https://github.com/CHIMEFRB/datatrail-cli
 cd datatrail-cli
 pip install .
 ```
+
+## ⚙️  Configuration
+
+### Local
+
+```shell
+# Create Datatrail config file
+datatrail config init --site local
+
+# Ensure valid CADC Certificate exists
+cadc-get-cert -u [username]
+```
+
+### CANFAR
+
+The Configuration steps at CANFAR are similar to the local configuration.
+One notable exception is that after installation, the `datatrail` command
+may not be in the PATH. It is installed to `~/.local/bin`, in which case
+you may need to add it to your PATH or prepend it to the follwing commands.
+
+```shell
+# Create Datatrail config file
+datatrail config init --site canfar
+
+# Ensure valid CADC Certificate exists
+cadc-get-cert -u [username]
+```
+
+### CHIME
+
+```shell
+# Create Datatrail config file
+datatrail config init --site chime
+
+# Ensure valid CADC Certificate exists
+cadc-get-cert -u [username]
+```
