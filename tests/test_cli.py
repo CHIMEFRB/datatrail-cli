@@ -200,6 +200,49 @@ def test_cli_config_get(runner: CliRunner) -> None:
     assert "local" in result.output
 
 
+def test_cli_config_set(runner: CliRunner) -> None:
+    runner.invoke(datatrail, ["config", "set", "site", "chime"])
+    result = runner.invoke(datatrail, ["config", "ls"])
+    home = Path.home().as_posix()
+    expected_response = f"""Filename: {home}/.datatrail/config.yaml
+{{
+    'root_mounts': {{
+        'canfar': '/arc/project/chime_frb/',
+        'chime': '/',
+        'gbo': '/',
+        'hco': '/',
+        'kko': '/',
+        'local': './'
+    }},
+    'server': 'https://frb.chimenet.ca/datatrail',
+    'site': 'chime',
+    'vospace_certfile': '{home}/.ssl/cadcproxy.pem'
+}}
+"""
+    assert result.exit_code == 0
+    assert result.output == expected_response
+    runner.invoke(datatrail, ["config", "set", "site", "local"])
+    result = runner.invoke(datatrail, ["config", "ls"])
+    home = Path.home().as_posix()
+    expected_response = f"""Filename: {home}/.datatrail/config.yaml
+{{
+    'root_mounts': {{
+        'canfar': '/arc/project/chime_frb/',
+        'chime': '/',
+        'gbo': '/',
+        'hco': '/',
+        'kko': '/',
+        'local': './'
+    }},
+    'server': 'https://frb.chimenet.ca/datatrail',
+    'site': 'local',
+    'vospace_certfile': '{home}/.ssl/cadcproxy.pem'
+}}
+"""
+    assert result.exit_code == 0
+    assert result.output == expected_response
+
+
 def test_cli_list_scopes(runner: CliRunner) -> None:
     """Test for CLI list to give scopes.
 
