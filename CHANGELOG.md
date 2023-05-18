@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.1.0...v0.1.1) (2023-05-18)
+
+
+### Bug Fixes
+
+* **cli-test:** new test - marked as fix to trigger release ([aea98d0](https://github.com/CHIMEFRB/datatrail-cli/commit/aea98d07f63ee17f6d5b4acd396ea32e3aefbd11))
+
 ## 0.1.0 (2023-05-17)
 
 
