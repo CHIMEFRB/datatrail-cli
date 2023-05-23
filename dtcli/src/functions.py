@@ -83,7 +83,7 @@ def list(  # noqa: C901
     elif scope and dataset:
         logger.info(f"Finding all child datasets for: {dataset} in {scope}.")
         try:
-            url = server + f"/query/dataset/children/{scope}/{dataset}"
+            url = server + f"/query/dataset/children?scope={scope}&name={dataset}"
             logger.debug(f"URL: {url}")
             r = requests.get(url)
             logger.debug(f"Status: {r.status_code}.")
