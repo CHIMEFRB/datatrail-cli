@@ -5,7 +5,7 @@
 <h1 align="center">Datatrail CLI</h1>
 
 <h4 align="center">
-  <a href="https://">Install</a>
+  <a href="https://github.com/CHIMEFRB/datatrail-cli/tree/main#%EF%B8%8F-installation">Install</a>
   ·
   <a href="https://chimefrb.github.io/datatrail-cli/">Docs</a>
 </h4>
