@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.1.1...v0.1.2) (2023-05-24)
+
+
+### Bug Fixes
+
+* **ps-and-pull:** check if namespace already prepended ([#9](https://github.com/CHIMEFRB/datatrail-cli/issues/9)) ([eba7532](https://github.com/CHIMEFRB/datatrail-cli/commit/eba7532f3a2c23854a62842f3ce54246916e0d6b))
+
 ## [0.1.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.1.0...v0.1.1) (2023-05-18)
 
 
