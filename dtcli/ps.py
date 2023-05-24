@@ -37,7 +37,10 @@ def ps(scope: str, dataset: str, show_files: bool):
     info_table.add_column("Size of Files [GB]", style="green")
     if files["file_replica_locations"].get("minoc"):
         minoc_files = files["file_replica_locations"]["minoc"]
-        size = cadcclient.size(os.path.commonpath(minoc_files))
+        common_path = os.path.commonpath(minoc_files)
+        if not common_path.startswith("data") or not common_path.startswith("/data"):
+            common_path = common_path.replace("cadc:CHIMEFRB", "")
+        size = cadcclient.size(common_path)
         info_table.add_row("minoc", f"{len(minoc_files)}", f"{size:.2f}")
     else:
         info_table.add_row("minoc", str(0), str(0))
