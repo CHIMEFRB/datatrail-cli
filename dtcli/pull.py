@@ -90,7 +90,10 @@ def pull(
     # Find files missing from localhost.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")
     files = find_missing_dataset_files(scope, dataset)
-    to_download_size = size(path.commonpath(files["missing"]))
+    common_path = path.commonpath(files["missing"])
+    if common_path.startswith("cadc:CHIMEFRB"):
+        common_path = common_path.replace("cadc:CHIMEFRB", "")
+    to_download_size = size(common_path)
     console.print(
         f" - {len(files['existing'])} files found at {site}.",
         style="green",
