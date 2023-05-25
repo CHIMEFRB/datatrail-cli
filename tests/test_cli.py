@@ -227,7 +227,7 @@ def test_cli_config_set(runner: CliRunner) -> None:
     expected_response = f"""Filename: {home}/.datatrail/config.yaml
 {{
     'root_mounts': {{
-        'canfar': '/arc/project/chime_frb/',
+        'canfar': '/arc/projects/chime_frb/',
         'chime': '/',
         'gbo': '/',
         'hco': '/',
