@@ -84,7 +84,7 @@ def init(site: str):
         "vospace_certfile": f"{Path.home()}/.ssl/cadcproxy.pem",
         "root_mounts": {
             "chime": "/",
-            "canfar": "/arc/project/chime_frb/",
+            "canfar": "/arc/projects/chime_frb/",
             "kko": "/",
             "gbo": "/",
             "hco": "/",
