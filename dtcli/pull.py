@@ -10,6 +10,7 @@ from rich.prompt import Confirm
 from dtcli.config import procure
 from dtcli.src.functions import find_missing_dataset_files, get_files
 from dtcli.utilities.cadcclient import size
+from dtcli.utilities.utilities import validate_scope
 
 logger = logging.getLogger("pull")
 
@@ -86,6 +87,9 @@ def pull(
             "Configuration Missing!! Run `datatrail config init`.",
         )
         raise click.Abort()
+
+    if not validate_scope(scope):
+        raise ValueError("Scope does not exist.")
 
     # Find files missing from localhost.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")

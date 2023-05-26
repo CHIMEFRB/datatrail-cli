@@ -2,6 +2,7 @@
 
 from typing import Any, Dict, List, Union
 
+import requests
 from requests.models import Response
 
 
@@ -44,3 +45,17 @@ def split(data: List[Any], count: int) -> List[List[Any]]:
         if len(batch) > 0:
             batches.append(batch)
     return batches
+
+
+def validate_scope(scope: str) -> bool:
+    """Check if scope is valid.
+
+    Args:
+        scope (str): Scope to check.
+
+    Returns:
+        bool: True if scope is valid.
+    """
+    resp = requests.get("https://frb.chimenet.ca/datatrail/query/dataset/scopes")
+    scopes = decode_response(resp)
+    return scope in scopes

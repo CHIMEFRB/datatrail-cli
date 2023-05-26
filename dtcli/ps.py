@@ -10,6 +10,7 @@ from rich.table import Table
 
 from dtcli.src import functions
 from dtcli.utilities import cadcclient
+from dtcli.utilities.utilities import validate_scope
 
 logger = logging.getLogger("ps")
 
@@ -20,6 +21,8 @@ logger = logging.getLogger("ps")
 @click.option("-s", "--show-files", is_flag=True, help="Show file names.")
 def ps(scope: str, dataset: str, show_files: bool):
     """Detailed status of a dataset."""
+    if not validate_scope(scope):
+        raise ValueError("Scope does not exist.")
     try:
         files, policies = functions.ps(scope, dataset)
     except Exception as e:

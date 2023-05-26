@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from dtcli.src import functions
+from dtcli.utilities.utilities import validate_scope
 
 logger = logging.getLogger("ls")
 
@@ -51,6 +52,9 @@ def list(
     logger.debug(f"datasets: {datasets} [{type(datasets)}]")
     logger.debug(f"verbose: {verbose} [{type(verbose)}]")
     logger.debug(f"quiet: {quiet} [{type(quiet)}]")
+    if scope:
+        if not validate_scope(scope):
+            raise ValueError("Scope does not exist.")
     results = functions.list(scope, datasets, verbose, quiet)
 
     # Display scopes.
