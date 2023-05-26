@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.1.2...v0.2.0) (2023-05-26)
+
+
+### Features
+
+* **cli:** check scope exists ([f14589b](https://github.com/CHIMEFRB/datatrail-cli/commit/f14589bc539ec3448348d1d6bc9b1b32d864d7ea))
+
+
+### Bug Fixes
+
+* **config.py:** typo ([#12](https://github.com/CHIMEFRB/datatrail-cli/issues/12)) ([279998b](https://github.com/CHIMEFRB/datatrail-cli/commit/279998bbc5a4c5bd9922db59b159a38fbfdade8b))
+* **pull:** catch errors when no files at minoc ([fd34637](https://github.com/CHIMEFRB/datatrail-cli/commit/fd346373a3cdab93d0532a82cef5a8a04940aea7))
+
 ## [0.1.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.1.1...v0.1.2) (2023-05-24)
 
 
