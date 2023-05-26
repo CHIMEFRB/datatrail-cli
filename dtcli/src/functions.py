@@ -210,7 +210,11 @@ def find_missing_dataset_files(scope: str, dataset: str) -> Dict:
 
     # For local, assume no files exist.
     else:
-        missing_files = dataset_locations["file_replica_locations"]["minoc"]
+        file_replicas = dataset_locations.get("file_replica_locations")
+        if file_replicas:
+            missing_files = file_replicas.get("minoc")
+        else:
+            missing_files = []
         existing_files = []
     return {"missing": missing_files, "existing": existing_files}
 

@@ -90,6 +90,9 @@ def pull(
     # Find files missing from localhost.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")
     files = find_missing_dataset_files(scope, dataset)
+    if len(files["missing"]) == 0:
+        console.print("No files found at minoc.", style="bold red")
+        return None
     common_path = path.commonpath(files["missing"])
     if common_path.startswith("cadc:CHIMEFRB"):
         common_path = common_path.replace("cadc:CHIMEFRB", "")
