@@ -87,6 +87,7 @@ def get(
         namespace (str): Minoc Namespace. Defaults to "cadc:CHIMEFRB".
     """
     _, storage, _ = _connect(certfile=certfile)
+    not_found: List[str] = []
     try:
         assert len(source) == len(destination), (
             "The number of source files must match the number of destination files."
@@ -98,13 +99,16 @@ def get(
             logger.debug(f"{filename} ➜ {destination[index]} ✔")
     except cadcutils.exceptions.NotFoundException as error:  # type: ignore
         logger.error(f"CADC Exception: {error}")
-        raise error
+        not_found.append(str(error))
     except cadcutils.exceptions.HttpException as error:  # type: ignore
         logger.error(f"CADC Exception: {error}")
         raise error
     except Exception as error:
         logger.error(f"Error: {error}")
         raise error
+    if len(not_found) > 0:
+        logger.error(f"Number of files not found: {len(not_found)}")
+        logger.error(f"Not found: {not_found}")
     logger.info(f"Process {os.getpid()} finished.")
 
 
