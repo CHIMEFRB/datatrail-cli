@@ -107,12 +107,13 @@ def get(
             f"Got {len(source)} source files and {len(destination)} destination files."
         )
         for index, filename in enumerate(source):
-            filename = namespace + "/" + filename
-            storage.cadcget(filename, destination[index])  # type: ignore
-            logger.debug(f"{filename} ➜ {destination[index]} ✔")
-    except cadcutils.exceptions.NotFoundException as error:  # type: ignore
-        logger.error(f"CADC Exception: {error}")
-        not_found.append(str(error))
+            try:
+                filename = namespace + "/" + filename
+                storage.cadcget(filename, destination[index])  # type: ignore
+                logger.debug(f"{filename} ➜ {destination[index]} ✔")
+            except cadcutils.exceptions.NotFoundException as error:  # type: ignore
+                logger.error(f"CADC Exception: {filename}")
+                not_found.append(str(error))
     except cadcutils.exceptions.HttpException as error:  # type: ignore
         logger.error(f"CADC Exception: {error}")
         raise error
