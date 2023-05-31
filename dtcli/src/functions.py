@@ -224,6 +224,7 @@ def get_files(
     site: str,
     directory: str,
     cores: int,
+    verbose: int,
 ) -> None:
     """Download all files from a dataset which only contains files.
 
@@ -232,10 +233,17 @@ def get_files(
         site (str): Local machine.
         directory (str): Path to download files to. Default depends on site.
         cores (int): Number of processors to initiate download on.
+        verbose (int): Verbosity level.
 
     Returns:
         None
     """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
     # Load configuration.
     config = procure()
     mounts = config["root_mounts"]
@@ -251,5 +259,7 @@ def get_files(
         folders = {os.path.dirname(path) for path in destinations}
         for folder in folders:
             os.makedirs(folder, exist_ok=True)
-        cadcclient.pget(source=files, destination=destinations, processors=cores)
+        cadcclient.pget(
+            source=files, destination=destinations, processors=cores, verbose=verbose
+        )
     return None
