@@ -2,6 +2,7 @@
 
 import logging
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -253,3 +254,102 @@ def get_files(
             os.makedirs(folder, exist_ok=True)
         cadcclient.pget(source=files, destination=destinations, processors=cores)
     return None
+
+
+def clear_dataset_path(path: str, verbose: int, quiet: bool) -> bool:
+    """Delete a path provided.
+
+    Args:
+        path (str): Path to delete.
+        verbose (int): Verbosity level.
+        quiet (bool): Quiet mode.
+
+    Returns:
+        bool: True if path was deleted.
+    """
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+    elif quiet:
+        logger.setLevel("ERROR")
+
+    # Check if path exists.
+    logger.debug(f"Checking if path {path} exists.")
+    exists = os.path.exists(path)
+
+    # Delete files.
+    if exists:
+        shutil.rmtree(path)
+        logger.info("Path successfully removed.")
+        return True
+    else:
+        logger.info(f"Path {path} not found.")
+        return False
+
+
+def find_dataset_common_path(
+    scope: str, dataset: str, site: str, verbose: int, quiet: bool
+) -> Optional[str]:
+    """Find common path for a dataset.
+
+    Args:
+        scope (str): Scope of dataset.
+        dataset (str): Name of dataset.
+        site (str): Local machine.
+        verbose (int): Verbosity level.
+        quiet (bool): Quiet mode.
+
+    Returns:
+        Optional[str]: Common path for dataset.
+    """
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+    elif quiet:
+        logger.setLevel("ERROR")
+    # Load configuration.
+    logger.debug("Loading configuration.")
+    try:
+        config = procure()
+        server = config["server"]
+        logger.debug(f"Server: {server}")
+        root_mounts = config["root_mounts"]
+        logger.debug(f"Root mounts: {root_mounts}")
+        logger.debug("Configuration loaded successfully.")
+    except Exception:
+        logger.error(
+            "No configuration file found. Create one with `datatrail config init`."
+        )
+        logger.error("No config. Create one with `datatrail config init`.")
+        return None
+    # Query Datatrail Central Server.
+    logger.info(f"Querying Datatrail for {dataset} {scope}.")
+    payload = {"name": dataset, "scope": scope}
+    url = server + "/query/dataset/find"
+    logger.debug(f"URL: {url}")
+    try:
+        r = requests.post(url, json=payload)
+        dataset_locations = utilities.decode_response(r)  # type: ignore
+    except ConnectionError:
+        return "The Datatrail Central Server at CHIME at is not reachable!!!"
+    # Build data paths.
+    if dataset_locations["file_replica_locations"].get("minoc"):  # type: ignore
+        file_uris = dataset_locations["file_replica_locations"]["minoc"]  # type: ignore
+        file_uris = [f.replace("cadc:CHIMEFRB/", "") for f in file_uris]
+        location_root = root_mounts[site]
+        file_paths = [location_root + f for f in file_uris]
+
+        common_path = os.path.commonprefix(file_paths).replace("//", "/")
+        if common_path[-1] != "/":
+            common_path = "/".join(common_path.split("/")[:-1])
+
+    else:
+        logger.info(f"Dataset {dataset} {scope} not found on Minoc.")
+        logger.info("Cannot clear dataset.")
+        return None
+
+    return common_path
