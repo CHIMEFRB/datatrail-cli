@@ -317,8 +317,6 @@ def find_dataset_common_path(
         config = procure()
         server = config["server"]
         logger.debug(f"Server: {server}")
-        root_mounts = config["root_mounts"]
-        logger.debug(f"Root mounts: {root_mounts}")
         logger.debug("Configuration loaded successfully.")
     except Exception:
         logger.error(
@@ -339,9 +337,7 @@ def find_dataset_common_path(
     # Build data paths.
     if dataset_locations["file_replica_locations"].get("minoc"):  # type: ignore
         file_uris = dataset_locations["file_replica_locations"]["minoc"]  # type: ignore
-        file_uris = [f.replace("cadc:CHIMEFRB/", "") for f in file_uris]
-        location_root = root_mounts[site]
-        file_paths = [location_root + f for f in file_uris]
+        file_paths = [f.replace("cadc:CHIMEFRB/", "") for f in file_uris]
 
         common_path = os.path.commonprefix(file_paths).replace("//", "/")
         if common_path[-1] != "/":

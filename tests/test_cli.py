@@ -10,7 +10,7 @@ from click.testing import CliRunner
 from dtcli.cli import cli as datatrail
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def directory():
     """Create a temporary directory.
 
@@ -48,6 +48,7 @@ Options:
   --help  Show this message and exit.
 
 Commands:
+  clear      Clear a dataset.
   config     Datatrail CLI Configuration.
   list (ls)  List scopes & datasets
   ps         Details of a dataset.
@@ -146,6 +147,28 @@ Options:
     assert result.output == expected_response
 
 
+def test_cli_clear_help(runner: CliRunner) -> None:
+    """Test CLI clear help page.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["clear", "--help"])
+    expected_response = """Usage: cli clear [OPTIONS] SCOPE DATASET
+
+  Clear a dataset.
+
+Options:
+  -d, --directory DIRECTORY  Directory to clear data from.
+  -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet                Set log level to ERROR.
+  -f, --force                Do not prompt for confirmation.
+  --help                     Show this message and exit.
+"""
+    assert result.exit_code == 0
+    assert result.output == expected_response
+
+
 def test_cli_config_init(runner: CliRunner) -> None:
     """Test CLI configuration initialisation.
 
@@ -201,6 +224,13 @@ def test_cli_config_get(runner: CliRunner) -> None:
 
 
 def test_cli_config_set(runner: CliRunner) -> None:
+    """Test for config set.
+
+    Sets the site config to chime.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
     runner.invoke(datatrail, ["config", "set", "site", "chime"])
     result = runner.invoke(datatrail, ["config", "ls"])
     home = Path.home().as_posix()
@@ -289,6 +319,13 @@ def test_cli_ps(runner: CliRunner) -> None:
 
 
 def test_cli_pull_no(runner: CliRunner) -> None:
+    """Test for CLI pull command.
+
+    Answer 'no' to prompt for confirmation.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
     result = runner.invoke(
         datatrail,
         [
@@ -303,6 +340,14 @@ def test_cli_pull_no(runner: CliRunner) -> None:
 
 
 def test_cli_pull_yes(runner: CliRunner, directory: Path) -> None:
+    """Test for CLI pull command.
+
+    Answer 'yes' to prompt for confirmation.
+
+    Args:
+        runner (CliRunner): Click runner.
+        directory (Path): Path to downloaded data to.
+    """
     result = runner.invoke(
         datatrail,
         [
@@ -320,7 +365,67 @@ def test_cli_pull_yes(runner: CliRunner, directory: Path) -> None:
     ).exists()
 
 
+def test_cli_clear_no(runner: CliRunner, directory: Path) -> None:
+    """Test for CLI clear command.
+
+    Answer 'no' to prompt for confirmation.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail,
+        [
+            "clear",
+            "chime.event.intensity.raw",
+            "222266914",
+            "-d",
+            f"{directory.as_posix()}",
+        ],
+        input="n\n",
+    )
+    assert result.exit_code == 0
+    assert "Roger roger, no files deleted" in result.output
+
+
+def test_cli_clear_yes(runner: CliRunner, directory: Path) -> None:
+    """Test for CLI clear command.
+
+    Answer 'yes' to prompt for confirmation.
+
+    Args:
+        runner (CliRunner): Click runner.
+        directory (Path): Path to remove data from.
+    """
+    assert Path(
+        "tmp_test/data/chime/intensity/raw/2022/04/25/astro_222266914/0104/astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack"  # noqa
+    ).exists()
+    result = runner.invoke(
+        datatrail,
+        [
+            "clear",
+            "chime.event.intensity.raw",
+            "222266914",
+            "-d",
+            f"{directory.as_posix()}",
+        ],
+        input="y\n",
+    )
+    assert result.exit_code == 0
+    assert not Path(
+        "tmp_test/data/chime/intensity/raw/2022/04/25/astro_222266914/0104/astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack"  # noqa
+    ).exists()
+
+
 def test_cli_pull_force(runner: CliRunner, directory: Path) -> None:
+    """Test for CLI pull command.
+
+    Use '-f' to force download.
+
+    Args:
+        runner (CliRunner): Click runner.
+        directory (Path): Path to downloaded data to.
+    """
     result = runner.invoke(
         datatrail,
         [
@@ -338,7 +443,44 @@ def test_cli_pull_force(runner: CliRunner, directory: Path) -> None:
     ).exists()
 
 
+def test_cli_clear_force(runner: CliRunner, directory: Path) -> None:
+    """Test for CLI clear command.
+
+    Use '-f' to force clear data.
+
+    Args:
+        runner (CliRunner): Click runner.
+        directory (Path): Path to remove data from.
+    """
+    assert Path(
+        "tmp_test/data/chime/intensity/raw/2022/04/25/astro_222266914/0104/astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack"  # noqa
+    ).exists()
+    result = runner.invoke(
+        datatrail,
+        [
+            "clear",
+            "chime.event.intensity.raw",
+            "222266914",
+            "-f",
+            "-d",
+            f"{directory.as_posix()}",
+        ],
+    )
+    assert result.exit_code == 0
+    assert not Path(
+        "tmp_test/data/chime/intensity/raw/2022/04/25/astro_222266914/0104/astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack"  # noqa
+    ).exists()
+
+
 def test_cli_pull_force_2cores(runner: CliRunner, directory: Path) -> None:
+    """Test for CLI pull command.
+
+    Use '-f' to force download and use 2 cores.
+
+    Args:
+        runner (CliRunner): Click runner.
+        directory (Path): Path to downloaded data to.
+    """
     result = runner.invoke(
         datatrail,
         [
@@ -356,6 +498,38 @@ def test_cli_pull_force_2cores(runner: CliRunner, directory: Path) -> None:
     assert Path(
         "tmp_test/data/chime/intensity/raw/2022/04/25/astro_222266914/0104/astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack"  # noqa
     ).exists()
+
+
+def test_cli_clear_bad_site(runner: CliRunner) -> None:
+    """Test for CLI clear command.
+
+    Use site that clear does not work with.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    runner.invoke(datatrail, ["config", "set", "site", "chime"])
+    result = runner.invoke(
+        datatrail, ["clear", "chime.event.intensity.raw", "222266914"]
+    )
+    assert result.exit_code == 1
+    assert isinstance(result.exception, RuntimeError)
+    runner.invoke(datatrail, ["config", "set", "site", "local"])
+
+
+def test_cli_clear_no_files_found(runner: CliRunner) -> None:
+    """Test for CLI clear command.
+
+    No files to clear.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail, ["clear", "chime.event.intensity.raw", "222266914"]
+    )
+    assert result.exit_code == 1
+    assert "No files to clear" in result.output
 
 
 def test_cli_version(runner: CliRunner) -> None:
