@@ -77,6 +77,7 @@ def get(
     destination: List[str],
     certfile: Optional[str] = None,
     namespace: str = "cadc:CHIMEFRB",
+    verbose: int = 0,
 ):
     """Retrieve a file, stored on the CANFAR file server, and copy it locally.
 
@@ -85,26 +86,43 @@ def get(
         destination (List[str]): List of destination files to copy to.
         certfile (Optional[str], optional): Certificate. Defaults to None.
         namespace (str): Minoc Namespace. Defaults to "cadc:CHIMEFRB".
+        verbose (int): Verbosity level. Defaults to 0.
     """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+
+    logger.info("Connecting to CADC...")
     _, storage, _ = _connect(certfile=certfile)
+    not_found: List[str] = []
     try:
+        logger.debug("Checking source and destination length match.")
+        logger.debug(f"Source length: {len(source)}")
+        logger.debug(f"Destination length: {len(destination)}")
         assert len(source) == len(destination), (
             "The number of source files must match the number of destination files."
             f"Got {len(source)} source files and {len(destination)} destination files."
         )
         for index, filename in enumerate(source):
-            filename = namespace + "/" + filename
-            storage.cadcget(filename, destination[index])  # type: ignore
-            logger.debug(f"{filename} ➜ {destination[index]} ✔")
-    except cadcutils.exceptions.NotFoundException as error:  # type: ignore
-        logger.error(f"CADC Exception: {error}")
-        raise error
+            try:
+                filename = namespace + "/" + filename
+                storage.cadcget(filename, destination[index])  # type: ignore
+                logger.debug(f"{filename} ➜ {destination[index]} ✔")
+            except cadcutils.exceptions.NotFoundException as error:  # type: ignore
+                logger.error(f"CADC Exception: {filename}")
+                not_found.append(str(error))
     except cadcutils.exceptions.HttpException as error:  # type: ignore
         logger.error(f"CADC Exception: {error}")
         raise error
     except Exception as error:
         logger.error(f"Error: {error}")
         raise error
+    if len(not_found) > 0:
+        logger.error(f"Number of files not found: {len(not_found)}")
+        logger.error(f"Not found: {not_found}")
     logger.info(f"Process {os.getpid()} finished.")
 
 
@@ -114,6 +132,7 @@ def pget(
     certfile: Optional[str] = None,
     namespace: str = "cadc:CHIMEFRB",
     processors: int = os.cpu_count() or 1,
+    verbose: int = 0,
 ):
     """Parallelly retrieve files, stored on the CANFAR file server, and copy it locally.
 
@@ -124,7 +143,15 @@ def pget(
         namespace (_type_, optional): Minoc Namespace. Defaults to "cadc:CHIMEFRB".
         processors (int, optional): Number of processes to use.
             Defaults to os.cpu_count() or 1.
+        verbose (int, optional): Verbosity level. Defaults to 0.
     """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+
     sources: List[List[Any]] = split(source, processors)
     destinations: List[List[Any]] = split(destination, processors)
     logger.info(f"Starting {processors} processes.")
@@ -132,7 +159,7 @@ def pget(
     for process in range(processors):
         mp = DillProcess(
             target=get,
-            args=(sources[process], destinations[process], certfile, namespace),
+            args=(sources[process], destinations[process], certfile, namespace, verbose),
         )
         processes.append(mp)
     for proc in processes:
