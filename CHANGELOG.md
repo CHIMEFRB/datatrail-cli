@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.2.0...v0.3.0) (2023-06-05)
+
+
+### Features
+
+* **clear:** command to unstage data locally or at arc ([#16](https://github.com/CHIMEFRB/datatrail-cli/issues/16)) ([737c781](https://github.com/CHIMEFRB/datatrail-cli/commit/737c7811a6112a46e842bc135d94d035a9bf301f))
+
+
+### Bug Fixes
+
+* **pull:** FileNotFoundError stopping download ([#15](https://github.com/CHIMEFRB/datatrail-cli/issues/15)) ([cdee724](https://github.com/CHIMEFRB/datatrail-cli/commit/cdee7248d28a94c8bd4cabe3df9c93a337342dd3))
+
 ## [0.2.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.1.2...v0.2.0) (2023-05-26)
 
 
