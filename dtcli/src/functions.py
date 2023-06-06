@@ -310,7 +310,7 @@ def clear_dataset_path(
     if clear_parents:
         logger.debug(f"Clearing parent directories of {parent}.")
     while clear_parents:
-        files: List[Path] = list(parent.iterdir())  # type: ignore
+        files: List[Path] = [f for f in parent.iterdir()]
         logger.debug(f"files: {files}")
         if files:
             logger.debug(f"{parent}: ✗")
