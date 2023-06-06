@@ -28,6 +28,11 @@ console = Console()
     default=None,
     help="Directory to clear data from.",
 )
+@click.option(
+    "--clear-parents",
+    is_flag=True,
+    help="Clear all empty parent directories of dataset.",
+)
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.option("--force", "-f", is_flag=True, help="Do not prompt for confirmation.")
@@ -35,6 +40,7 @@ def clear(
     scope: str,
     dataset: str,
     directory: str,
+    clear_parents: bool,
     verbose: int = 0,
     quiet: bool = False,
     force: bool = False,
@@ -45,6 +51,7 @@ def clear(
         scope (str): Scope of dataset.
         dataset (str): Name of dataset.
         directory (str): Directory to clear data from.
+        clear_parents (bool): Clear all empty parent directories of dataset.
         verbose (int): Verbosity: v=INFO, vv=DUBUG.
         quiet (bool): Minimal logging.
         force (bool): Automatically download files.
@@ -59,6 +66,8 @@ def clear(
     logger.debug("`clear` called with:")
     logger.debug(f"scope: {scope} [{type(scope)}]")
     logger.debug(f"dataset: {dataset} [{type(dataset)}]")
+    logger.debug(f"directory: {directory} [{type(directory)}]")
+    logger.debug(f"clear_parents: {clear_parents} [{type(clear_parents)}]")
     logger.debug(f"verbose: {verbose} [{type(verbose)}]")
     logger.debug(f"quiet: {quiet} [{type(quiet)}]")
 
@@ -100,17 +109,22 @@ def clear(
     size = sum(os.path.getsize(os.path.join(common_path, f)) for f in files)
 
     console.print(f"Directory: {common_path}", style="bold")
-    console.print(f"Found {len(files)} files.")
-    console.print(f"Total size: {size / 1024**3:.2f} GB.\n")
+    console.print(f" - Found {len(files)} files.")
+    console.print(f" - Total size: {size / 1024**3:.2f} GB.\n")
 
     # Confirm deletion.
     if force:
         is_delete = True
     else:
-        is_delete = Confirm.ask("Delete files?")
+        message = (
+            "⚠️  Delete files and empty parent directories?"
+            if clear_parents
+            else "⚠️  Delete files?"
+        )
+        is_delete = Confirm.ask(message)
 
     # Delete files.
     if is_delete:
-        clear_dataset_path(common_path, verbose, quiet)
+        clear_dataset_path(common_path, clear_parents, verbose, quiet)
     else:
         console.print("Roger roger, no files deleted.")
