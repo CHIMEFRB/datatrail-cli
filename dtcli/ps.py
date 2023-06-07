@@ -25,13 +25,13 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-s", "--show-files", is_flag=True, help="Show file names.")
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
-def ps(
+def ps(  # noqa: C901
     scope: str,
     dataset: str,
     show_files: bool,
     verbose: int,
     quiet: bool,
-):  # noqa: C901
+):
     """Detailed status of a dataset.
 
     Args:
@@ -42,7 +42,7 @@ def ps(
         quiet (bool): Set log level to ERROR.
 
     Returns:
-
+        None
     """
     # Set logging level.
     logger.setLevel("WARNING")
