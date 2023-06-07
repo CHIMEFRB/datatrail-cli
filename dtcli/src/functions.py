@@ -103,34 +103,55 @@ def list(  # noqa: C901
 
 
 def ps(
-    scope: str, dataset: str, base_url: Optional[str] = None
+    scope: str,
+    dataset: str,
+    verbose: int = 0,
+    quiet: bool = False,
+    base_url: Optional[str] = None,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """List detailed information about a dataset.
 
     Args:
         scope (Optional[str], optional): Scope of dataset. Defaults to None.
         dataset (Optional[str], optional): Name of dataset. Defaults to None.
+        verbose (int, optional): Verbosity. Defaults to 0.
+        quiet (bool, optional): Minimal logging. Defaults to False.
         base_url (Optional[str], optional): Datatrail URL. Defaults to None.
 
     Returns:
         Tuple[Dict[str, Any], Dict[str, Any]]: Dictionary of dataset files,
             and dictionary of dataset's policies.
     """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+    elif quiet:
+        logger.setLevel("ERROR")
+
     # Load configuration.
+    logger.debug("Loading configuration.")
     try:
         config = procure()
         server = config["server"]
+        logger.debug("Configuration loaded successfully.")
     except Exception:
         raise FileNotFoundError(
             "No configuration file found. Create one with `datatrail config init`."
         )
     if not base_url:
+        logger.debug(f"Setting base_url to {server}.")
         base_url = server
     try:
         files_response = get_dataset_file_info(scope, dataset)
 
+        logger.info(f"Getting policy for {dataset} in {scope}.")
         url: str = str(base_url) + f"/query/dataset/{scope}/{dataset}"
+        logger.debug(f"URL: {url}")
         r = requests.get(url)
+        logger.debug(f"Status: {r.status_code}.")
         policy_response = utilities.decode_response(r)
         if "object has no attribute" in policy_response or isinstance(
             files_response, str
@@ -145,27 +166,47 @@ def ps(
 
 
 def get_dataset_file_info(
-    scope: str, dataset: str, base_url: Optional[str] = None
+    scope: str,
+    dataset: str,
+    verbose: int = 0,
+    quiet: bool = False,
+    base_url: Optional[str] = None,
 ) -> Dict[str, Any]:
     """List detailed information about a dataset.
 
     Args:
         scope (Optional[str], optional): Scope of dataset. Defaults to None.
         dataset (Optional[str], optional): Name of dataset. Defaults to None.
+        verbose (int, optional): Verbosity. Defaults to 0.
+        quiet (bool, optional): Minimal logging. Defaults to False.
         base_url (Optional[str], optional): Datatrail URL. Defaults to None.
 
     Returns:
         Dict[str, Any]: JSON response from server or error string.
     """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+    elif quiet:
+        logger.setLevel("ERROR")
+
     # Load configuration.
     config = procure()
     server = config["server"]
     if not base_url:
         base_url = server
     try:
+        logger.info(f"Finding files for {dataset} in {scope}.")
         payload = {"scope": scope, "name": dataset}
+        logger.debug(f"Payload: {payload}")
         url = str(base_url) + "/query/dataset/find"
+        logger.debug(f"URL: {url}")
         r = requests.post(url, json=payload)
+        logger.debug(f"Status: {r.status_code}.")
+        logger.debug("Decoding response.")
         response = utilities.decode_response(r)
         if "object has no attribute" in response:
             return {"error": f"Could not find {dataset} {scope} in Datatrail."}

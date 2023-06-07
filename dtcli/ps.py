@@ -23,17 +23,52 @@ error_console = Console(stderr=True, style="bold red")
 @click.argument("scope", required=True, type=click.STRING, nargs=1)
 @click.argument("dataset", required=True, type=click.STRING, nargs=1)
 @click.option("-s", "--show-files", is_flag=True, help="Show file names.")
-def ps(scope: str, dataset: str, show_files: bool):  # noqa: C901
-    """Detailed status of a dataset."""
+@click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
+@click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
+def ps(
+    scope: str,
+    dataset: str,
+    show_files: bool,
+    verbose: int,
+    quiet: bool,
+):  # noqa: C901
+    """Detailed status of a dataset.
+
+    Args:
+        scope (str): Scope of dataset.
+        dataset (str): Name of dataset.
+        show_files (bool): Show list of files.
+        verbose (int): Verbosity: v=INFO, vv=DUBUG.
+        quiet (bool): Set log level to ERROR.
+
+    Returns:
+
+    """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+    elif quiet:
+        logger.setLevel("ERROR")
+    logger.debug("`ps` called with:")
+    logger.debug(f"scope: {scope} [{type(scope)}]")
+    logger.debug(f"dataset: {dataset} [{type(dataset)}]")
+    logger.debug(f"show_files: {show_files} [{type(show_files)}]")
+    logger.debug(f"verbose: {verbose} [{type(verbose)}]")
+    logger.debug(f"quiet: {quiet} [{type(quiet)}]")
+
     if not validate_scope(scope):
         raise ValueError("Scope does not exist.")
     try:
-        files, policies = functions.ps(scope, dataset)
+        files, policies = functions.ps(scope, dataset, verbose, quiet)
     except Exception as e:
         logger.error(e)
         return None
 
     # Info table
+    logger.debug("Creating info table.")
     info_table = Table(
         title=f"Datatrail: {dataset} {scope} at Minoc",
         header_style="magenta",
@@ -63,6 +98,7 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
         info_table.add_row("minoc", str(0), str(0))
 
     # Files table
+    logger.debug("Creating files table.")
     file_table = Table(
         # header_style="magenta",
         title_style="magenta",
@@ -88,6 +124,7 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
         file_table.add_section()
 
     # Policy table
+    logger.debug("Creating policy table.")
     policy_table = Table(
         title=f"Datatrail: Policies for {dataset} {scope}",
         header_style="magenta",
@@ -133,7 +170,10 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
 
     if show_files:
         with console.pager():
+            logger.debug("Showing file table.")
             console.print(file_table)
     else:
+        logger.debug("Showing info table.")
         console.print(info_table)
+        logger.debug("Showing policy table.")
         console.print(policy_table)
