@@ -117,6 +117,8 @@ def test_cli_ps_help(runner: CliRunner) -> None:
 
 Options:
   -s, --show-files  Show file names.
+  -v, --verbose     Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet       Set log level to ERROR.
   --help            Show this message and exit.
 """
     assert result.exit_code == 0
