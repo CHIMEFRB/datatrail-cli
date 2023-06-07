@@ -99,9 +99,8 @@ def pull(
     if len(files["missing"]) == 0:
         console.print("No files found at minoc.", style="bold red")
         return None
-    common_path = path.commonpath(files["missing"])
-    if common_path.startswith("cadc:CHIMEFRB"):
-        common_path = common_path.replace("cadc:CHIMEFRB", "")
+    files_paths = [f.replace("cadc:CHIMEFRB", "") for f in files["missing"]]
+    common_path = path.commonpath(["/" + f for f in files_paths])
     try:
         to_download_size = size(common_path)
     except SSLError:

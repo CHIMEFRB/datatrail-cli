@@ -79,9 +79,11 @@ def ps(
     info_table.add_column("Size of Files [GB]", style="green")
     if files["file_replica_locations"].get("minoc"):
         minoc_files = files["file_replica_locations"]["minoc"]
-        common_path = os.path.commonpath(minoc_files)
-        if not common_path.startswith("data") or not common_path.startswith("/data"):
-            common_path = common_path.replace("cadc:CHIMEFRB", "")
+        minoc_files = [f.replace("cadc:CHIMEFRB", "") for f in minoc_files]
+        # Make sure starts with a /
+        common_path = os.path.commonpath(
+            ["/" + f for f in minoc_files if not f.startswith("/")]
+        )
         try:
             size = cadcclient.size(common_path)
         except SSLError as error:
