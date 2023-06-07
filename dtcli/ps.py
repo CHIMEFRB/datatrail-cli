@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import click
+from requests.exceptions import SSLError
 from rich.console import Console
 from rich.table import Table
 
@@ -14,12 +15,15 @@ from dtcli.utilities.utilities import validate_scope
 
 logger = logging.getLogger("ps")
 
+console = Console()
+error_console = Console(stderr=True, style="bold red")
+
 
 @click.command(name="ps", help="Details of a dataset.")
 @click.argument("scope", required=True, type=click.STRING, nargs=1)
 @click.argument("dataset", required=True, type=click.STRING, nargs=1)
 @click.option("-s", "--show-files", is_flag=True, help="Show file names.")
-def ps(scope: str, dataset: str, show_files: bool):
+def ps(scope: str, dataset: str, show_files: bool):  # noqa: C901
     """Detailed status of a dataset."""
     if not validate_scope(scope):
         raise ValueError("Scope does not exist.")
@@ -43,7 +47,17 @@ def ps(scope: str, dataset: str, show_files: bool):
         common_path = os.path.commonpath(minoc_files)
         if not common_path.startswith("data") or not common_path.startswith("/data"):
             common_path = common_path.replace("cadc:CHIMEFRB", "")
-        size = cadcclient.size(common_path)
+        try:
+            size = cadcclient.size(common_path)
+        except SSLError as error:
+            logger.error(error)
+            error_console.print(
+                """
+No valid CADC certificate found.
+Create one using 'cadc-get-cert -u <USERNAME>'.
+"""
+            )
+            return None
         info_table.add_row("minoc", f"{len(minoc_files)}", f"{size:.2f}")
     else:
         info_table.add_row("minoc", str(0), str(0))
@@ -117,7 +131,6 @@ def ps(scope: str, dataset: str, show_files: bool):
             )
     policy_table.add_section()
 
-    console = Console()
     if show_files:
         with console.pager():
             console.print(file_table)

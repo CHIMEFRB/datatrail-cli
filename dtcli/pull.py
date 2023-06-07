@@ -4,6 +4,7 @@ import logging
 from os import cpu_count, path
 
 import click
+from requests.exceptions import SSLError
 from rich.console import Console
 from rich.prompt import Confirm
 
@@ -15,6 +16,7 @@ from dtcli.utilities.utilities import validate_scope
 logger = logging.getLogger("pull")
 
 console = Console()
+error_console = Console(stderr=True, style="bold red")
 
 
 @click.command(name="pull", help="Download a dataset.")
@@ -100,7 +102,16 @@ def pull(
     common_path = path.commonpath(files["missing"])
     if common_path.startswith("cadc:CHIMEFRB"):
         common_path = common_path.replace("cadc:CHIMEFRB", "")
-    to_download_size = size(common_path)
+    try:
+        to_download_size = size(common_path)
+    except SSLError:
+        error_console.print(
+            """
+No valid CADC certificate found.
+Create one using 'cadc-get-cert -u <USERNAME>'.
+"""
+        )
+        return None
     console.print(
         f" - {len(files['existing'])} files found at {site}.",
         style="green",
