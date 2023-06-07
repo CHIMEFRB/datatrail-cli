@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.3.0...v0.4.0) (2023-06-07)
+
+
+### Features
+
+* **clear:** remove empty parent dirs ([#20](https://github.com/CHIMEFRB/datatrail-cli/issues/20)) ([1559608](https://github.com/CHIMEFRB/datatrail-cli/commit/1559608de9d18d1b16a069c5b6b8136afb388fab))
+
 ## [0.3.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.2.0...v0.3.0) (2023-06-05)
 
 
