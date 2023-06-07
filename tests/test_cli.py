@@ -160,6 +160,7 @@ def test_cli_clear_help(runner: CliRunner) -> None:
 
 Options:
   -d, --directory DIRECTORY  Directory to clear data from.
+  --clear-parents            Clear all empty parent directories of dataset.
   -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
   -q, --quiet                Set log level to ERROR.
   -f, --force                Do not prompt for confirmation.

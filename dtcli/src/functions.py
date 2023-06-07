@@ -3,6 +3,7 @@
 import logging
 import os
 import shutil
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -266,11 +267,14 @@ def get_files(
     return None
 
 
-def clear_dataset_path(path: str, verbose: int, quiet: bool) -> bool:
+def clear_dataset_path(
+    path: str, clear_parents: bool, verbose: int, quiet: bool
+) -> bool:
     """Delete a path provided.
 
     Args:
         path (str): Path to delete.
+        clear_parents (bool): Clear empty parent directories recursively.
         verbose (int): Verbosity level.
         quiet (bool): Quiet mode.
 
@@ -285,18 +289,38 @@ def clear_dataset_path(path: str, verbose: int, quiet: bool) -> bool:
     elif quiet:
         logger.setLevel("ERROR")
 
+    logger.debug(f"clear_parents: {clear_parents}")
+
     # Check if path exists.
+    p = Path(path)
     logger.debug(f"Checking if path {path} exists.")
-    exists = os.path.exists(path)
+    exists = p.exists()
 
     # Delete files.
     if exists:
-        shutil.rmtree(path)
+        shutil.rmtree(p)
         logger.info("Path successfully removed.")
-        return True
+        time.sleep(0.1)
     else:
         logger.info(f"Path {path} not found.")
         return False
+
+    # Clear empty parent directories.
+    parent = p.parent
+    if clear_parents:
+        logger.debug(f"Clearing parent directories of {parent}.")
+    while clear_parents:
+        files: List[Path] = [f for f in parent.iterdir()]
+        logger.debug(f"files: {files}")
+        if files:
+            logger.debug(f"{parent}: ✗")
+            clear_parents = False
+        else:
+            logger.debug(f"{parent}: ✔")
+            parent.rmdir()
+            time.sleep(0.1)
+        parent = parent.parent
+    return True
 
 
 def find_dataset_common_path(
