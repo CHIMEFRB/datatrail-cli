@@ -82,7 +82,7 @@ def ps(  # noqa: C901
         minoc_files = [f.replace("cadc:CHIMEFRB", "") for f in minoc_files]
         # Make sure starts with a /
         common_path = os.path.commonpath(
-            ["/" + f for f in minoc_files if not f.startswith("/")]
+            ["/" + f if not f.startswith("/") else f for f in minoc_files]
         )
         try:
             size = cadcclient.size(common_path)
