@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.1...v0.4.2) (2023-06-13)
+
+
+### Bug Fixes
+
+* **ps:** common path bug ([266cc3a](https://github.com/CHIMEFRB/datatrail-cli/commit/266cc3af3d3c397e83c9e18bad39ea5178b191f8))
+
 ## [0.4.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.0...v0.4.1) (2023-06-07)
 
 
