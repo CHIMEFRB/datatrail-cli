@@ -108,6 +108,8 @@ The commands available to you are:
     combination.
 - `pull`: This allows you to download all files belonging to the 'scope' and
 'dataset' provided.
+- `clear`: This removes all files belonging to the 'scope' and 'dataset', only
+available for the local and canfar sites.
 - `config`: Edit the `.datatrail/config.yaml` configuration file.
 - `version`: List the CLI and server version.
 
