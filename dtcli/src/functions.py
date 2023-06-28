@@ -297,7 +297,9 @@ def get_files(
         files = [f.replace("cadc:CHIMEFRB/", "") for f in files]
         if not directory:
             directory = mounts[site]
-        destinations = [directory + "/" + f for f in files]
+        if not directory.endswith("/"):
+            directory += "/"
+        destinations = [(directory + f).replace("//", "/") for f in files]
         # make directory structure if it does not exist.
         folders = {os.path.dirname(path) for path in destinations}
         for folder in folders:
