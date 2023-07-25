@@ -1,9 +1,15 @@
 """Utility functions."""
 
+import json
 from typing import Any, Dict, List, Union
 
 import requests
 from requests.models import Response
+
+try:
+    from packaging.version import parse
+except ImportError:
+    from pip._vendor.packaging.version import parse
 
 
 def decode_response(response: Response) -> Union[Dict, str]:
@@ -59,3 +65,36 @@ def validate_scope(scope: str) -> bool:
     resp = requests.get("https://frb.chimenet.ca/datatrail/query/dataset/scopes")
     scopes = decode_response(resp)
     return scope in scopes
+
+
+def get_latest_released_version(
+    package: str = "datatrail-cli",
+    url_pattern: str = "https://pypi.python.org/pypi/{package}/json",
+):
+    """Get latest released version of a package from pypi.python.org.
+
+    Args:
+        package (str): Package name. Defaults to "datatrail-cli".
+        url_pattern (str): URL pattern. Defaults to "https://pypi.python.org/pypi/{package}/json".  # noqa: E501
+
+    Returns:
+        str: Latest released version.
+    """
+    req = requests.get(url_pattern.format(package=package))
+    version = parse("0")
+    if req.status_code == requests.codes.ok:
+        j = json.loads(req.text.encode(req.encoding))  # type: ignore
+        releases = j.get("releases", [])
+        for release in releases:
+            ver = parse(release)
+            if not ver.is_prerelease:
+                version = max(version, ver)
+    return version
+
+
+def cli_is_latest_release() -> bool:
+    """Check if CLI is latest release."""
+    from pkg_resources import get_distribution
+
+    current_version = parse(get_distribution("datatrail-cli").version)
+    return current_version == get_latest_released_version()
