@@ -88,7 +88,7 @@ def list(
 
     # Display datasets in parent dataset for scope.
     if "datasets" in results.keys():
-        results["datasets"] = sorted(results["datasets"], key=int, reverse=True)
+        results["datasets"] = sorted(results["datasets"], reverse=True)
         if write:
             with open(f"./dataset_list_for_{scope}_{datasets}.txt", "w") as file:
                 json.dump(results, file)
