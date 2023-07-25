@@ -95,22 +95,24 @@ def pull(
 
     # Find files missing from localhost.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")
-    files = find_missing_dataset_files(scope, dataset)
-    if len(files["missing"]) == 0:
+    files = find_missing_dataset_files(scope, dataset, directory, verbose)
+    if len(files["missing"]) == 0 and len(files["existing"]) == 0:
         console.print("No files found at minoc.", style="bold red")
         return None
     files_paths = [f.replace("cadc:CHIMEFRB", "") for f in files["missing"]]
-    common_path = path.commonpath(["/" + f for f in files_paths])
-    try:
-        to_download_size = size(common_path)
-    except SSLError:
-        error_console.print(
-            """
+    to_download_size = 0.0
+    if len(files_paths) > 0:
+        common_path = path.commonpath(["/" + f for f in files_paths])
+        try:
+            to_download_size = size(common_path)
+        except SSLError:
+            error_console.print(
+                """
 No valid CADC certificate found.
 Create one using 'cadc-get-cert -u <USERNAME>'.
 """
-        )
-        return None
+            )
+            return None
     console.print(
         f" - {len(files['existing'])} files found at {site}.",
         style="green",
@@ -127,6 +129,8 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
     # Confirm download.
     if force:
         is_download = True
+    elif to_download_size == 0:
+        return None
     else:
         is_download = Confirm.ask(
             f"Download {len(files['missing'])} files?",

@@ -216,48 +216,58 @@ def get_dataset_file_info(
         return {"error": "Datatrail Server at CHIME is not responding."}
 
 
-def find_missing_dataset_files(scope: str, dataset: str) -> Dict:
+def find_missing_dataset_files(
+    scope: str, dataset: str, root_path: Optional[str] = None, verbose: int = 0
+) -> Dict:
     """List missing files for a dataset.
 
     Args:
         scope (str): Scope of dataset. Defaults to None.
         dataset (str): Name of dataset. Defaults to None.
+        root_path (Optional[str]): Path to download files to. Defaults to None.
+        verbose (int): Verbosity. Defaults to 0.
 
     Returns:
         Dict: Dictionary of results.
     """
-    # Load configuration.
-    config = procure()
-    SITE = config["site"]
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
     # find dataset
-    dataset_locations = get_dataset_file_info(scope, dataset)
+    dataset_locations = get_dataset_file_info(scope, dataset, verbose=verbose)
     if isinstance(dataset_locations, str):
         print(f"Could not find the dataset: {scope}, {dataset}")
         return {}
 
-    # stage dataset
-    site_locations = ["chime", "allenby", "gbo", "hatcreek", "canfar"]
-
     # check for local copy of the data.
-    if SITE in site_locations and dataset_locations["file_replica_locations"].get(SITE):
-        file_uris = dataset_locations["file_replica_locations"][SITE]
-        print(f"Files found at {SITE}")
+    logger.info("Checking for local copies of files.")
+    if dataset_locations["file_replica_locations"].get("minoc"):
+        file_uris = dataset_locations["file_replica_locations"]["minoc"]
+        file_paths = []
+        # Clean up file paths
+        for f in file_uris:
+            if f.startswith("data/"):
+                file_paths.append(f)
+            elif f.startswith("cadc:CHIMEFRB/"):
+                file_paths.append(f.replace("//", "/").replace("cadc:CHIMEFRB/", ""))
+            elif f.startswith("/"):
+                file_paths.append(f.replace("//", "/")[1:])
         # check for missing files
         missing_files = []
         existing_files = []
-        for f in file_uris:
-            if Path(f).exists():
+        for f in file_paths:
+            if Path(root_path + f).exists():
+                logger.debug(f"- {f} : ✔")
                 existing_files.append(f)
             else:
+                logger.debug(f"- {f} : ✘")
                 missing_files.append(f)
 
-    # For local, assume no files exist.
     else:
-        file_replicas = dataset_locations.get("file_replica_locations")
-        if file_replicas:
-            missing_files = file_replicas.get("minoc")
-        else:
-            missing_files = []
+        missing_files = []
         existing_files = []
     return {"missing": missing_files, "existing": existing_files}
 
