@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.2...v0.4.3) (2023-07-25)
+
+
+### Documentation
+
+* **index:** add clear command ([01fcfb5](https://github.com/CHIMEFRB/datatrail-cli/commit/01fcfb5df89a8c567f743c26cc2342ccad93c632))
+
 ## [0.4.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.1...v0.4.2) (2023-06-13)
 
 
