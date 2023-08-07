@@ -17,7 +17,11 @@ theme:
     code: Roboto Mono
   language: en
   features:
-    - tabs
+    - navigation.expand
+    - navigation.top
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
 
 plugins:
   - search
@@ -67,6 +71,14 @@ markdown_extensions:
   - pymdownx.tilde
 
 nav:
-  - Home: index.md
+  - Home:
+      - Datatrail CLI: index.md
+  - User Guide:
+      - Welcome: user_guide.md
+      - Install: install.md
+      - Initialise: initialising.md
+      - Commands:
+          - list: list.md
   - Command Line Interface:
+      - Commands: commands.md
       - Reference: cli.md

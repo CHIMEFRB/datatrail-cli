@@ -6,3 +6,5 @@ This page provides documentation for the Datatrail CLI.
     :module: dtcli.cli
     :command: cli
     :prog_name: datatrail
+    :depth: 1
+    :style: table
