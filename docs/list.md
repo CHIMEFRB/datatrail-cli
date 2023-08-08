@@ -1,5 +1,7 @@
 # 🗒️ Finding scopes and datasets with `list`
 
+![ls-help](images/ls-help.png)
+
 Datasets in Datatrail are identified by the unique combination of a 'scope' and
 a 'dataset name'. A scope gives an indication of site that the data was captured
 at and the type of data product that the dataset contains. For example, the

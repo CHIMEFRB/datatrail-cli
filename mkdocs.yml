@@ -22,6 +22,7 @@ theme:
     - navigation.instant
     - navigation.tabs
     - navigation.tabs.sticky
+    - content.code.annotate
 
 plugins:
   - search
@@ -35,6 +36,7 @@ markdown_extensions:
   - def_list
   - footnotes
   - mkdocs-click
+  - md_in_html
   - meta
   - toc:
       permalink: true
@@ -79,6 +81,9 @@ nav:
       - Initialise: initialising.md
       - Commands:
           - list: list.md
+          - ps: ps.md
+          - pull: pull.md
+          - clear: clear.md
   - Command Line Interface:
       - Commands: commands.md
       - Reference: cli.md
