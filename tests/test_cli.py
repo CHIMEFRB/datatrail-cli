@@ -70,12 +70,14 @@ def test_cli_config_help(runner: CliRunner) -> None:
 
   Datatrail CLI Configuration.
 
+  For initialising and modifying the Datatrail CLI configuration file.
+
 Options:
   --help  Show this message and exit.
 
 Commands:
   get        Get a configuration value.
-  init       Initialize configuration.
+  init       Initialise configuration.
   list (ls)  List all configuration values.
   set        Set a configuration value.
 """
@@ -161,11 +163,12 @@ def test_cli_clear_help(runner: CliRunner) -> None:
   Clear a dataset.
 
 Options:
-  -d, --directory DIRECTORY  Directory to clear data from.
+  -d, --directory DIRECTORY  Root directory to use. Default: None, will use
+                             the value set in the config.
   --clear-parents            Clear all empty parent directories of dataset.
   -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
   -q, --quiet                Set log level to ERROR.
-  -f, --force                Do not prompt for confirmation.
+  -f, --force                Will not prompt for confirmation.
   --help                     Show this message and exit.
 """
     assert result.exit_code == 0

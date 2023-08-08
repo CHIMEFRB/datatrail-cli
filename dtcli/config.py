@@ -17,7 +17,10 @@ CONFIG: Path = Path.home() / ".datatrail" / "config.yaml"
 
 @click.group(cls=ClickAliasedGroup)
 def config():
-    """Datatrail CLI Configuration."""
+    """Datatrail CLI Configuration.
+
+    For initialising and modifying the Datatrail CLI configuration file.
+    """
     pass
 
 
@@ -68,15 +71,26 @@ def list():
             print(exc)
 
 
-@config.command(name="init", help="Initialize configuration.")
+@config.command(
+    name="init",
+    help="""Initialise configuration.
+
+    This will create a configuration file in the home directory under `.datatrail`.
+    Datatrail MUST be initialised before is can be used.
+""",
+)
 @click.option(
-    "--site", "-s", type=click.STRING, help="Site to initialize.", required=True
+    "--site",
+    "-s",
+    type=click.STRING,
+    help="Site to initialise Datatrail CLI for.",
+    required=True,
 )
 def init(site: str):
-    """Initialize configuration.
+    """Initialise configuration.
 
     Args:
-        site (str): Site to initialize.
+        site (str): Site to initialise.
     """
     # Default configuration.
     defaults: Dict[str, Any] = {

@@ -16,7 +16,10 @@ logger = logging.getLogger("clear")
 console = Console()
 
 
-@click.command(name="clear", help="Clear a dataset.")
+@click.command(
+    name="clear",
+    help="""Clear a dataset.""",
+)
 @click.argument("scope", type=click.STRING, required=True, nargs=1)
 @click.argument("dataset", type=click.STRING, required=True, nargs=1)
 @click.option(
@@ -26,7 +29,7 @@ console = Console()
         exists=True, file_okay=False, dir_okay=True, writable=True, resolve_path=True
     ),
     default=None,
-    help="Directory to clear data from.",
+    help="Root directory to use. Default: None, will use the value set in the config.",
 )
 @click.option(
     "--clear-parents",
@@ -35,7 +38,7 @@ console = Console()
 )
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
-@click.option("--force", "-f", is_flag=True, help="Do not prompt for confirmation.")
+@click.option("--force", "-f", is_flag=True, help="Will not prompt for confirmation.")
 def clear(
     scope: str,
     dataset: str,
