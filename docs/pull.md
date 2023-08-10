@@ -5,7 +5,22 @@
     Downloading datasets requires a valid CADC certificate and the relevant
     permissions on CANFAR.
 
-![pull-help](images/pull-help.png)
+<!-- termynal -->
+```bash
+$ datatrail pull --help
+Usage: datatrail pull [OPTIONS] SCOPE DATASET
+
+  Download a dataset.
+
+Options:
+  -d, --directory DIRECTORY  Directory to pull data to.
+  -c, --cores INTEGER RANGE  Number of parallel fetch processes to use.
+                             [1<=x<=8]
+  -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet                Set log level to ERROR.
+  -f, --force                Do not prompt for confirmation.
+  --help                     Show this message and exit.
+```
 
 To download a dataset from MINOC, we use `datatrail pull`. Without any flags,
 this starts a single process to download the dataset. However, if you have
