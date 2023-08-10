@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <div align="center">
     <img src="images/Datatrail-logo.png" width="110", height="100">
 </div>
