@@ -18,6 +18,12 @@ Searching the Datatrail database for scopes and datasets.
 
 ## 🔍 [ps](ps.md)
 
+Querying the Datatrail database for details about a dataset.
+
 ## ⬇️  [pull](pull.md)
 
+Downloading a dataset.
+
 ## 🗑️ [clear](clear.md)
+
+Deleting a dataset.
