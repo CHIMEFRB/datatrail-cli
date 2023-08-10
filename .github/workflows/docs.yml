@@ -36,7 +36,7 @@ jobs:
       - name: Build chimefrb/handbook 
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.CHIMEFRB_BOT_TOKEN }}
+          token: ${{ secrets.BUILD_HANDBOOK_TOKEN }}
           repository: chimefrb/handbook
           event-type: build-hanbook
           client-payload: '{"source": "chimefrb/datatrail-cli"}'
