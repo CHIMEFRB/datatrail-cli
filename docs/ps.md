@@ -1,6 +1,18 @@
 # 🔍 Detailed dataset info using `ps`
 
-![ps-help](images/ps-help.png)
+<!-- termynal -->
+```bash
+$ datatrail ps --help
+Usage: datatrail ps [OPTIONS] SCOPE DATASET
+
+  Details of a dataset.
+
+Options:
+  -s, --show-files  Show file names.
+  -v, --verbose     Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet       Set log level to ERROR.
+  --help            Show this message and exit.
+```
 
 The `ps` command is used to get information about a child dataset. It can
 display the datasets replication and deletion policies, in addition to the
