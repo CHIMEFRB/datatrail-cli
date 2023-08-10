@@ -32,3 +32,11 @@ jobs:
 
       - name: Create docs
         run: poetry run mkdocs gh-deploy --force
+ 
+      - name: Build chimefrb/handbook 
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.CHIMEFRB_BOT_TOKEN }}
+          repository: chimefrb/handbook
+          event-type: build-hanbook
+          client-payload: '{"source": "chimefrb/datatrail-cli"}'
