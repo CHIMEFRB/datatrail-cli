@@ -1,6 +1,19 @@
 # 🗒️ Finding scopes and datasets with `list`
 
-![ls-help](images/ls-help.png)
+<!-- termynal --!>
+```bash
+$ datatrail ls --help
+Usage: datatrail list [OPTIONS] [SCOPE] [DATASETS]
+
+  List scopes & datasets
+
+Options:
+  -v, --verbose  Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet    Only errors shown in logs.
+  --write        Write the events to file.
+  --help         Show this message and exit.
+
+```
 
 Datasets in Datatrail are identified by the unique combination of a 'scope' and
 a 'dataset name'. A scope gives an indication of site that the data was captured
@@ -51,7 +64,7 @@ Within Datatrail, there are two types of datasets:
     │        scheduled.commissioning.steady        │
     └──────────────────────────────────────────────┘
     (END)
-    
+
     ```
 
 !!! note "Datasets within a larger dataset"
