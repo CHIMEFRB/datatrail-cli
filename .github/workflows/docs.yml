@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - "docs/**"
+      - ".github/workflows/docs.yml"
 
 jobs:
   mkdocs:
@@ -38,5 +39,5 @@ jobs:
         with:
           token: ${{ secrets.BUILD_HANDBOOK_TOKEN }}
           repository: chimefrb/handbook
-          event-type: build-hanbook
+          event-type: build-handbook
           client-payload: '{"source": "chimefrb/datatrail-cli"}'
