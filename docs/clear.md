@@ -1,6 +1,20 @@
 # 🗑️ Removing a dataset with `clear`
 
-![clear-help](images/clear-help.png)
+<!-- termynal -->
+```bash
+$ datatrail clear --help
+Usage: datatrail clear [OPTIONS] SCOPE DATASET
+
+  Clear a dataset.
+
+Options:
+  -d, --directory DIRECTORY  Directory to clear data from.
+  --clear-parents            Clear all empty parent directories of dataset.
+  -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet                Set log level to ERROR.
+  -f, --force                Do not prompt for confirmation.
+  --help                     Show this message and exit.
+```
 
 Once you have completed your analysis, or no longer have need of a dataset, you
 can remove it with `datatrail clear`. This will remove the common path of all
@@ -10,7 +24,8 @@ to remove these you can use the `--clear-parents` flag. Like `pull`, `clear`
 will ask for confirmation before removing the dataset.
 
 === "Default"
-    ```shell
+
+    ```bash
     $> datatrail clear kko.event.baseband.raw 308892599
 
     Searching for files for 308892599 kko.event.baseband.raw...
@@ -25,7 +40,7 @@ will ask for confirmation before removing the dataset.
 === "With --clear-parents"
 
     ```shell
-    datatrail clear kko.event.baseband.raw 308892599 --clear-parents
+    $ datatrail clear kko.event.baseband.raw 308892599 --clear-parents
     
     Searching for files for 308892599 kko.event.baseband.raw...
     

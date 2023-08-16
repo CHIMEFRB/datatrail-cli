@@ -1,6 +1,6 @@
 # 🗒️ Finding scopes and datasets with `list`
 
-<!-- termynal --!>
+<!-- termynal -->
 ```bash
 $ datatrail ls --help
 Usage: datatrail list [OPTIONS] [SCOPE] [DATASETS]

@@ -27,6 +27,7 @@ theme:
 plugins:
   - search
   - mkdocstrings
+  - termynal
 
 # Extensions
 markdown_extensions:
