@@ -32,7 +32,7 @@ comments: true
     <br>
     <img alt="GitHub issues" src="https://img.shields.io/github/issues/CHIMEFRB/datatrail-cli?style=for-the-badge&logoColor=D9E0EE&labelColor=302D41">
     <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr-raw/CHIMEFRB/datatrail-cli?style=for-the-badge&logoColor=D9E0EE&labelColor=302D41">
-    <img alt="GitHub" src="https://img.shields.io/github/license/CHIMEFRB/datatrail-cli?style=for-the-badge">
+    <img alt="GitHub" src="https://img.shields.io/github/license/CHIMEFRB/datatrail-cli?style=for-the-badge&logoColor=D9E0EE&labelColor=302D41">
 </p>
 
 <h2>A CLI to interact with files registered in Datatrail</h2>
