@@ -163,8 +163,8 @@ def test_cli_clear_help(runner: CliRunner) -> None:
   Clear a dataset.
 
 Options:
-  -d, --directory DIRECTORY  Root directory to use. Default: None, will use
-                             the value set in the config.
+  -d, --directory DIRECTORY  Root directory to use. Default: None, will use the
+                             value set in the config.
   --clear-parents            Clear all empty parent directories of dataset.
   -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
   -q, --quiet                Set log level to ERROR.
