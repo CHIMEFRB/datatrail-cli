@@ -14,6 +14,7 @@ from dtcli.utilities.utilities import set_log_level, validate_scope
 logger = logging.getLogger("ls")
 
 console = Console()
+error_console = Console(stderr=True, style="bold red")
 
 
 @click.command(help="List scopes & datasets")
@@ -32,14 +33,25 @@ console = Console()
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Only errors shown in logs.")
 @click.option("--write", is_flag=True, help="Write the events to file.")
+@click.pass_context
 def list(
+    ctx: click.Context,
     scope: Optional[str] = None,
     datasets: Optional[str] = None,
     verbose: int = 0,
     quiet: bool = False,
     write: bool = False,
 ):
-    """List Datatrail Scopes & Datasets."""
+    """List Datatrail Scopes & Datasets.
+
+    Args:
+        ctx (click.Context): Click context.
+        scope (str): Scope of dataset.
+        datasets (str): Name of dataset.
+        verbose (int): Verbosity: v=INFO, vv=DEBUG.
+        quiet (bool): Only errors shown in logs.
+        write (bool): Write the events to file.
+    """
     # Set logging level.
     set_log_level(logger, verbose, quiet)
     logger.debug("`list` called with:")
@@ -49,7 +61,10 @@ def list(
     logger.debug(f"quiet: {quiet} [{type(quiet)}]")
     if scope:
         if not validate_scope(scope):
-            raise ValueError("Scope does not exist.")
+            error_console.print("Scope does not exist!")
+            console.print("Valid scopes are:")
+            ctx.invoke(list)
+            return None
     results = functions.list(scope, datasets, verbose, quiet)
 
     # Display scopes.
@@ -103,4 +118,4 @@ def list(
 
     # No contact with server.
     if "error" in results.keys():
-        console.print(results["error"], style="red bold")
+        error_console.print(results["error"])

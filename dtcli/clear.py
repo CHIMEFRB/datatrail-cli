@@ -14,6 +14,7 @@ from dtcli.utilities.utilities import set_log_level, validate_scope
 logger = logging.getLogger("clear")
 
 console = Console()
+error_console = Console(stderr=True, style="bold red")
 
 
 @click.command(
@@ -39,7 +40,9 @@ console = Console()
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.option("--force", "-f", is_flag=True, help="Will not prompt for confirmation.")
+@click.pass_context
 def clear(
+    ctx: click.Context,
     scope: str,
     dataset: str,
     directory: str,
@@ -51,6 +54,7 @@ def clear(
     """Clear a dataset.
 
     Args:
+        ctx (click.Context): Click context.
         scope (str): Scope of dataset.
         dataset (str): Name of dataset.
         directory (str): Directory to clear data from.
@@ -88,7 +92,10 @@ def clear(
         raise RuntimeError("Clear command not permitted at Chime or Outriggers!")
 
     if not validate_scope(scope):
-        raise ValueError("Scope does not exist.")
+        error_console.print("Scope does not exist!")
+        console.print("Valid scopes are:")
+        ctx.invoke(list)
+        return None
 
     # Find number of files in common directory and size.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")

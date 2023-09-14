@@ -41,7 +41,9 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.option("--force", "-f", is_flag=True, help="Do not prompt for confirmation.")
+@click.pass_context
 def pull(
+    ctx: click.Context,
     scope: str,
     dataset: str,
     directory: str,
@@ -53,6 +55,7 @@ def pull(
     """Download a dataset.
 
     Args:
+        ctx (click.Context): Click context.
         scope (str): Scope of dataset.
         dataset (str): Name of dataset.
         directory (str): Directory to pull data to.
@@ -85,7 +88,10 @@ def pull(
         raise click.Abort()
 
     if not validate_scope(scope):
-        raise ValueError("Scope does not exist.")
+        error_console.print("Scope does not exist!")
+        console.print("Valid scopes are:")
+        ctx.invoke(list)
+        return None
 
     # Find files missing from localhost.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")

@@ -28,7 +28,7 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.pass_context
 def ps(
-    ctx,
+    ctx: click.Context,
     scope: str,
     dataset: str,
     show_files: bool,
@@ -38,6 +38,7 @@ def ps(
     """Detailed status of a dataset.
 
     Args:
+        ctx (click.Context): Click context.
         scope (str): Scope of dataset.
         dataset (str): Name of dataset.
         show_files (bool): Show list of files.
