@@ -9,6 +9,7 @@ from requests.exceptions import SSLError
 from rich.console import Console
 from rich.table import Table
 
+from dtcli.ls import list
 from dtcli.src import functions
 from dtcli.utilities import cadcclient
 from dtcli.utilities.utilities import set_log_level, validate_scope
@@ -25,7 +26,9 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-s", "--show-files", is_flag=True, help="Show file names.")
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
+@click.pass_context
 def ps(  # noqa: C901
+    ctx,
     scope: str,
     dataset: str,
     show_files: bool,
@@ -54,7 +57,10 @@ def ps(  # noqa: C901
     logger.debug(f"quiet: {quiet} [{type(quiet)}]")
 
     if not validate_scope(scope):
-        raise ValueError("Scope does not exist.")
+        error_console.print("Scope does not exist!")
+        console.print("Valid scopes are:")
+        ctx.invoke(list)
+        return None
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)
     except Exception as e:
