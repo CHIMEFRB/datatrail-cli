@@ -27,7 +27,7 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.pass_context
-def ps(  # noqa: C901
+def ps(
     ctx,
     scope: str,
     dataset: str,
@@ -67,65 +67,67 @@ def ps(  # noqa: C901
         logger.error(e)
         return None
 
+    if show_files and files:
+        # Files table
+        file_table = create_files_table(dataset, scope, files)
+
+        with console.pager():
+            logger.debug("Showing file table.")
+            console.print(file_table)
+        return None
+
     # Info table
+    if files:
+        info_table = create_info_table(dataset, scope, files)
+        logger.debug("Showing info table.")
+        console.print(info_table)
+
+    # Policy table
+    if policies:
+        policy_table = create_policy_table(dataset, scope, policies)
+        logger.debug("Showing policy table.")
+        console.print(policy_table)
+
+
+def create_info_table(dataset: str, scope: str, files: dict):
+    """Create info table."""
     logger.debug("Creating info table.")
     info_table = Table(
-        title=f"Datatrail: {dataset} {scope} at Minoc",
+        title=f"Datatrail: {dataset} {scope} at SEs",
         header_style="magenta",
         title_style="bold magenta",
     )
-    info_table.add_column("Storage Element", style="bold")
+    info_table.add_column("Storage Element (SE)", style="bold")
     info_table.add_column("Number of Files", style="green")
     info_table.add_column("Size of Files [GB]", style="green")
-    if files["file_replica_locations"].get("minoc"):
-        minoc_files = files["file_replica_locations"]["minoc"]
-        minoc_files = [f.replace("cadc:CHIMEFRB", "") for f in minoc_files]
-        # Make sure starts with a /
-        common_path = os.path.commonpath(
-            ["/" + f if not f.startswith("/") else f for f in minoc_files]
-        )
-        try:
-            size = cadcclient.size(common_path)
-        except SSLError as error:
-            logger.error(error)
-            error_console.print(
-                """
+    for se in files["file_replica_locations"]:
+        logger.debug(f"Creating row for: {se}")
+        se_files = files["file_replica_locations"][se]
+        if se == "minoc":
+            se_files = [f.replace("cadc:CHIMEFRB", "") for f in se_files]
+            # Make sure starts with a /
+            common_path = os.path.commonpath(
+                ["/" + f if not f.startswith("/") else f for f in se_files]
+            )
+            try:
+                size = cadcclient.size(common_path)
+            except SSLError as error:
+                logger.error(error)
+                error_console.print(
+                    """
 No valid CADC certificate found.
 Create one using 'cadc-get-cert -u <USERNAME>'.
 """
-            )
-            return None
-        info_table.add_row("minoc", f"{len(minoc_files)}", f"{size:.2f}")
-    else:
-        info_table.add_row("minoc", str(0), str(0))
+                )
+                return None
+            info_table.add_row(se, f"{len(se_files)}", f"{size:.2f}")
+        else:
+            info_table.add_row(se, f"{len(se_files)}", "Not available")
+    return info_table
 
-    # Files table
-    logger.debug("Creating files table.")
-    file_table = Table(
-        # header_style="magenta",
-        title_style="magenta",
-    )
-    file_table.add_column(
-        f"Datatrail: Files for {dataset} {scope}", style="bold magenta"
-    )
 
-    for se in files["file_replica_locations"]:
-        common_path = os.path.commonpath(files["file_replica_locations"][se])
-        names = [
-            Path(_).relative_to(common_path) for _ in files["file_replica_locations"][se]
-        ]
-        for idx, fn in enumerate(names):
-            if idx == 0:
-                file_table.add_row(f"Storage Element: [magenta]{se}")
-                file_table.add_row(f"Common Path: {common_path}/", style="bold green")
-                file_table.add_row(f"[green]- {fn}")
-                # file_table.add_row(se, common_path, fn)
-            else:
-                file_table.add_row(f"- {fn}", style="green")
-                # file_table.add_row("", "", fn)
-        file_table.add_section()
-
-    # Policy table
+def create_policy_table(dataset: str, scope: str, policies: dict):
+    """Create policy table."""
     logger.debug("Creating policy table.")
     policy_table = Table(
         title=f"Datatrail: Policies for {dataset} {scope}",
@@ -134,8 +136,11 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
         show_footer=True,
         footer_style="bold red",
     )
+    belongs_to = (
+        policies["belongs_to"][0]["name"] if len(policies["belongs_to"]) > 0 else "None"
+    )
     policy_table.add_column("Policy", style="bold", footer="Belongs to")
-    policy_table.add_column("Storage Element", footer=policies["belongs_to"][0]["name"])
+    policy_table.add_column("Storage Element", footer=belongs_to)
     policy_table.add_column("Priority")
     policy_table.add_column("Default")
     policy_table.add_column(r"Delete After \[days]")
@@ -169,13 +174,33 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
                 str(dp["delete_after_days"]),
             )
     policy_table.add_section()
+    return policy_table
 
-    if show_files:
-        with console.pager():
-            logger.debug("Showing file table.")
-            console.print(file_table)
-    else:
-        logger.debug("Showing info table.")
-        console.print(info_table)
-        logger.debug("Showing policy table.")
-        console.print(policy_table)
+
+def create_files_table(dataset: str, scope: str, files: dict):
+    """Create files table."""
+    logger.debug("Creating files table.")
+    file_table = Table(
+        # header_style="magenta",
+        title_style="magenta",
+    )
+    file_table.add_column(
+        f"Datatrail: Files for {dataset} {scope}", style="bold magenta"
+    )
+
+    for se in files["file_replica_locations"]:
+        common_path = os.path.commonpath(files["file_replica_locations"][se])
+        names = [
+            Path(_).relative_to(common_path) for _ in files["file_replica_locations"][se]
+        ]
+        for idx, fn in enumerate(names):
+            if idx == 0:
+                file_table.add_row(f"Storage Element: [magenta]{se}")
+                file_table.add_row(f"Common Path: {common_path}/", style="bold green")
+                file_table.add_row(f"[green]- {fn}")
+                # file_table.add_row(se, common_path, fn)
+            else:
+                file_table.add_row(f"- {fn}", style="green")
+                # file_table.add_row("", "", fn)
+        file_table.add_section()
+    return file_table

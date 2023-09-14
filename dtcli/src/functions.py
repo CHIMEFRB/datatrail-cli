@@ -103,7 +103,7 @@ def ps(
     verbose: int = 0,
     quiet: bool = False,
     base_url: Optional[str] = None,
-) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
     """List detailed information about a dataset.
 
     Args:
@@ -134,7 +134,7 @@ def ps(
         logger.debug(f"Setting base_url to {server}.")
         base_url = server
     try:
-        files_response = get_dataset_file_info(scope, dataset)
+        files_response = get_dataset_file_info(scope, dataset, verbose, quiet)
 
         logger.info(f"Getting policy for {dataset} in {scope}.")
         url: str = str(base_url) + f"/query/dataset/{scope}/{dataset}"
@@ -142,11 +142,12 @@ def ps(
         r = requests.get(url)
         logger.debug(f"Status: {r.status_code}.")
         policy_response = utilities.decode_response(r)
-        if "object has no attribute" in policy_response or isinstance(
+        if "object has no attribute" in policy_response and isinstance(
             files_response, str
         ):
             raise Exception(f"Could not find {dataset} {scope} in Datatrail.")
-
+        elif isinstance(files_response, str):
+            return None, policy_response
         return files_response, policy_response  # type: ignore
 
     except requests.exceptions.ConnectionError as e:
