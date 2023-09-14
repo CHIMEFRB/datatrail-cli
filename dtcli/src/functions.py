@@ -33,13 +33,8 @@ def list(  # noqa: C901
         Dict[str, Any]: Keys 'error', 'scopes', or 'datasets'. Values are the
             results or error message.
     """
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
-    elif quiet:
-        logger.setLevel("ERROR")
+    # Set logging level.
+    utilities.set_log_level(logger, verbose, quiet)
     # Load configuration.
     logger.debug("Loading configuration.")
     try:
@@ -123,13 +118,7 @@ def ps(
             and dictionary of dataset's policies.
     """
     # Set logging level.
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
-    elif quiet:
-        logger.setLevel("ERROR")
+    utilities.set_log_level(logger, verbose, quiet)
 
     # Load configuration.
     logger.debug("Loading configuration.")
@@ -185,13 +174,7 @@ def get_dataset_file_info(
         Dict[str, Any]: JSON response from server or error string.
     """
     # Set logging level.
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
-    elif quiet:
-        logger.setLevel("ERROR")
+    utilities.set_log_level(logger, verbose, quiet)
 
     # Load configuration.
     config = procure()
@@ -231,11 +214,8 @@ def find_missing_dataset_files(
         Dict: Dictionary of results.
     """
     # Set logging level.
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
+    utilities.set_log_level(logger, verbose)
+
     # find dataset
     dataset_locations = get_dataset_file_info(scope, dataset, verbose=verbose)
     if isinstance(dataset_locations, str):
@@ -292,11 +272,8 @@ def get_files(
         None
     """
     # Set logging level.
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
+    utilities.set_log_level(logger, verbose)
+
     # Load configuration.
     config = procure()
     mounts = config["root_mounts"]
@@ -334,13 +311,8 @@ def clear_dataset_path(
     Returns:
         bool: True if path was deleted.
     """
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
-    elif quiet:
-        logger.setLevel("ERROR")
+    # Set logging level.
+    utilities.set_log_level(logger, verbose, quiet)
 
     logger.debug(f"clear_parents: {clear_parents}")
 
@@ -391,13 +363,9 @@ def find_dataset_common_path(
     Returns:
         Optional[str]: Common path for dataset.
     """
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
-    elif quiet:
-        logger.setLevel("ERROR")
+    # Set logging level.
+    utilities.set_log_level(logger, verbose, quiet)
+
     # Load configuration.
     logger.debug("Loading configuration.")
     try:

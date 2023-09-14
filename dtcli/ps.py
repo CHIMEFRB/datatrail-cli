@@ -11,7 +11,7 @@ from rich.table import Table
 
 from dtcli.src import functions
 from dtcli.utilities import cadcclient
-from dtcli.utilities.utilities import validate_scope
+from dtcli.utilities.utilities import set_log_level, validate_scope
 
 logger = logging.getLogger("ps")
 
@@ -45,13 +45,7 @@ def ps(  # noqa: C901
         None
     """
     # Set logging level.
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
-    elif quiet:
-        logger.setLevel("ERROR")
+    set_log_level(logger, verbose, quiet)
     logger.debug("`ps` called with:")
     logger.debug(f"scope: {scope} [{type(scope)}]")
     logger.debug(f"dataset: {dataset} [{type(dataset)}]")

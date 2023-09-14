@@ -11,7 +11,7 @@ from rich.prompt import Confirm
 from dtcli.config import procure
 from dtcli.src.functions import find_missing_dataset_files, get_files
 from dtcli.utilities.cadcclient import size
-from dtcli.utilities.utilities import validate_scope
+from dtcli.utilities.utilities import set_log_level, validate_scope
 
 logger = logging.getLogger("pull")
 
@@ -62,13 +62,7 @@ def pull(
         force (bool): Automatically download files.
     """
     # Set logging level.
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
-    elif quiet:
-        logger.setLevel("ERROR")
+    set_log_level(logger, verbose, quiet)
     logger.debug("`pull` called with:")
     logger.debug(f"scope: {scope} [{type(scope)}]")
     logger.debug(f"dataset: {dataset} [{type(dataset)}]")

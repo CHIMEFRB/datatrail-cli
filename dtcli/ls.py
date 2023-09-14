@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from dtcli.src import functions
-from dtcli.utilities.utilities import validate_scope
+from dtcli.utilities.utilities import set_log_level, validate_scope
 
 logger = logging.getLogger("ls")
 
@@ -40,13 +40,8 @@ def list(
     write: bool = False,
 ):
     """List Datatrail Scopes & Datasets."""
-    logger.setLevel("WARNING")
-    if verbose == 1:
-        logger.setLevel("INFO")
-    elif verbose > 1:
-        logger.setLevel("DEBUG")
-    elif quiet:
-        logger.setLevel("ERROR")
+    # Set logging level.
+    set_log_level(logger, verbose, quiet)
     logger.debug("`list` called with:")
     logger.debug(f"scope: {scope} [{type(scope)}]")
     logger.debug(f"datasets: {datasets} [{type(datasets)}]")

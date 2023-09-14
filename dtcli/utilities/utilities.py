@@ -1,6 +1,7 @@
 """Utility functions."""
 
 import json
+import logging
 from typing import Any, Dict, List, Union
 
 import requests
@@ -10,6 +11,18 @@ try:
     from packaging.version import parse
 except ImportError:
     from pip._vendor.packaging.version import parse
+
+
+def set_log_level(logger: logging.Logger, verbose: int = 0, quiet: bool = False) -> None:
+    """Set log level."""
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+    elif quiet:
+        logger.setLevel("ERROR")
+    else:
+        logger.setLevel("WARNING")
 
 
 def decode_response(response: Response) -> Union[Dict, str]:
