@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.4](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.3...v0.4.4) (2023-09-19)
+
+
+### Bug Fixes
+
+* **ps:** if parent dataset show only policies ([99b4bdd](https://github.com/CHIMEFRB/datatrail-cli/commit/99b4bddfbb788f6617dce408342232e0aa411156))
+* **ps:** invalid scopes, valid scopes are now shown after error message ([5347137](https://github.com/CHIMEFRB/datatrail-cli/commit/534713782fe5105055506d55f1f43c51c110a4b4))
+
+
+### Documentation
+
+* **all-docs:** revamp and additional content ([697fa6f](https://github.com/CHIMEFRB/datatrail-cli/commit/697fa6f2d2e150414c034c9d45a461808cd87381))
+* **index.md:** allow comments ([c680000](https://github.com/CHIMEFRB/datatrail-cli/commit/c6800007925c5794a5f7c29a63934c904cdaea07))
+* **index:** badge ([09c637e](https://github.com/CHIMEFRB/datatrail-cli/commit/09c637eea007d0176a0ca0abe7524ca9f5c8a667))
+* **list:** test terminal plug in ([2cb4bc0](https://github.com/CHIMEFRB/datatrail-cli/commit/2cb4bc00ae89bdd1a7321ca2bd887da556225641))
+* **style:** use termynal ([e908d47](https://github.com/CHIMEFRB/datatrail-cli/commit/e908d4786e63972bef9f712b6c740088c8ac7906))
+* **user-guide:** command highlights ([6813964](https://github.com/CHIMEFRB/datatrail-cli/commit/6813964e361391a8cbd4558b7c9bcda32c42cd7c))
+* **user-guide:** completed ([a25ac76](https://github.com/CHIMEFRB/datatrail-cli/commit/a25ac767f8fee8bb22d100358481090c186f8e1f))
+
 ## [0.4.3](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.2...v0.4.3) (2023-07-25)
 
 
