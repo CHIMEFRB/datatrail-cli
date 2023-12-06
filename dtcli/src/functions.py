@@ -422,7 +422,7 @@ def view_results(
         limit (int): Limit number of results.
 
     Returns:
-
+        List[Dict[str, Any]]: Results from pipeline.
     """
     response = requests.post(
         "https://frb.chimenet.ca/results/view",

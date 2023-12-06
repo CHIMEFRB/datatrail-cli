@@ -81,17 +81,18 @@ def ps(
     if files:
         if len(files["file_replica_locations"]) < 1:
             unregistered_info = functions.get_unregistered_dataset(dataset, scope)
-            console.print(
-                f":warning: {dataset} is an unregistered dataset :warning:",
-                style="bold yellow",
-                justify="center",
-            )
-            console.print(
-                f"Parent dataset: [bold red]{unregistered_info['results']['attach_to_dataset']}[/]"
-            )
-            console.print(
-                f"Reason it cannot be registered: [bold red]{unregistered_info['results']['reason']}[/]\n"
-            )
+            if unregistered_info:
+                console.print(
+                    f":warning: {dataset} is an unregistered dataset :warning:",
+                    style="bold yellow",
+                    justify="center",
+                )
+                console.print(
+                    f"Parent dataset: [bold red]{unregistered_info['results']['attach_to_dataset']}[/]"  # noqa: E501
+                )
+                console.print(
+                    f"Reason it cannot be registered: [bold red]{unregistered_info['results']['reason']}[/]\n"  # noqa: E501
+                )
 
         else:
             info_table = create_info_table(dataset, scope, files)
