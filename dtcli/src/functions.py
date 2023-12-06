@@ -405,3 +405,58 @@ def find_dataset_common_path(
         return None
 
     return common_path
+
+
+def view_results(
+    pipeline: str,
+    query: Dict[str, Any],
+    projection: Dict[str, Any],
+    limit: int = 100,
+) -> List[Dict[str, Any]]:
+    """View results from a pipeline.
+
+    Args:
+        pipeline (str): Name of pipeline.
+        query (Dict[str, Any]): Query for pipeline.
+        projection (Dict[str, Any]): Projection for pipeline.
+        limit (int): Limit number of results.
+
+    Returns:
+        List[Dict[str, Any]]: Results from pipeline.
+    """
+    response = requests.post(
+        "https://frb.chimenet.ca/results/view",
+        json={
+            "query": {"pipeline": pipeline, **query},
+            "projection": projection,
+            "limit": limit,
+        },
+    )
+    return response.json()
+
+
+def get_unregistered_dataset(dataset: str, scope: str) -> Optional[Dict[str, Any]]:
+    """Get unregistered dataset from Datatrail.
+
+    Args:
+        dataset (str): Name of dataset.
+
+    Returns:
+        Optional[Dict[str, Any]]: Unregistered dataset information.
+    """
+    site = scope.split(".")[0]
+    assert site in ["chime", "kko", "gbo", "hco"]
+    response = view_results(
+        "datatrail-unregistered-datasets",
+        query={
+            "site": "chime",
+            "results.dataset_name": dataset,
+        },
+        projection={"results.files": 0},
+        limit=1,
+    )
+
+    if len(response) == 0:
+        return None
+    else:
+        return response[0]
