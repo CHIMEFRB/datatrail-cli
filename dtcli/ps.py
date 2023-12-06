@@ -68,6 +68,10 @@ def ps(
         logger.error(e)
         return None
 
+    if files and ("error" in files.keys()):
+        error_console.print(files["error"])
+        return None
+
     if show_files and files:
         # Files table
         file_table = create_files_table(dataset, scope, files)
