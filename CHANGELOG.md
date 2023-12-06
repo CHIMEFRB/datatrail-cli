@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.4...v0.5.0) (2023-12-06)
+
+
+### Features
+
+* **ps:** if no files check if dataset is in unregistered bucket and notify user ([40ed903](https://github.com/CHIMEFRB/datatrail-cli/commit/40ed903623a4ec9fd4043b4d1863626303830a54)), closes [#46](https://github.com/CHIMEFRB/datatrail-cli/issues/46)
+
+
+### Bug Fixes
+
+* **ps:** controlled error if dataset doesnt exist in datatrail ([09a9d13](https://github.com/CHIMEFRB/datatrail-cli/commit/09a9d13a879971b65902ea19c3b2cda8ce7289de))
+
 ## [0.4.4](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.3...v0.4.4) (2023-09-19)
 
 
