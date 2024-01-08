@@ -82,7 +82,7 @@ def list():
 @click.option(
     "--site",
     "-s",
-    type=click.STRING,
+    type=click.Choice(["chime", "canfar", "kko", "gbo", "hco", "local"]),
     help="Site to initialise Datatrail CLI for.",
     required=True,
 )
