@@ -290,8 +290,14 @@ def get_files(
         destinations = [(directory + f).replace("//", "/") for f in files]
         # make directory structure if it does not exist.
         folders = {os.path.dirname(path) for path in destinations}
-        for folder in folders:
-            os.makedirs(folder, exist_ok=True)
+        if site == "canfar":
+            for folder in folders:
+                os.makedirs(folder, exist_ok=True)
+                os.system(f"chgrp -R chime-frb-rw {folder}")  # nosec
+                os.system(f"chmod -R g+w {folder}")  # nosec
+        else:
+            for folder in folders:
+                os.makedirs(folder, exist_ok=True)
         cadcclient.pget(
             source=files, destination=destinations, processors=cores, verbose=verbose
         )
