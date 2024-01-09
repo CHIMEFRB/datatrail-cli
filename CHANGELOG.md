@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.0...v0.5.1) (2024-01-09)
+
+
+### Bug Fixes
+
+* **init:** set valid choices for datatrail config init ([63f96c3](https://github.com/CHIMEFRB/datatrail-cli/commit/63f96c30c07be1d787381e5457021e805ea0cc6f))
+* **pull:** set group permissions if site is canfar ([70236ae](https://github.com/CHIMEFRB/datatrail-cli/commit/70236ae21c0e324d153be89dcead87489b77e5e5))
+
 ## [0.5.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.4.4...v0.5.0) (2023-12-06)
 
 
