@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.1...v0.5.2) (2024-04-09)
+
+
+### Bug Fixes
+
+* Update cadcdata to version 2.5 ([#58](https://github.com/CHIMEFRB/datatrail-cli/issues/58)) ([8ed6ad3](https://github.com/CHIMEFRB/datatrail-cli/commit/8ed6ad3914850483d147f0605809c1dd76363403))
+
 ## [0.5.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.0...v0.5.1) (2024-01-09)
 
 
