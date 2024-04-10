@@ -157,9 +157,12 @@ def create_policy_table(dataset: str, scope: str, policies: dict):
         show_footer=True,
         footer_style="bold red",
     )
-    belongs_to = (
-        policies["belongs_to"][0]["name"] if len(policies["belongs_to"]) > 0 else "None"
-    )
+    if len(policies["belongs_to"]) > 1:
+        belongs_to = ", ".join([lgr_ds["name"] for lgr_ds in policies["belongs_to"]])
+    elif len(policies["belongs_to"]) == 1:
+        belongs_to = policies["belongs_to"][0]["name"]
+    else:
+        belongs_to = None
     policy_table.add_column("Policy", style="bold", footer="Belongs to")
     policy_table.add_column("Storage Element", footer=belongs_to)
     policy_table.add_column("Priority")
