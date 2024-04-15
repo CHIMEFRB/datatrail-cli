@@ -75,8 +75,10 @@ def list(
             title_style="bold magenta",
         )
         table.add_column("Scopes")
-        for s in results["scopes"]:
-            table.add_row(s)
+        for site in ["chime", "kko", "gbo", "hco"]:
+            for s in [_ for _ in results["scopes"] if site in _]:
+                table.add_row(s)
+            table.add_section()
         console.print(table)
 
     if "larger_datasets" in results.keys():
