@@ -12,6 +12,9 @@ import requests
 from dtcli.config import procure
 from dtcli.utilities import cadcclient, utilities
 
+config = procure()
+site = config["site"]
+
 logger = logging.getLogger("functions")
 
 
@@ -330,7 +333,10 @@ def clear_dataset_path(
 
     # Delete files.
     if exists:
-        if len(p.parents) < 4:
+        min_parents = 4
+        if site == "canfar":
+            min_parents = 7
+        if len(p.parents) < min_parents:
             logger.critical("Path is a core directory! Cannot delete.")
             return False
         else:
