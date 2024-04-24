@@ -12,9 +12,6 @@ import requests
 from dtcli.config import procure
 from dtcli.utilities import cadcclient, utilities
 
-config = procure()
-site = config["site"]
-
 logger = logging.getLogger("functions")
 
 
@@ -333,6 +330,8 @@ def clear_dataset_path(
 
     # Delete files.
     if exists:
+        config = procure()
+        site = config["site"]
         min_parents = 4
         if site == "canfar":
             min_parents = 7
