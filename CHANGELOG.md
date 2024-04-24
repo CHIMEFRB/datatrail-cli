@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.3](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.2...v0.5.3) (2024-04-24)
+
+
+### Bug Fixes
+
+* **functions.py:** patches deletion logic to check that the path to be deleted is greater than 3 levels deep ([#64](https://github.com/CHIMEFRB/datatrail-cli/issues/64)) ([ad43f35](https://github.com/CHIMEFRB/datatrail-cli/commit/ad43f35ce7b8fbc87210ca93df4433b3c4bbe06d))
+* **ls:** seperate scopes by site ([5bddcc7](https://github.com/CHIMEFRB/datatrail-cli/commit/5bddcc7b368fa0594128f0f7fcb0b2e26959d77e))
+* **ps:** shows multiple larger datasets in belongs to ([6b32903](https://github.com/CHIMEFRB/datatrail-cli/commit/6b32903007a77f4d8539659870dacbcd94e67f18))
+
 ## [0.5.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.1...v0.5.2) (2024-04-09)
 
 
