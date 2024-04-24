@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.3...v0.5.4) (2024-04-24)
+
+
+### Bug Fixes
+
+* **functions.py:** added specific handling for canfar site, where the… ([#66](https://github.com/CHIMEFRB/datatrail-cli/issues/66)) ([895a3ca](https://github.com/CHIMEFRB/datatrail-cli/commit/895a3ca7bdb7000847313ef12fe17e50ad7308c8))
+
 ## [0.5.3](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.2...v0.5.3) (2024-04-24)
 
 
