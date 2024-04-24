@@ -330,7 +330,12 @@ def clear_dataset_path(
 
     # Delete files.
     if exists:
-        if len(p.parents) < 4:
+        config = procure()
+        site = config["site"]
+        min_parents = 4
+        if site == "canfar":
+            min_parents = 7
+        if len(p.parents) < min_parents:
             logger.critical("Path is a core directory! Cannot delete.")
             return False
         else:
