@@ -330,8 +330,12 @@ def clear_dataset_path(
 
     # Delete files.
     if exists:
-        shutil.rmtree(p)
-        logger.info("Path successfully removed.")
+        if len(p.parents) < 4:
+            logger.critical("Path is a core directory! Cannot delete.")
+            return False
+        else:
+            shutil.rmtree(p)
+            logger.info("Path successfully removed.")
         time.sleep(0.1)
     else:
         logger.info(f"Path {path} not found.")
