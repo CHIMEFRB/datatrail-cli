@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.5](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.4...v0.5.5) (2024-05-01)
+
+
+### Bug Fixes
+
+* **ps:** belongs_to cannot be none must be empty string ([#69](https://github.com/CHIMEFRB/datatrail-cli/issues/69)) ([b348dbd](https://github.com/CHIMEFRB/datatrail-cli/commit/b348dbdaa94e106f9c55be006b572566155d2be6))
+
 ## [0.5.4](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.3...v0.5.4) (2024-04-24)
 
 
