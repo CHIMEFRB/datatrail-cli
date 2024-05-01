@@ -162,7 +162,7 @@ def create_policy_table(dataset: str, scope: str, policies: dict):
     elif len(policies["belongs_to"]) == 1:
         belongs_to = policies["belongs_to"][0]["name"]
     else:
-        belongs_to = None
+        belongs_to = ""
     policy_table.add_column("Policy", style="bold", footer="Belongs to")
     policy_table.add_column("Storage Element", footer=belongs_to)
     policy_table.add_column("Priority")
