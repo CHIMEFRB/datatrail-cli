@@ -72,10 +72,6 @@ def ps(
         logger.error(e)
         return None
 
-    if files and ("error" in files.keys()):
-        error_console.print(files["error"])
-        return None
-
     if show_files and files:
         # Files table
         file_table = create_files_table(dataset, scope, files)
@@ -85,8 +81,11 @@ def ps(
             console.print(file_table)
         return None
 
+    if files and ("error" in files.keys()):
+        error_console.print(files["error"])
+
     # Info table
-    if files:
+    elif files:
         if len(files["file_replica_locations"]) < 1:
             unregistered_info = functions.get_unregistered_dataset(dataset, scope)
             if unregistered_info:
