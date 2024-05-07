@@ -36,6 +36,8 @@ def decode_response(response: Response) -> Union[Dict, str]:
     """
     if response.status_code in [200, 201]:
         return response.json()
+    elif response.status_code in [503]:
+        raise requests.exceptions.ConnectionError("Service not responding.")
     else:
         return response.text
 

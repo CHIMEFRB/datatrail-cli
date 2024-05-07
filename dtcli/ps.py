@@ -57,10 +57,14 @@ def ps(
     logger.debug(f"verbose: {verbose} [{type(verbose)}]")
     logger.debug(f"quiet: {quiet} [{type(quiet)}]")
 
-    if not validate_scope(scope):
-        error_console.print("Scope does not exist!")
-        console.print("Valid scopes are:")
-        ctx.invoke(list)
+    try:
+        if not validate_scope(scope):
+            error_console.print("Scope does not exist!")
+            console.print("Valid scopes are:")
+            ctx.invoke(list)
+            return None
+    except Exception as e:
+        error_console.print(e)
         return None
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)

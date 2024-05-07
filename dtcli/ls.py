@@ -5,6 +5,7 @@ import logging
 from typing import Optional
 
 import click
+from requests.exceptions import ConnectionError
 from rich.console import Console
 from rich.table import Table
 
@@ -60,10 +61,14 @@ def list(
     logger.debug(f"verbose: {verbose} [{type(verbose)}]")
     logger.debug(f"quiet: {quiet} [{type(quiet)}]")
     if scope:
-        if not validate_scope(scope):
-            error_console.print("Scope does not exist!")
-            console.print("Valid scopes are:")
-            ctx.invoke(list)
+        try:
+            if not validate_scope(scope):
+                error_console.print("Scope does not exist!")
+                console.print("Valid scopes are:")
+                ctx.invoke(list)
+                return None
+        except ConnectionError as e:
+            error_console.print(e)
             return None
     results = functions.list(scope, datasets, verbose, quiet)
 

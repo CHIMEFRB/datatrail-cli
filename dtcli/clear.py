@@ -4,6 +4,7 @@ import logging
 import os
 
 import click
+from requests.exceptions import ConnectionError
 from rich.console import Console
 from rich.prompt import Confirm
 
@@ -91,10 +92,14 @@ def clear(
     if site not in ["local", "canfar"]:
         raise RuntimeError("Clear command not permitted at Chime or Outriggers!")
 
-    if not validate_scope(scope):
-        error_console.print("Scope does not exist!")
-        console.print("Valid scopes are:")
-        ctx.invoke(list)
+    try:
+        if not validate_scope(scope):
+            error_console.print("Scope does not exist!")
+            console.print("Valid scopes are:")
+            ctx.invoke(list)
+            return None
+    except ConnectionError as error:
+        error_console.print(error)
         return None
 
     # Find number of files in common directory and size.

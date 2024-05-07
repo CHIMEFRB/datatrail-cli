@@ -4,7 +4,7 @@ import logging
 from os import cpu_count, path
 
 import click
-from requests.exceptions import SSLError
+from requests.exceptions import ConnectionError, SSLError
 from rich.console import Console
 from rich.prompt import Confirm
 
@@ -87,10 +87,14 @@ def pull(
         )
         raise click.Abort()
 
-    if not validate_scope(scope):
-        error_console.print("Scope does not exist!")
-        console.print("Valid scopes are:")
-        ctx.invoke(list)
+    try:
+        if not validate_scope(scope):
+            error_console.print("Scope does not exist!")
+            console.print("Valid scopes are:")
+            ctx.invoke(list)
+            return None
+    except ConnectionError as e:
+        error_console.print(e)
         return None
 
     # Find files missing from localhost.
