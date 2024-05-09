@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.6](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.5...v0.5.6) (2024-05-09)
+
+
+### Bug Fixes
+
+* **cli:** catch http 503 errors when validating scope ([b6e75af](https://github.com/CHIMEFRB/datatrail-cli/commit/b6e75affe6db6508882ed5e3da1b22bdec194156))
+* **functions.py:** changed error catching checks to be for dictionaries with error keys in them as opposed to strings ([#74](https://github.com/CHIMEFRB/datatrail-cli/issues/74)) ([6fdb244](https://github.com/CHIMEFRB/datatrail-cli/commit/6fdb244e46a62253f4654681ec5e5d76431f49f0))
+
 ## [0.5.5](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.4...v0.5.5) (2024-05-01)
 
 
