@@ -142,12 +142,12 @@ def ps(
         r = requests.get(url)
         logger.debug(f"Status: {r.status_code}.")
         policy_response = utilities.decode_response(r)
-        if "object has no attribute" in policy_response and isinstance(
-            files_response, str
+        if ("object has no attribute" in policy_response) and (
+            "error" in files_response
         ):
-            raise Exception(f"Could not find {dataset} {scope} in Datatrail.")
-        elif isinstance(files_response, str):
-            return None, policy_response
+            raise Exception(files_response["error"])
+        elif "error" in files_response:
+            return None, policy_response  # type: ignore
         return files_response, policy_response  # type: ignore
 
     except requests.exceptions.ConnectionError as e:
@@ -219,8 +219,8 @@ def find_missing_dataset_files(
 
     # find dataset
     dataset_locations = get_dataset_file_info(scope, dataset, verbose=verbose)
-    if isinstance(dataset_locations, str):
-        print(f"Could not find the dataset: {scope}, {dataset}")
+    if "error" in dataset_locations:
+        print(dataset_locations["error"])
         return {}
 
     # check for local copy of the data.
