@@ -69,7 +69,7 @@ def ps(
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)
     except Exception as e:
-        logger.error(e)
+        error_console.print(e)
         return None
 
     if show_files and files:
