@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.7](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.6...v0.5.7) (2024-05-10)
+
+
+### Bug Fixes
+
+* **functions:** changed return of find_missing_datasets to always ret… ([#76](https://github.com/CHIMEFRB/datatrail-cli/issues/76)) ([a8c0f3d](https://github.com/CHIMEFRB/datatrail-cli/commit/a8c0f3ded414c4e8d4fbca9529bfda7610531841))
+
 ## [0.5.6](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.5...v0.5.6) (2024-05-09)
 
 
