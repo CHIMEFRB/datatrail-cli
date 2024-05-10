@@ -100,7 +100,10 @@ def pull(
     # Find files missing from localhost.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")
     files = find_missing_dataset_files(scope, dataset, directory, verbose)
-    if len(files["missing"]) == 0 and len(files["existing"]) == 0:
+    if files.get("error"):
+        error_console.print(files["error"])
+        return None
+    elif len(files["missing"]) == 0 and len(files["existing"]) == 0:
         console.print("No files found at minoc.", style="bold red")
         return None
     files_paths = [f.replace("cadc:CHIMEFRB", "") for f in files["missing"]]

@@ -220,8 +220,7 @@ def find_missing_dataset_files(
     # find dataset
     dataset_locations = get_dataset_file_info(scope, dataset, verbose=verbose)
     if "error" in dataset_locations:
-        print(dataset_locations["error"])
-        return {}
+        return {"error": dataset_locations["error"]}
 
     # check for local copy of the data.
     logger.info("Checking for local copies of files.")
