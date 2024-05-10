@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "datatrail-cli"
-version = "0.5.6"
+version = "0.5.7"
 description = "CHIME/FRB Datatrail CLI"
 authors = ["CHIME FRB Project Office"]
 license = "MIT"
