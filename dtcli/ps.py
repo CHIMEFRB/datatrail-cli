@@ -68,6 +68,10 @@ def ps(
         return None
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)
+        if isinstance(files, str) or isinstance(policies, str):
+            error_console.print("Error: files = ", files)
+            error_console.print("Error: policies = ", policies)
+            return None
     except Exception as e:
         error_console.print(e)
         return None
@@ -83,6 +87,7 @@ def ps(
 
     if files and ("error" in files.keys()):
         error_console.print(files["error"])
+        return None
 
     # Info table
     elif files:
