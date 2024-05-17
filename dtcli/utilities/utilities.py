@@ -42,6 +42,23 @@ def decode_response(response: Response) -> Union[Dict, str]:
         return response.text
 
 
+def validate_request_response(
+    request_response: Any,
+    dataset: str,
+    scope: str,
+) -> None:
+    """Validate the response of a request.
+
+    Args:
+        request_response (Any): response to validate
+
+    Returns:
+        None
+    """
+    if "object has no attribute" in request_response:
+        raise Exception(f"Could not find {dataset} {scope} in Datatrail.")
+
+
 def split(data: List[Any], count: int) -> List[List[Any]]:
     """Split a list into batches.
 
