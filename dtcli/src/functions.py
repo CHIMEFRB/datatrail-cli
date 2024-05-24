@@ -86,13 +86,14 @@ def list(  # noqa: C901
             logger.debug(f"Status: {r.status_code}.")
             response = utilities.decode_response(r)
             logger.debug(f"Reponse: {response}")
-            if "object has no attribute" in response:
-                return {"error": f"The dataset {dataset} has no children."}
+            utilities.validate_request_response(response, dataset, scope)
             return {"datasets": response["contains"]}  # type: ignore
         except requests.exceptions.ConnectionError as e:
             logger.error(e)
             return {"error": "Datatrail Server at CHIME is not responding."}
-
+        except Exception as e:
+            logger.error(e)
+            return {"error": e}
     else:
         return {}
 
@@ -142,17 +143,17 @@ def ps(
         r = requests.get(url)
         logger.debug(f"Status: {r.status_code}.")
         policy_response = utilities.decode_response(r)
-        if ("object has no attribute" in policy_response) and (
-            "error" in files_response
-        ):
-            raise Exception(files_response["error"])
-        elif "error" in files_response:
+        utilities.validate_request_response(policy_response, dataset, scope)
+        if "error" in files_response:
             return None, policy_response  # type: ignore
         return files_response, policy_response  # type: ignore
 
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         raise ConnectionError("Datatrail Server at CHIME is not responding.")
+    except Exception as e:
+        logger.error(e)
+        raise Exception(e)
 
 
 def get_dataset_file_info(
@@ -192,12 +193,14 @@ def get_dataset_file_info(
         logger.debug(f"Status: {r.status_code}.")
         logger.debug("Decoding response.")
         response = utilities.decode_response(r)
-        if "object has no attribute" in response:
-            return {"error": f"Could not find {dataset} {scope} in Datatrail."}
+        utilities.validate_request_response(response, dataset, scope)
         return response  # type: ignore
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
         return {"error": "Datatrail Server at CHIME is not responding."}
+    except Exception as e:
+        logger.error(e)
+        return {"error": e}
 
 
 def find_missing_dataset_files(
@@ -389,9 +392,6 @@ def find_dataset_common_path(
         logger.debug(f"Server: {server}")
         logger.debug("Configuration loaded successfully.")
     except Exception:
-        logger.error(
-            "No configuration file found. Create one with `datatrail config init`."
-        )
         logger.error("No config. Create one with `datatrail config init`.")
         return None
     # Query Datatrail Central Server.
@@ -402,8 +402,13 @@ def find_dataset_common_path(
     try:
         r = requests.post(url, json=payload)
         dataset_locations = utilities.decode_response(r)  # type: ignore
+        utilities.validate_request_response(dataset_locations, dataset, scope)
     except ConnectionError:
         return "The Datatrail Central Server at CHIME at is not reachable!!!"
+    except Exception as e:
+        logger.error(e)
+        return None
+
     # Build data paths.
     if dataset_locations["file_replica_locations"].get("minoc"):  # type: ignore
         file_uris = dataset_locations["file_replica_locations"]["minoc"]  # type: ignore
