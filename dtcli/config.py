@@ -134,7 +134,7 @@ def procure(config: Path = CONFIG, key: Optional[str] = None) -> Any:
         Dict[str, Any]: Configuration.
     """
     try:
-        with open(CONFIG.as_posix()) as stream:
+        with open(config.as_posix()) as stream:
             configuration = yaml.safe_load(stream)
         if key:
             return configuration[key]
