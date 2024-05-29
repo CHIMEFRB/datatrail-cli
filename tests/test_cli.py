@@ -53,6 +53,7 @@ Commands:
   list (ls)  List scopes & datasets
   ps         Details of a dataset.
   pull       Download a dataset.
+  scout      Scout a dataset.
   version    Show versions.
 """
     assert result.exit_code == 0
