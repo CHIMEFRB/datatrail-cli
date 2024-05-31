@@ -252,3 +252,115 @@ def size(directory: str, namespace: str = "cadc:CHIMEFRB", timeout: int = 60) ->
     content = buffer.getvalue()
     sys.stdout = sys.__stdout__
     return float(content.split("\n")[0])
+
+
+def dataset_md5s(
+    directory: str,
+    namespace: str = "cadc:CHIMEFRB",
+    timeout: int = 60,
+    verbose: int = 0,
+) -> Dict[str, str]:
+    """Get list of files in a directory.
+
+    Args:
+        directory (str): Directory to get the size of.
+        certfile (str, optional): Certificate file. Defaults to None.
+        namespace (str, optional): Minoc Namespace. Defaults to "cadc:CHIMEFRB".
+        timeout (int, optional): Timeout. Defaults to 60.
+        verbose (int, optional): Verbosity. Defaults to 0.
+
+    Returns:
+        Dict[str, str]: Dictionary of file paths and their md5 checksums.
+
+    Example:
+        >>> dataset_md5s("data/gbo/baseband/raw/2024/01/10/astro_350955086")
+    """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+
+    query = f"select uri,contentChecksum from inventory.Artifact where uri like '{namespace}/{directory}%'"  # noqa
+    query = query.replace("//", "/")
+    logger.info(f"Running query: {query}")
+    buffer = StringIO()
+    sys.stdout = buffer
+    _, _, queryClient = _connect()
+    queryClient.query(  # type: ignore
+        query=query,
+        output_file=None,
+        response_format="csv",
+        tmptable=None,
+        lang="ADQL",
+        timeout=timeout,
+        data_only=True,
+        no_column_names=True,
+    )
+    content = buffer.getvalue()
+    sys.stdout = sys.__stdout__
+    paths = []
+    md5s = []
+    for line in content.split("\n"):
+        if line == "":
+            continue
+        path = line.split(",")[0].replace(namespace + "/", "")
+        try:
+            md5 = line.split(",")[1].replace("md5:", "")
+        except IndexError:
+            md5 = ""
+        paths.append(path)
+        md5s.append(md5)
+    data: Dict[str, str] = {}
+    for p, m in zip(paths, md5s):
+        data[p] = m
+    return data
+
+
+def query(
+    query: str,
+    namespace: str = "cadc:CHIMEFRB",
+    timeout: int = 60,
+    verbose: int = 0,
+) -> List[Any]:
+    """Get list of files in a directory.
+
+    Args:
+        query (str): SQL query.
+        certfile (str, optional): Certificate file. Defaults to None.
+        namespace (str, optional): Minoc Namespace. Defaults to "cadc:CHIMEFRB".
+        timeout (int, optional): Timeout. Defaults to 60.
+        verbose (int, optional): Verbosity. Defaults to 0.
+
+    Returns:
+        List[str]: List of files in the directory.
+
+    Example:
+        >>> size("/data/chime/intensity/raw/2023/01/01/")
+    """
+    # Set logging level.
+    logger.setLevel("WARNING")
+    if verbose == 1:
+        logger.setLevel("INFO")
+    elif verbose > 1:
+        logger.setLevel("DEBUG")
+
+    query = query.replace("//", "/")
+    logger.info(f"Running query: {query}")
+    buffer = StringIO()
+    sys.stdout = buffer
+    _, _, queryClient = _connect()
+    queryClient.query(  # type: ignore
+        query=query,
+        output_file=None,
+        response_format="csv",
+        tmptable=None,
+        lang="ADQL",
+        timeout=timeout,
+        data_only=True,
+        no_column_names=True,
+    )
+    content = buffer.getvalue()
+    sys.stdout = sys.__stdout__
+    return [line.split(",") for line in content.split("\n")]
