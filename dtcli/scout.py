@@ -155,5 +155,4 @@ def show_scout_results(dataset: str, data: dict):
         "NOTE: In the case where more files are expected at a site other than \
 minoc, that this may be due to the file type filtering when querying each site. This \
 is a known limitation of the current implementation.",
-        style="italic grey",
     )
