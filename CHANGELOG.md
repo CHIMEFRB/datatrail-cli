@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.7...v0.6.0) (2024-05-31)
+
+
+### Features
+
+* **scout:** add scout command to the cli ([#83](https://github.com/CHIMEFRB/datatrail-cli/issues/83)) ([5cb811f](https://github.com/CHIMEFRB/datatrail-cli/commit/5cb811f416c6fe099cf2405835ad867df125a62d))
+
+
+### Bug Fixes
+
+* **ps.py:** added error handling for returned strings ([#79](https://github.com/CHIMEFRB/datatrail-cli/issues/79)) ([0b3c5b6](https://github.com/CHIMEFRB/datatrail-cli/commit/0b3c5b6f95da361c080534f0e34132172300b956))
+
 ## [0.5.7](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.6...v0.5.7) (2024-05-10)
 
 
