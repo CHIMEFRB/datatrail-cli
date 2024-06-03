@@ -26,7 +26,7 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.pass_context
-def scout(
+def scout(  # noqa: C901
     ctx: click.Context,
     dataset: str,
     scopes: List[str],
@@ -86,8 +86,20 @@ def scout(
     url = server + endpoint
     logger.debug(f"URL: {url}")
     response = requests.get(url)
-    data = response.json()
-    logger.debug(f"Data: {data}")
+    try:
+        data = response.json()
+        logger.debug(f"Data: {data}")
+    except requests.JSONDecodeError:
+        if "Response Timeout" in response.text:
+            error_console.print("Error: Datatrail server timed out.")
+            return None
+        else:
+            error_console.print(f"Error: {response.text}")
+            return None
+
+    if "error" in data.keys():
+        error_console.print(data["error"])
+        return None
 
     for scope in data.keys():
         basepath = data.get(scope).get("basepath")
