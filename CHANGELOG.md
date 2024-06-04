@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.6.0...v0.6.1) (2024-06-04)
+
+
+### Bug Fixes
+
+* **scout:** improve error handling ([#87](https://github.com/CHIMEFRB/datatrail-cli/issues/87)) ([1937e9b](https://github.com/CHIMEFRB/datatrail-cli/commit/1937e9bbedfda0ab11919428b0b1b027900f594d))
+
 ## [0.6.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.5.7...v0.6.0) (2024-05-31)
 
 
