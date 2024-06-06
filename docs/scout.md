@@ -15,8 +15,8 @@ Options:
 
 ## Overview
 
-The purpose of this function is the give users easy visibility into the in to
-the current situation for a given dataset across all of Datatrail's storage
+The purpose of this function is the give users easy visibility into the
+current situation for a given dataset across all of Datatrail's storage
 elements. The number of datasets that information is given for depends on the
 number of scopes that the given dataset name has registered. However, this
 can be filtered by providing a list of scopes to the command.
@@ -28,7 +28,7 @@ filtered to only show information for the `chime.event.baseband.raw` scope
 and unfiltered.
 
 !!! note
-    The output below doe not show the correct colouring. The rows of the table
+    The output below does not show the correct colouring. The rows of the table
     are colour-coded to indicate if it is observed or expected. Observed
     values are displayed in blue and expected values are in yellow.
 
