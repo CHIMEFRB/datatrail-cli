@@ -7,6 +7,7 @@ import click
 import requests
 from cadcutils.exceptions import BadRequestException
 from rich.console import Console
+from rich.prompt import Confirm
 from rich.table import Table
 
 from dtcli.config import procure
@@ -101,6 +102,7 @@ def scout(  # noqa: C901
         error_console.print(data["error"])
         return None
 
+    scopes_with_minoc_discrepancy: List[str] = []
     for scope in data.keys():
         basepath = data.get(scope).get("basepath")
         query = f"select count(*) from inventory.Artifact where uri like 'cadc:CHIMEFRB/{basepath}%'"  # noqa: E501
@@ -126,7 +128,30 @@ def scout(  # noqa: C901
         for key in keys_missing_in_expected:
             data[scope]["expected"][key] = 0
 
+        if data[scope]["observed"]["minoc"] > data[scope]["expected"]["minoc"]:
+            scopes_with_minoc_discrepancy.append(scope)
+
     show_scout_results(dataset, data)
+
+    if scopes_with_minoc_discrepancy:
+        error_console.print("Scopes with minoc discrepancy:")
+    for scope in scopes_with_minoc_discrepancy:
+        error_console.print(f" - {scope}")
+        ifHeal = Confirm.ask("\nWould you like to attempt to heal this discrepancy?")
+        if ifHeal:
+            basepath = data.get(scope).get("basepath")
+            minoc_md5s = cadcclient.dataset_md5s(basepath)
+            # console.print(minoc_md5s)
+            url = (
+                server
+                + "/commit/dataset/scout/sync"
+                + f"?name={dataset}&scope={scope}&replicate_to=minoc"
+            )
+            response = requests.post(url, json=minoc_md5s)
+            if response.status_code == 200:
+                console.print(f"{scope} - Healing successful.")
+            else:
+                error_console.print(f"{scope} - Healing failed.")
 
 
 def show_scout_results(dataset: str, data: dict):
@@ -168,3 +193,4 @@ def show_scout_results(dataset: str, data: dict):
 minoc, that this may be due to the file type filtering when querying each site. This \
 is a known limitation of the current implementation.",
     )
+    console.print()

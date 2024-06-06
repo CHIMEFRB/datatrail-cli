@@ -81,10 +81,11 @@ nav:
       - Install: install.md
       - Initialise: initialising.md
       - Commands:
+          - clear: clear.md
           - list: list.md
           - ps: ps.md
           - pull: pull.md
-          - clear: clear.md
+          - scout: scout.md
   - Command Line Interface:
       - Commands: commands.md
       - Reference: cli.md
