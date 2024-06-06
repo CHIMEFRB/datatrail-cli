@@ -12,6 +12,10 @@ How to install Datatrail CLI.
 
 Performing the initial setup in order to use the Datatrail CLI.
 
+## 🗑️ [clear](clear.md)
+
+Deleting a dataset.
+
 ## 🗒️ [list](list.md)
 
 Searching the Datatrail database for scopes and datasets.
@@ -24,6 +28,6 @@ Querying the Datatrail database for details about a dataset.
 
 Downloading a dataset.
 
-## 🗑️ [clear](clear.md)
+## 🕵️  [scout](scout.md)
 
-Deleting a dataset.
+Investigating number of files for a dataset across storage elements.
