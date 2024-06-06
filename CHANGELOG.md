@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.6.1...v0.7.0) (2024-06-06)
+
+
+### Features
+
+* **scout:** able to heal missing minoc replicas ([bc3b52d](https://github.com/CHIMEFRB/datatrail-cli/commit/bc3b52d44fe7da7335279c96cec03e3deace6f9a))
+
+
+### Documentation
+
+* **scout:** added for new cli command ([be4f2bf](https://github.com/CHIMEFRB/datatrail-cli/commit/be4f2bfda25000b453b9696b2137e6bf0e8e4dd6))
+* **scout:** typos ([7f633b1](https://github.com/CHIMEFRB/datatrail-cli/commit/7f633b17d514303d260990e1ece849d1c489ef91))
+
 ## [0.6.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.6.0...v0.6.1) (2024-06-04)
 
 
