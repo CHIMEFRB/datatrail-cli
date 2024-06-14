@@ -1,9 +1,10 @@
 # 🕵️ Investigating a dataset with scout
 
 <!-- termynal -->
+
 ```bash
 ❯ datatrail scout --help
-Usage: datatrail scout [OPTIONS] DATASET [SCOPES]...
+Usage: datatrail scout [OPTIONS] [SCOPES]... DATASET
 
   Scout a dataset.
 
@@ -28,14 +29,14 @@ filtered to only show information for the `chime.event.baseband.raw` scope
 and unfiltered.
 
 !!! note
-    The output below does not show the correct colouring. The rows of the table
-    are colour-coded to indicate if it is observed or expected. Observed
-    values are displayed in blue and expected values are in yellow.
+The output below does not show the correct colouring. The rows of the table
+are colour-coded to indicate if it is observed or expected. Observed
+values are displayed in blue and expected values are in yellow.
 
 === "Filtering by scope"
 
     ```bash
-    ❯ datatrail scout 382085503 chime.event.baseband.raw
+    ❯ datatrail scout chime.event.baseband.raw 382085503
                               Scout Results for 382085503
     ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━━━┓
     ┃ Scope                    ┃ chime ┃ baseband_buffer ┃ kko ┃ gbo ┃ hco ┃ minoc ┃
@@ -48,7 +49,7 @@ and unfiltered.
     this may be due to the file type filtering when querying each site. This is a
     known limitation of the current implementation.
     ```
-    
+
     1. The Observed number of files.
     2. The Expected number of files.
 
@@ -76,18 +77,19 @@ and unfiltered.
     ```
 
 !!! failure "Negative files"
-    If the server encounters an error it is represented as a negative number.
-    Which can occur when communicating with the mini-servers running at each
-    storage element.
+If the server encounters an error it is represented as a negative number.
+Which can occur when communicating with the mini-servers running at each
+storage element.
 
 ### Healing at Minoc
+
 In some cases, the number of files expected at minoc may be less than the number
 that actually exist there. This can occur when API requests drop, leading to an
 inconsistent state in the database. When this is seen by `scout`, the command
 offers to remedy the situation by adding the missing replicas.
 
 ```bash
-❯ datatrail scout 383577603 chime.event.baseband.raw
+❯ datatrail scout chime.event.baseband.raw 383577603
                           Scout Results for 383577603
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━━━┓
 ┃ Scope                    ┃ chime ┃ baseband_buffer ┃ kko ┃ gbo ┃ hco ┃ minoc ┃
