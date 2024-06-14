@@ -152,6 +152,25 @@ Options:
     assert result.output == expected_response
 
 
+def test_cli_scout_help(runner: CliRunner) -> None:
+    """Test CLI scout help page.
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["scout", "--help"])
+    expected_response = """Usage: cli scout [OPTIONS] [SCOPES]... DATASET
+
+  Scout a dataset.
+
+Options:
+  -v, --verbose  Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet    Set log level to ERROR.
+  --help         Show this message and exit.
+"""
+    assert result.exit_code == 0
+    assert result.output == expected_response
+
+
 def test_cli_clear_help(runner: CliRunner) -> None:
     """Test CLI clear help page.
 

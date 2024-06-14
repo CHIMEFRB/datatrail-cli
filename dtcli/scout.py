@@ -22,15 +22,15 @@ error_console = Console(stderr=True, style="bold red")
 
 
 @click.command(name="scout", help="Scout a dataset.")
-@click.argument("dataset", required=True, type=click.STRING, nargs=1)
 @click.argument("scopes", required=False, type=click.STRING, nargs=-1)
+@click.argument("dataset", required=True, type=click.STRING, nargs=1)
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.pass_context
 def scout(  # noqa: C901
     ctx: click.Context,
-    dataset: str,
     scopes: List[str],
+    dataset: str,
     verbose: int,
     quiet: bool,
 ):
@@ -38,8 +38,8 @@ def scout(  # noqa: C901
 
     Args:
         ctx (click.Context): Click context.
-        dataset (str): Name of dataset.
         scopes (List[str]): Scopes of dataset.
+        dataset (str): Name of dataset.
         verbose (int): Verbosity: v=INFO, vv=DUBUG.
         quiet (bool): Set log level to ERROR.
 
@@ -49,8 +49,8 @@ def scout(  # noqa: C901
     # Set logging level.
     set_log_level(logger, verbose, quiet)
     logger.debug("`scout` called with:")
-    logger.debug(f"dataset: {dataset} [{type(dataset)}]")
     logger.debug(f"scopes: {scopes} [{type(scopes)}]")
+    logger.debug(f"dataset: {dataset} [{type(dataset)}]")
     logger.debug(f"verbose: {verbose} [{type(verbose)}]")
     logger.debug(f"quiet: {quiet} [{type(quiet)}]")
 
