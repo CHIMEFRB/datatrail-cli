@@ -9,9 +9,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import cadcutils
 import dill
+import requests
 from cadcdata import StorageInventoryClient
 from cadctap import CadcTapClient
 from cadcutils import net
+from requests.exceptions import HTTPError
 from rich.traceback import install
 
 from dtcli.config import procure
@@ -364,3 +366,33 @@ def query(
     content = buffer.getvalue()
     sys.stdout = sys.__stdout__
     return [line.split(",") for line in content.split("\n")]
+
+
+def status(
+    url: str = "https://ws-uv.canfar.net/minoc/capabilities",
+    certfile: Optional[str] = None,
+) -> bool:
+    """Check the status of Minoc.
+
+    Args:
+        url: Minoc capabilities HEAD endpoint.
+        certfile: Canfar certificate file.
+
+    Returns:
+        bool: True if Minoc is up, False otherwise.
+    """
+    if not certfile:
+        certfile = procure(key="vospace_certfile")
+    response = requests.get(url, cert=certfile, allow_redirects=True)
+    try:
+        response.raise_for_status()
+    except HTTPError as error:
+        logger.error(error)
+        logger.error("Canfar is down.")
+        return False
+    authorised = response.headers.get("x-vo-authenticated")
+    if isinstance(authorised, str):
+        return True
+    else:
+        logger.error("Canfar certificate is not valid.")
+        return False
