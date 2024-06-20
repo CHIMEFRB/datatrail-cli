@@ -78,6 +78,13 @@ def scout(  # noqa: C901
         )
         return {"error": "No config. Create one with `datatrail config init`."}
 
+    # Check Canfar status.
+    canfar_up = cadcclient.status()
+    if not canfar_up:
+        error_console.print(
+            "Either Minoc is down or certificate is invalid.", style="bold yellow"
+        )
+
     # Scout dataset.
     endpoint = (
         f"/query/dataset/scout?name={dataset}"
@@ -110,6 +117,10 @@ def scout(  # noqa: C901
             count, _ = cadcclient.query(query)
             count = int(count[0])
         except BadRequestException as error:
+            error_console.print("Query failed.")
+            error_console.print(error)
+            return None
+        except Exception as error:
             error_console.print("Query failed.")
             error_console.print(error)
             return None
