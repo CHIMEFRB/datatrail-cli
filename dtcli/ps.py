@@ -66,6 +66,14 @@ def ps(
     except Exception as e:
         error_console.print(e)
         return None
+
+    # Check Canfar status.
+    canfar_up = cadcclient.status()
+    if not canfar_up:
+        error_console.print(
+            "Either Minoc is down or certificate is invalid.", style="bold yellow"
+        )
+
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)
         if isinstance(files, str) or isinstance(policies, str):

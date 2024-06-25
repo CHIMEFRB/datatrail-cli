@@ -10,7 +10,7 @@ from rich.prompt import Confirm
 
 from dtcli.config import procure
 from dtcli.src.functions import find_missing_dataset_files, get_files
-from dtcli.utilities.cadcclient import size
+from dtcli.utilities import cadcclient
 from dtcli.utilities.utilities import set_log_level, validate_scope
 
 logger = logging.getLogger("pull")
@@ -42,7 +42,7 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
 @click.option("--force", "-f", is_flag=True, help="Do not prompt for confirmation.")
 @click.pass_context
-def pull(
+def pull(  # noqa: C901
     ctx: click.Context,
     scope: str,
     dataset: str,
@@ -97,6 +97,13 @@ def pull(
         error_console.print(e)
         return None
 
+    # Check Canfar status.
+    canfar_up = cadcclient.status()
+    if not canfar_up:
+        error_console.print(
+            "Either Minoc is down or certificate is invalid.", style="bold yellow"
+        )
+
     # Find files missing from localhost.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")
     files = find_missing_dataset_files(scope, dataset, directory, verbose)
@@ -111,7 +118,7 @@ def pull(
     if len(files_paths) > 0:
         common_path = path.commonpath(["/" + f for f in files_paths])
         try:
-            to_download_size = size(common_path)
+            to_download_size = cadcclient.size(common_path)
         except SSLError:
             error_console.print(
                 """
