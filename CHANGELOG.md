@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.7.0...v0.7.1) (2024-06-25)
+
+
+### Bug Fixes
+
+* **cadcclient:** check canfar status ([484562c](https://github.com/CHIMEFRB/datatrail-cli/commit/484562c3c8345dd032c00923d3250c1be4a12191))
+* **cli:** check minoc status ([6a0d6df](https://github.com/CHIMEFRB/datatrail-cli/commit/6a0d6dfc4f3490dc407c08d106d7740bb5d892e3))
+* **scout:** change the order of the arguments ([c7ab294](https://github.com/CHIMEFRB/datatrail-cli/commit/c7ab29459707be153d12f1ff562cf46b984ed519))
+
+
+### Documentation
+
+* **scout:** reflect changes to cli in docs ([797eeac](https://github.com/CHIMEFRB/datatrail-cli/commit/797eeac4874619298c22f8f8a7623e079ac6542d))
+
 ## [0.7.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.6.1...v0.7.0) (2024-06-06)
 
 
