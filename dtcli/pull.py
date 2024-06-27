@@ -98,10 +98,14 @@ def pull(  # noqa: C901
         return None
 
     # Check Canfar status.
-    canfar_up = cadcclient.status()
-    if not canfar_up:
+    minoc_up, luskan_up = cadcclient.status()
+    if not minoc_up:
         error_console.print(
             "Either Minoc is down or certificate is invalid.", style="bold yellow"
+        )
+    elif not luskan_up:
+        error_console.print(
+            "Either Luskan is down or certificate is invalid.", style="bold yellow"
         )
 
     # Find files missing from localhost.
@@ -114,8 +118,7 @@ def pull(  # noqa: C901
         console.print("No files found at minoc.", style="bold red")
         return None
     files_paths = [f.replace("cadc:CHIMEFRB", "") for f in files["missing"]]
-    to_download_size = 0.0
-    if len(files_paths) > 0:
+    if len(files_paths) > 0 and luskan_up:
         common_path = path.commonpath(["/" + f for f in files_paths])
         try:
             to_download_size = cadcclient.size(common_path)
@@ -127,6 +130,10 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
 """
             )
             return None
+    elif not luskan_up:
+        to_download_size = -1
+    else:
+        to_download_size = 0
     console.print(
         f" - {len(files['existing'])} files found at {site}.",
         style="green",
@@ -135,10 +142,16 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
         f" - {len(files['missing'])} files can be downloaded from minoc.",
         style="yellow",
     )
-    console.print(
-        f"     - Size to download: {to_download_size:.2f} GB.\n",
-        style="yellow",
-    )
+    if luskan_up:
+        console.print(
+            f"     - Size to download: {to_download_size:.2f} GB.\n",
+            style="yellow",
+        )
+    else:
+        console.print(
+            "     - Size to download: [red]Unable to query Luskan[/red].",
+            style="yellow",
+        )
 
     # Confirm download.
     if force:
