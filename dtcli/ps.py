@@ -68,10 +68,14 @@ def ps(
         return None
 
     # Check Canfar status.
-    canfar_up = cadcclient.status()
-    if not canfar_up:
+    minoc_up, luskan_up = cadcclient.status()
+    if not minoc_up:
         error_console.print(
             "Either Minoc is down or certificate is invalid.", style="bold yellow"
+        )
+    elif not luskan_up:
+        error_console.print(
+            "Either Luskan is down or certificate is invalid.", style="bold yellow"
         )
 
     try:
