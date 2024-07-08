@@ -369,30 +369,39 @@ def query(
 
 
 def status(
-    url: str = "https://ws-uv.canfar.net/minoc/capabilities",
     certfile: Optional[str] = None,
-) -> bool:
+) -> Tuple[bool, bool]:
     """Check the status of Minoc.
 
     Args:
-        url: Minoc capabilities HEAD endpoint.
         certfile: Canfar certificate file.
 
     Returns:
         bool: True if Minoc is up, False otherwise.
     """
+    urls: List[str] = [
+        "https://ws-uv.canfar.net/minoc/capabilities",
+        "https://ws-uv.canfar.net/luskan/capabilities",
+    ]
     if not certfile:
         certfile = procure(key="vospace_certfile")
-    response = requests.get(url, cert=certfile, allow_redirects=True)
-    try:
-        response.raise_for_status()
-    except HTTPError as error:
-        logger.error(error)
-        logger.error("Canfar is down.")
-        return False
-    authorised = response.headers.get("x-vo-authenticated")
-    if isinstance(authorised, str):
-        return True
-    else:
-        logger.error("Canfar certificate is not valid.")
-        return False
+    minoc_status = False
+    luskan_status = False
+    for index, url in enumerate(urls):
+        response = requests.get(url, cert=certfile, allow_redirects=True)
+        try:
+            response.raise_for_status()
+            authorised = response.headers.get("x-vo-authenticated")
+            if isinstance(authorised, str):
+                if index == 0:
+                    minoc_status = True
+                else:
+                    luskan_status = True
+            else:
+                raise TypeError
+        except HTTPError as error:
+            logger.error(error)
+            logger.error(f"{url.split('/')[3]} is down.")
+        except TypeError:
+            logger.error("Canfar certificate is not valid.")
+    return minoc_status, luskan_status
