@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.7.1...v0.7.2) (2024-07-08)
+
+
+### Bug Fixes
+
+* **cli:** check for luskan status ([405a3c2](https://github.com/CHIMEFRB/datatrail-cli/commit/405a3c21334b5d8d96ab42436355d8c329880d74))
+
 ## [0.7.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.7.0...v0.7.1) (2024-06-25)
 
 
