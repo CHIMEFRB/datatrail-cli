@@ -113,7 +113,9 @@ def scout(  # noqa: C901
         error_console.print(data["error"])
         return None
 
-    scopes_with_minoc_discrepancy: List[str] = []
+    storage_elements = list(data[scopes[0]]["observed"].keys())
+    file_discrepancies: List[List] = []
+
     for scope in data.keys():
         basepath = data.get(scope).get("basepath")
         query = f"select count(*) from inventory.Artifact where uri like 'cadc:CHIMEFRB/{basepath}%'"  # noqa: E501
@@ -143,26 +145,37 @@ def scout(  # noqa: C901
         for key in keys_missing_in_expected:
             data[scope]["expected"][key] = 0
 
-        if data[scope]["observed"]["minoc"] > data[scope]["expected"]["minoc"]:
-            scopes_with_minoc_discrepancy.append(scope)
+        for se in storage_elements:
+            if data[scope]["observed"][se] > data[scope]["expected"][se]:
+                file_discrepancies.append([scope, se])
 
     show_scout_results(dataset, data)
 
-    if scopes_with_minoc_discrepancy:
-        error_console.print("Scopes with minoc discrepancy:")
-    for scope in scopes_with_minoc_discrepancy:
-        error_console.print(f" - {scope}")
+    if file_discrepancies:
+        error_console.print("File discrepancies:")
+    for scope, se in file_discrepancies:
+        error_console.print(f" - {se}: {scope}")
         ifHeal = Confirm.ask("\nWould you like to attempt to heal this discrepancy?")
         if ifHeal:
             basepath = data.get(scope).get("basepath")
-            minoc_md5s = cadcclient.dataset_md5s(basepath)
-            # console.print(minoc_md5s)
+            file_type = data.get(scope).get("filetype")
+            if se == "minoc":
+                file_md5s = cadcclient.dataset_md5s(basepath)
+                # console.print(minoc_md5s)
+            else:
+                md5_url = (
+                    server
+                    + "/query/datasset/scout/md5sums"
+                    + f"?basepath={basepath}&site={se}&filetype={file_type}"
+                )
+                response = requests.get(md5_url)
+                file_md5s = response.json()
             url = (
                 server
                 + "/commit/dataset/scout/sync"
-                + f"?name={dataset}&scope={scope}&replicate_to=minoc"
+                + f"?name={dataset}&scope={scope}&replicate_to={se}"
             )
-            response = requests.post(url, json=minoc_md5s)
+            response = requests.post(url, json=file_md5s)
             if response.status_code == 200:
                 console.print(f"{scope} - Healing successful.")
             else:
