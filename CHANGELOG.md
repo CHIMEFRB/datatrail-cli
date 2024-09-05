@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.7.2...v0.8.0) (2024-09-05)
+
+
+### Features
+
+* **scout:** generalised scout functionality to check for discrepancies between all sites, not just minoc ([f3f1005](https://github.com/CHIMEFRB/datatrail-cli/commit/f3f1005722c48d4ac020b65ed13d19f6bc0bbd48))
+
+
+### Bug Fixes
+
+* **clear:** reorganise file_paths manipulation logic ([80f0f2d](https://github.com/CHIMEFRB/datatrail-cli/commit/80f0f2d2bf3d9836eef16f9f6d3bed5f88c8ff05))
+
 ## [0.7.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.7.1...v0.7.2) (2024-07-08)
 
 
