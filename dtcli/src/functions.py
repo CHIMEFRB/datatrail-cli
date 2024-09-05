@@ -412,9 +412,11 @@ def find_dataset_common_path(
     # Build data paths.
     if dataset_locations["file_replica_locations"].get("minoc"):  # type: ignore
         file_uris = dataset_locations["file_replica_locations"]["minoc"]  # type: ignore
-        file_paths = [f.replace("cadc:CHIMEFRB/", "") for f in file_uris]
+        file_paths = [
+            f.replace("//", "/").replace("cadc:CHIMEFRB/", "") for f in file_uris
+        ]
 
-        common_path = os.path.commonprefix(file_paths).replace("//", "/")
+        common_path = os.path.commonprefix(file_paths)
         if common_path[-1] != "/":
             common_path = "/".join(common_path.split("/")[:-1])
 
