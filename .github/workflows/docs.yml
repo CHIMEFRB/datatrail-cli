@@ -11,31 +11,8 @@ jobs:
   mkdocs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/pypoetry
-          key: poetry-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
-
-      - name: Installation
-        run: |
-          pip install poetry
-          poetry install --without dev
-
-      - name: Create docs
-        run: poetry run mkdocs gh-deploy --force
-
       - name: Build chimefrb/handbook
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.BUILD_HANDBOOK_TOKEN }}
           repository: chimefrb/handbook
