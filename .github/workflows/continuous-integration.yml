@@ -31,13 +31,12 @@ jobs:
     needs: pre-commit-checks
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         os: [ubuntu-latest]
         python-version:
           - "3.9"
           - "3.11"
-          - "3.13"
+          - "3.12"
     steps:
       - uses: actions/checkout@v3
 
