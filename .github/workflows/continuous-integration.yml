@@ -3,13 +3,13 @@ name: Continuous Integration
 on:
   push:
     paths-ignore:
-      - 'docs/**'
-    branches: [ main ]
+      - "docs/**"
+    branches: [main]
   pull_request:
     paths-ignore:
-      - 'docs/**'
+      - "docs/**"
     branches:
-      - '**'
+      - "**"
 
 jobs:
   Pre-commit-checks:
@@ -49,7 +49,7 @@ jobs:
       - name: Installation
         run: |
           pip install --upgrade pip
-          pip install poetry==1.2.2
+          pip install poetry==2.1.2
           pip install vos
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
