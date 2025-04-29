@@ -32,6 +32,15 @@ error_console = Console(stderr=True, style="bold red")
     help="Directory to pull data to.",
 )
 @click.option(
+    "--specific",
+    "-s",
+    type=click.Path(
+        exists=True, file_okay=True, dir_okay=False, writable=True, resolve_path=True
+    ),
+    default=None,
+    help="Specific files to pull",
+)
+@click.option(
     "--cores",
     "-c",
     type=click.IntRange(min=1, max=cpu_count() or 1),
@@ -47,6 +56,7 @@ def pull(  # noqa: C901
     scope: str,
     dataset: str,
     directory: str,
+    specific: str,
     cores: int,
     verbose: int,
     quiet: bool,
@@ -59,6 +69,7 @@ def pull(  # noqa: C901
         scope (str): Scope of dataset.
         dataset (str): Name of dataset.
         directory (str): Directory to pull data to.
+        specific (str): Path to file of specific files to pull.
         cores(int): Number of parallel fetch processes to use.
         verbose (int): Verbosity: v=INFO, vv=DUBUG.
         quiet (bool): Minimal logging.
@@ -117,6 +128,16 @@ def pull(  # noqa: C901
     elif len(files["missing"]) == 0 and len(files["existing"]) == 0:
         console.print("No files found at minoc.", style="bold red")
         return None
+    if specific:
+        console.print(f"\nConsidering only specific files list in {specific}")
+        with open(specific) as sf:
+            specific_paths = [line.strip() for line in sf if line.strip()]
+        files["missing"] = [
+            path
+            for path in files["missing"]
+            if any(spec_path in path for spec_path in specific_paths)
+        ]
+        console.print(f"\nFound {len(files['missing'])} to download")
     files_paths = [f.replace("cadc:CHIMEFRB", "") for f in files["missing"]]
     if len(files_paths) > 0 and luskan_up:
         common_path = path.commonpath(["/" + f for f in files_paths])
