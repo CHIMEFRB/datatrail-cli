@@ -141,6 +141,7 @@ def test_cli_pull_help(runner: CliRunner) -> None:
 
 Options:
   -d, --directory DIRECTORY  Directory to pull data to.
+  -s, --specific FILE        Specific files to pull
   -c, --cores INTEGER RANGE  Number of parallel fetch processes to use.
                              [1<=x<={cpu_count()}]
   -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
