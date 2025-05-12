@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.8.0...v0.9.0) (2025-05-12)
+
+
+### Features
+
+* **pull:** allows specific files to be pulled by designating names or paths in a local config file ([d3cfb59](https://github.com/CHIMEFRB/datatrail-cli/commit/d3cfb59906fe4cb13c8f549e8c2b6499c32e663e))
+
+
+### Bug Fixes
+
+* **test:** changed docstring expected in help test ([fed9342](https://github.com/CHIMEFRB/datatrail-cli/commit/fed9342df20b6843171a8cb4b288899ada74e261))
+
 ## [0.8.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.7.2...v0.8.0) (2025-04-22)
 
 
