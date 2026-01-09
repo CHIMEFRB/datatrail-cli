@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.9.0...v0.9.1) (2026-01-09)
+
+
+### Bug Fixes
+
+* **cli:** wrap version check in try except ([2fc9d31](https://github.com/CHIMEFRB/datatrail-cli/commit/2fc9d3169cc28e675c4cfce51aa142b1f22466c4))
+
 ## [0.9.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.8.0...v0.9.0) (2025-05-12)
 
 
