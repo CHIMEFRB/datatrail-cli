@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.9.2...v0.9.3) (2026-01-15)
+
+
+### Bug Fixes
+
+* **ls:** other section for scopes that don't match list of sites ([0b50d79](https://github.com/CHIMEFRB/datatrail-cli/commit/0b50d790fbfb21fa0edb16eb945722189333a1c2))
+
 ## [0.9.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.9.1...v0.9.2) (2026-01-15)
 
 
