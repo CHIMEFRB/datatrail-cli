@@ -126,10 +126,10 @@ def get_latest_released_version(
 
 def cli_is_latest_release() -> bool:
     """Check if CLI is latest release."""
-    from pkg_resources import get_distribution
+    from importlib.metadata import PackageNotFoundError, version
 
     try:
-        current_version = parse(get_distribution("datatrail-cli").version)
+        current_version = parse(version("datatrail-cli"))
         return current_version == get_latest_released_version()
-    except ConnectionError:
+    except (ConnectionError, PackageNotFoundError):
         return True
