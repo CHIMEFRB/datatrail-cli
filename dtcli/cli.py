@@ -1,8 +1,9 @@
 """Datatrail Command Line Interface."""
 
+from importlib.metadata import version as package_version
+
 import click
 from click_aliasing import ClickAliasedGroup
-from importlib.metadata import version as package_version
 from rich import console, pretty
 
 from dtcli import clear, config, ls, ps, pull, scout

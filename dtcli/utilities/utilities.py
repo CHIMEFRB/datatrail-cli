@@ -126,7 +126,7 @@ def get_latest_released_version(
 
 def cli_is_latest_release() -> bool:
     """Check if CLI is latest release."""
-    from importlib.metadata import version, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError, version
 
     try:
         current_version = parse(version("datatrail-cli"))
