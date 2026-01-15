@@ -2,7 +2,7 @@
 
 import click
 from click_aliasing import ClickAliasedGroup
-from pkg_resources import get_distribution
+from importlib.metadata import version as package_version
 from rich import console, pretty
 
 from dtcli import clear, config, ls, ps, pull, scout
@@ -16,7 +16,10 @@ terminal = console.Console()
 @click.group(cls=ClickAliasedGroup)
 def cli():
     """Datatrail Command Line Interface."""
-    check_version()
+    try:
+        check_version()
+    except Exception:
+        pass
 
 
 @cli.command(name="version", help="Show versions.")
@@ -27,7 +30,7 @@ def version():
         style="bold",
     )
     terminal.print(
-        f"{get_distribution('datatrail-cli')}",
+        f"datatrail-cli {package_version('datatrail-cli')}",
         style="green",
     )
     terminal.print(
@@ -47,7 +50,7 @@ cli.add_command(scout.scout)
 def check_version() -> None:
     """Check if CLI is latest release."""
     if not utilities.cli_is_latest_release():
-        current_version = get_distribution("datatrail-cli").version
+        current_version = package_version("datatrail-cli")
         latest_version = utilities.get_latest_released_version()
         terminal.print(
             f"A new release of datatrail-cli is available: {current_version} → {latest_version}",  # noqa: E501
