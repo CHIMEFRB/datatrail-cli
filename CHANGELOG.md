@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.9.1...v0.9.2) (2026-01-15)
+
+
+### Bug Fixes
+
+* **cli:** removed pkg resources deprecation warning ([2ab793d](https://github.com/CHIMEFRB/datatrail-cli/commit/2ab793d753badfd9a2c6aa53ed95010366437c3f))
+
 ## [0.9.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.9.0...v0.9.1) (2026-01-09)
 
 
