@@ -31,6 +31,7 @@ jobs:
     needs: pre-commit-checks
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python-version:
