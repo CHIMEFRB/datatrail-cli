@@ -80,10 +80,15 @@ def list(
             title_style="bold magenta",
         )
         table.add_column("Scopes")
+        matched = set()
         for site in ["chime", "kko", "gbo", "hco"]:
             for s in [_ for _ in results["scopes"] if site in _]:
                 table.add_row(s)
+                matched.add(s)
             table.add_section()
+        other_scopes = [_ for _ in results["scopes"] if _ not in matched]
+        for s in other_scopes:
+            table.add_row(s)
         console.print(table)
 
     if "larger_datasets" in results.keys():
