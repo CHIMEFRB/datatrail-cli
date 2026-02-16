@@ -63,7 +63,7 @@ jobs:
           poetry config virtualenvs.in-project false
           poetry config cache-dir ~/.cache/pypoetry
           poetry config virtualenvs.path ~/.cache/pypoetry/venv
-          poetry install
+          poetry install --with dev
 
       - name: Create NETRC file
         run: |
