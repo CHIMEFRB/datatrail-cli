@@ -39,7 +39,7 @@ def test_cli_help(runner: CliRunner) -> None:
     Args:
         runner (CliRunner) -> None: Click runner.
     """
-    result = runner.invoke(datatrail)
+    result = runner.invoke(datatrail, "--help")
     expected_response = """Usage: cli [OPTIONS] COMMAND [ARGS]...
 
   Datatrail Command Line Interface.
@@ -66,7 +66,7 @@ def test_cli_config_help(runner: CliRunner) -> None:
     Args:
         runner (CliRunner) -> None: Click runner.
     """
-    result = runner.invoke(datatrail, ["config"])
+    result = runner.invoke(datatrail, ["config", "--help"])
     expected_response = """Usage: cli config [OPTIONS] COMMAND [ARGS]...
 
   Datatrail CLI Configuration.
