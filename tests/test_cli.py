@@ -23,6 +23,22 @@ def directory():
     shutil.rmtree(directory)
 
 
+@pytest.fixture(scope="module")
+def list_specific_files(directory):
+    """Create a list with list of specific file.
+
+    Yields:
+        text_file (Path): Path to text file.
+    """
+    text_file = directory / "specific_files.txt"
+    text_file.touch(exist_ok=True)
+    text_file.write_text(
+        "astro_222266914_20220425105208347783_beam0104_00475476_01.msgpack\n"
+    )
+    yield text_file
+    text_file.unlink()
+
+
 @pytest.fixture
 def runner() -> CliRunner:
     """Click CLI runner for testing.
@@ -141,7 +157,7 @@ def test_cli_pull_help(runner: CliRunner) -> None:
 
 Options:
   -d, --directory DIRECTORY  Directory to pull data to.
-  -s, --specific FILE        Specific files to pull
+  -s, --specific FILE        Path to file of specific files to pull.
   -c, --cores INTEGER RANGE  Number of parallel fetch processes to use.
                              [1<=x<={cpu_count()}]
   -v, --verbose              Verbosity: v=INFO, vv=DEBUG.
@@ -366,7 +382,9 @@ def test_cli_pull_no(runner: CliRunner) -> None:
     assert expect in result.output
 
 
-def test_cli_pull_yes(runner: CliRunner, directory: Path) -> None:
+def test_cli_pull_yes(
+    runner: CliRunner, directory: Path, list_specific_files: Path
+) -> None:
     """Test for CLI pull command.
 
     Answer 'yes' to prompt for confirmation.
@@ -383,6 +401,8 @@ def test_cli_pull_yes(runner: CliRunner, directory: Path) -> None:
             "222266914",
             "-d",
             f"{directory.as_posix()}",
+            "-s",
+            f"{list_specific_files.as_posix()}",
         ],
         input="y\n",
     )
@@ -444,7 +464,9 @@ def test_cli_clear_yes(runner: CliRunner, directory: Path) -> None:
     ).exists()
 
 
-def test_cli_pull_force(runner: CliRunner, directory: Path) -> None:
+def test_cli_pull_force(
+    runner: CliRunner, directory: Path, list_specific_files: Path
+) -> None:
     """Test for CLI pull command.
 
     Use '-f' to force download.
@@ -462,6 +484,8 @@ def test_cli_pull_force(runner: CliRunner, directory: Path) -> None:
             "-f",
             "-d",
             f"{directory.as_posix()}",
+            "-s",
+            f"{list_specific_files.as_posix()}",
         ],
     )
     assert result.exit_code == 0
