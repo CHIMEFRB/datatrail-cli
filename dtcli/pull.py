@@ -38,7 +38,7 @@ error_console = Console(stderr=True, style="bold red")
         exists=True, file_okay=True, dir_okay=False, writable=True, resolve_path=True
     ),
     default=None,
-    help="Specific files to pull",
+    help="Path to file of specific files to pull.",
 )
 @click.option(
     "--cores",
@@ -96,6 +96,7 @@ def pull(  # noqa: C901
         logger.exception(
             "Configuration Missing!! Run `datatrail config init`.",
         )
+        ctx.exit(1)
         raise click.Abort()
 
     try:
@@ -193,4 +194,13 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
             cores=cores,
             verbose=verbose,
         )
+        # Check that all files have been downloaded.
+        for f in files["missing"]:
+            local_path = path.join(directory, f.replace("cadc:CHIMEFRB", ""))
+            if not path.exists(local_path):
+                error_console.print(
+                    f"File not downloaded: {local_path}",
+                    style="bold red",
+                )
+                ctx.exit(1)
     return None
