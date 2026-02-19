@@ -2,8 +2,10 @@
 
 import logging
 import os
+import re
 import shutil
 import time
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -481,3 +483,72 @@ def get_unregistered_dataset(dataset: str, scope: str) -> Optional[Dict[str, Any
         return None
     else:
         return response[0]
+
+
+def signature(msg: str) -> str:
+    """Create a signature for a reason unregistered message.
+
+    Args:
+        msg: Reason message for unregistered dataset.
+
+    Returns:
+        str: Signature for error message.
+    """
+    ATTACH_RE = re.compile(
+        r"Could not attach datasets: \d+ and (pulsar\.[^\.]+).*?, (\w+)\.event\.baseband\.raw not found"  # noqa: E501
+    )
+
+    CREATE_RE = re.compile(
+        r"Could not create dataset: \d+, scope: (\w+\.event\.baseband\.raw).*UniqueViolation"  # noqa: E501
+    )
+
+    msg = msg.strip()
+
+    # Attach-dataset errors
+    m = ATTACH_RE.search(msg)
+    if m:
+        pulsar, backend = m.groups()
+        return f"ATTACH_MISSING:{pulsar}:{backend}"
+
+    # Create-dataset unique violation
+    m = CREATE_RE.search(msg)
+    if m:
+        scope = m.group(1)
+        return f"CREATE_DUPLICATE:{scope}"
+
+    # Short status / token messages
+    if len(msg) < 80 and "\n" not in msg:
+        return f"STATUS:{msg}"
+
+    # Fallback: normalized text
+    msg = re.sub(r"\d+", "<ID>", msg)
+    msg = re.sub(r"\s+", " ", msg)
+    return f"OTHER:{msg[:120]}"
+
+
+def get_all_unregistered_datasets() -> List[Dict[str, Any]]:
+    """Get all unregistered datasets from Workflow Results.
+
+    Returns:
+        List[Dict[str, Any]]: List of unregistered dataset information.
+    """
+    return view_results(
+        pipeline="datatrail-unregistered-datasets", query={}, projection={}, limit=10000
+    )
+
+
+def summarise_unregistered_datasets() -> Dict[str, int]:
+    """Create a summary of unregistered datasets by grouping similar error messages.
+
+    Returns:
+        Dict[str, int]: Dictionary of error message signatures and their counts.
+    """
+    response = get_all_unregistered_datasets()
+    reason_groups: Dict[str, int] = defaultdict(int)
+    messages = [str(r["results"]["reason"]) for r in response]
+
+    for msg in messages:
+        sig = signature(msg)
+        reason_groups[sig] += 1
+
+    return reason_groups
