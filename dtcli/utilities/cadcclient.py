@@ -15,6 +15,7 @@ from cadctap import CadcTapClient
 from cadcutils import net
 from requests.exceptions import HTTPError
 from rich.traceback import install
+from tenacity import Retrying, stop_after_attempt, wait_exponential
 
 from dtcli.config import procure
 from dtcli.utilities.utilities import split
@@ -111,7 +112,13 @@ def get(
         for index, filename in enumerate(source):
             try:
                 filename = namespace + "/" + filename
-                storage.cadcget(filename, destination[index])  # type: ignore
+                for attempt in Retrying(
+                    stop=stop_after_attempt(3),
+                    wait=wait_exponential(multiplier=1, min=4, max=10),
+                    reraise=True,
+                ):
+                    with attempt:
+                        storage.cadcget(filename, destination[index])  # type: ignore
                 logger.debug(f"{filename} ➜ {destination[index]} ✔")
             except cadcutils.exceptions.NotFoundException as error:  # type: ignore
                 logger.error(f"CADC Exception: {filename}")
@@ -161,7 +168,13 @@ def pget(
     for process in range(processors):
         mp = DillProcess(
             target=get,
-            args=(sources[process], destinations[process], certfile, namespace, verbose),
+            args=(
+                sources[process],
+                destinations[process],
+                certfile,
+                namespace,
+                verbose,
+            ),
         )
         processes.append(mp)
     for proc in processes:
