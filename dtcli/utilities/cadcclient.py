@@ -304,20 +304,23 @@ def dataset_md5s(
     query = query.replace("//", "/")
     logger.info(f"Running query: {query}")
     buffer = StringIO()
-    sys.stdout = buffer
-    _, _, queryClient = _connect()
-    queryClient.query(  # type: ignore
-        query=query,
-        output_file=None,
-        response_format="csv",
-        tmptable=None,
-        lang="ADQL",
-        timeout=timeout,
-        data_only=True,
-        no_column_names=True,
-    )
-    content = buffer.getvalue()
-    sys.stdout = sys.__stdout__
+    original_stdout = sys.stdout
+    try:
+        sys.stdout = buffer
+        _, _, queryClient = _connect()
+        queryClient.query(  # type: ignore
+            query=query,
+            output_file=None,
+            response_format="csv",
+            tmptable=None,
+            lang="ADQL",
+            timeout=timeout,
+            data_only=True,
+            no_column_names=True,
+        )
+        content = buffer.getvalue()
+    finally:
+        sys.stdout = original_stdout
     paths = []
     md5s = []
     for line in content.split("\n"):
@@ -367,20 +370,23 @@ def query(
     query = query.replace("//", "/")
     logger.info(f"Running query: {query}")
     buffer = StringIO()
-    sys.stdout = buffer
-    _, _, queryClient = _connect()
-    queryClient.query(  # type: ignore
-        query=query,
-        output_file=None,
-        response_format="csv",
-        tmptable=None,
-        lang="ADQL",
-        timeout=timeout,
-        data_only=True,
-        no_column_names=True,
-    )
-    content = buffer.getvalue()
-    sys.stdout = sys.__stdout__
+    original_stdout = sys.stdout
+    try:
+        sys.stdout = buffer
+        _, _, queryClient = _connect()
+        queryClient.query(  # type: ignore
+            query=query,
+            output_file=None,
+            response_format="csv",
+            tmptable=None,
+            lang="ADQL",
+            timeout=timeout,
+            data_only=True,
+            no_column_names=True,
+        )
+        content = buffer.getvalue()
+    finally:
+        sys.stdout = original_stdout
     return [line.split(",") for line in content.split("\n")]
 
 
