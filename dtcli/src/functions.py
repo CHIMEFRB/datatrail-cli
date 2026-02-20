@@ -495,26 +495,33 @@ def signature(msg: str) -> str:
         str: Signature for error message.
     """
     ATTACH_RE = re.compile(
-        r"Could not attach datasets: \d+ and (pulsar\.[^\.]+).*?, (\w+)\.event\.baseband\.raw not found"  # noqa: E501
+        r"Could not attach datasets: .+ ERROR: dataset (.+), (.+) not found"  # noqa: E501
     )
 
     CREATE_RE = re.compile(
-        r"Could not create dataset: \d+, scope: (\w+\.event\.baseband\.raw).*UniqueViolation"  # noqa: E501
+        r"Could not create dataset: (.+), scope: (.+)\. .*UniqueViolation"  # noqa: E501
     )
+
+    POSTGRES_RE = re.compile(r".*psycopg.*")
 
     msg = msg.strip()
 
     # Attach-dataset errors
     m = ATTACH_RE.search(msg)
     if m:
-        pulsar, backend = m.groups()
-        return f"ATTACH_MISSING:{pulsar}:{backend}"
+        larger_dataset, scope = m.groups()
+        return f"ATTACH_MISSING:{larger_dataset}:{scope}"
 
     # Create-dataset unique violation
     m = CREATE_RE.search(msg)
     if m:
-        scope = m.group(1)
-        return f"CREATE_DUPLICATE:{scope}"
+        dataset, scope = m.groups()
+        return f"CREATE_DUPLICATE:{dataset}:{scope}"
+
+    # PostgreSQL violation
+    m = POSTGRES_RE.search(msg)
+    if m:
+        return f"POSTGRES:{msg[:120]}"
 
     # Short status / token messages
     if len(msg) < 80 and "\n" not in msg:
