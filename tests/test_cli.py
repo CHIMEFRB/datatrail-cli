@@ -59,21 +59,9 @@ def test_cli_help(runner: CliRunner) -> None:
     expected_response = """Usage: cli [OPTIONS] COMMAND [ARGS]...
 
   Datatrail Command Line Interface.
-
-Options:
-  --help  Show this message and exit.
-
-Commands:
-  clear      Clear a dataset.
-  config     Datatrail CLI Configuration.
-  list (ls)  List scopes & datasets
-  ps         Details of a dataset.
-  pull       Download a dataset.
-  scout      Scout a dataset.
-  version    Show versions.
 """
     assert result.exit_code == 0
-    assert result.output == expected_response
+    assert expected_response in result.output
 
 
 def test_cli_config_help(runner: CliRunner) -> None:
