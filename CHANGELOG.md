@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.9.3...v0.10.0) (2026-02-20)
+
+
+### Features
+
+* **cli:** add unregistered command ([b33a6fa](https://github.com/CHIMEFRB/datatrail-cli/commit/b33a6fae57ff2bdad6c26f0ed5402994fdef7650))
+* **pull:** check all files were downloaded ([bb1d8b6](https://github.com/CHIMEFRB/datatrail-cli/commit/bb1d8b64378fe80a27944f8eaccf6ce674ce17d0))
+
+
+### Bug Fixes
+
+* **cadcclient:** improve handling of stdout ([320d4df](https://github.com/CHIMEFRB/datatrail-cli/commit/320d4dfcdd194aa69f9236c84f21dbfb8690068b))
+* **pull:** wrap download in tenacity retry ([8253157](https://github.com/CHIMEFRB/datatrail-cli/commit/8253157e78e1f0abb71fe71fb396b72d1ba51911))
+* **unregistered:** improve pattern matching ([22ff11a](https://github.com/CHIMEFRB/datatrail-cli/commit/22ff11aa6d8aa390e465bf0ef62065f288f05bac))
+
 ## [0.9.3](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.9.2...v0.9.3) (2026-02-16)
 
 
