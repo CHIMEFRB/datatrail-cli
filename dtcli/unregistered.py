@@ -46,12 +46,16 @@ def summary(
     results = functions.summarise_unregistered_datasets()
 
     table = Table(
-        title="Summary of reasons", header_style="magenta", title_style="bold magenta"
+        title="Summary of reasons",
+        header_style="magenta",
+        title_style="bold magenta",
     )
     table.add_column("Reason")
     table.add_column("Number of Datasets")
 
-    for key, value in results.items():
+    for key, value in sorted(results.items(), key=lambda x: x[1], reverse=True):
         table.add_row(key, str(value))
+
+    table.row_styles = ["none", "dim"]
 
     console.print(table)
