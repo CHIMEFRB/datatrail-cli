@@ -11,7 +11,7 @@ from rich.prompt import Confirm
 from dtcli.config import procure
 from dtcli.src.functions import find_missing_dataset_files, get_files
 from dtcli.utilities import cadcclient
-from dtcli.utilities.utilities import set_log_level, validate_scope
+from dtcli.utilities.utilities import check_canfar_status, set_log_level, validate_scope
 
 logger = logging.getLogger("pull")
 
@@ -110,15 +110,10 @@ def pull(  # noqa: C901
         return None
 
     # Check Canfar status.
-    minoc_up, luskan_up = cadcclient.status()
+    minoc_up, luskan_up = check_canfar_status(error_console)
+
     if not minoc_up:
-        error_console.print(
-            "Either Minoc is down or certificate is invalid.", style="bold yellow"
-        )
-    elif not luskan_up:
-        error_console.print(
-            "Either Luskan is down or certificate is invalid.", style="bold yellow"
-        )
+        return None
 
     # Find files missing from localhost.
     console.print(f"\nSearching for files for {dataset} {scope}...\n")

@@ -12,7 +12,7 @@ from rich.table import Table
 from dtcli.ls import list
 from dtcli.src import functions
 from dtcli.utilities import cadcclient
-from dtcli.utilities.utilities import set_log_level, validate_scope
+from dtcli.utilities.utilities import check_canfar_status, set_log_level, validate_scope
 
 logger = logging.getLogger("ps")
 
@@ -68,15 +68,7 @@ def ps(
         return None
 
     # Check Canfar status.
-    minoc_up, luskan_up = cadcclient.status()
-    if not minoc_up:
-        error_console.print(
-            "Either Minoc is down or certificate is invalid.", style="bold yellow"
-        )
-    elif not luskan_up:
-        error_console.print(
-            "Either Luskan is down or certificate is invalid.", style="bold yellow"
-        )
+    check_canfar_status(error_console)
 
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)

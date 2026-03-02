@@ -422,8 +422,8 @@ def status(
             else:
                 raise TypeError
         except HTTPError as error:
-            logger.error(error)
-            logger.error(f"{url.split('/')[3]} is down.")
+            logger.warning(error)
+            logger.warning(f"{url.split('/')[3]} is down.")
         except TypeError:
             logger.error("Canfar certificate is not valid.")
     return minoc_status, luskan_status

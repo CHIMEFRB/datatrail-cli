@@ -2,10 +2,13 @@
 
 import json
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import requests
 from requests.models import Response
+from rich.console import Console
+
+from dtcli.utilities import cadcclient
 
 try:
     from packaging.version import parse
@@ -133,3 +136,26 @@ def cli_is_latest_release() -> bool:
         return current_version == get_latest_released_version()
     except (ConnectionError, PackageNotFoundError):
         return True
+
+
+def check_canfar_status(console: Console) -> Tuple[bool, bool]:
+    """Checks the status of Luskan and Minoc.
+
+    Args:
+        console: Console to print status messages to.
+
+    Returns:
+        Tuple[bool, bool]: Status of Minoc and Luskan, respectively.
+    """
+    # Check Canfar status.
+    minoc_up, luskan_up = cadcclient.status()
+    if not minoc_up:
+        console.print(":warning: Minoc is down!", style="bold yellow")
+    if not luskan_up:
+        console.print(":warning: Luskan is down!", style="bold yellow")
+    if not minoc_up or not luskan_up:
+        console.print(
+            "See https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/status/ for service availability.",  # noqa: E501
+            style="bold yellow",
+        )
+    return minoc_up, luskan_up
