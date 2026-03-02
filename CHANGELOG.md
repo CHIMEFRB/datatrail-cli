@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.10.0...v0.10.1) (2026-03-02)
+
+
+### Bug Fixes
+
+* **cli:** canfar status checks ([7f9df34](https://github.com/CHIMEFRB/datatrail-cli/commit/7f9df349ceeebb1caa7c1c2582cd3d1c54e8ec09))
+
 ## [0.10.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.9.3...v0.10.0) (2026-02-20)
 
 
