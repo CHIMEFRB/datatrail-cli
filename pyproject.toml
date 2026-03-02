@@ -21,7 +21,7 @@ dependencies = [
   "dill>=0.3.6",
   "lxml>=4.9.2",
   "click-aliasing>=1.0.0",
-  "tenacity>=9.0.0",
+  "tenacity>=8.0.0",
 ]
 
 [project.scripts]
