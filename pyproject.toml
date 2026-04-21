@@ -19,7 +19,7 @@ dependencies = [
   "cadctap>=0.9.11",
   "mergedeep>=1.3.4",
   "dill>=0.3.6",
-  "lxml>=4.9.2",
+  "lxml>=6.1.0",
   "click-aliasing>=1.0.0",
   "tenacity>=8.0.0",
 ]
