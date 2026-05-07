@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.10.1...v0.10.2) (2026-05-07)
+
+
+### Bug Fixes
+
+* **pull:** more processors than files bug ([e44bbe1](https://github.com/CHIMEFRB/datatrail-cli/commit/e44bbe1a14900f034f998b664c1d394fcf31c7a7)), closes [#147](https://github.com/CHIMEFRB/datatrail-cli/issues/147)
+
 ## [0.10.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.10.0...v0.10.1) (2026-03-02)
 
 
