@@ -8,8 +8,6 @@ import requests
 from requests.models import Response
 from rich.console import Console
 
-from dtcli.utilities import cadcclient
-
 try:
     from packaging.version import parse
 except ImportError:
@@ -148,6 +146,8 @@ def check_canfar_status(console: Console) -> Tuple[bool, bool]:
         Tuple[bool, bool]: Status of Minoc and Luskan, respectively.
     """
     # Check Canfar status.
+    from dtcli.utilities import cadcclient  # local import to avoid circular dependency
+
     minoc_up, luskan_up = cadcclient.status()
     if not minoc_up:
         console.print(":warning: Minoc is down!", style="bold yellow")

@@ -161,6 +161,9 @@ def pget(
     elif verbose > 1:
         logger.setLevel("DEBUG")
 
+    # Cap processors to the number of files so we never spawn more workers than
+    # there are files to download (avoids IndexError when -c > number of files).
+    processors = min(processors, len(source))
     sources: List[List[Any]] = split(source, processors)
     destinations: List[List[Any]] = split(destination, processors)
     logger.info(f"Starting {processors} processes.")
