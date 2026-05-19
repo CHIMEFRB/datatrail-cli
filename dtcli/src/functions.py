@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import shutil
+import subprocess
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -297,8 +298,8 @@ def get_files(
         if site == "canfar":
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
-                os.system(f"chgrp -R chime-frb-rw {folder}")  # nosec
-                os.system(f"chmod -R g+w {folder}")  # nosec
+                subprocess.run(["chgrp", "-R", "chime-frb-rw", folder])
+                subprocess.run(["chmod", "-R", "g+w", folder])
         else:
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
