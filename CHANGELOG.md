@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.10.2...v0.10.3) (2026-05-19)
+
+
+### Bug Fixes
+
+* connection errors raise correct status exit code ([9b4d7bc](https://github.com/CHIMEFRB/datatrail-cli/commit/9b4d7bcc74c6a7c6954d965f8ab421ea6181b016))
+
 ## [0.10.2](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.10.1...v0.10.2) (2026-05-07)
 
 
