@@ -71,8 +71,9 @@ def _connect(
         return cert, storage, query
     except ValueError as error:
         logger.error(
-            "Authorization failed: The provided CANFAR certificate is invalid or expired. "
-            "Please ensure you have a valid certificate and try again."
+            "Authorization failed: The provided CANFAR certificate is "
+            "invalid or expired. Please ensure you have a valid "
+            "certificate and try again."
         )
         raise ValueError("Invalid or expired CANFAR certificate.") from error
 
