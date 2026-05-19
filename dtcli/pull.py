@@ -107,6 +107,7 @@ def pull(  # noqa: C901
             return None
     except ConnectionError as e:
         error_console.print(e)
+        ctx.exit(1)
         return None
 
     # Check Canfar status.
@@ -120,6 +121,7 @@ def pull(  # noqa: C901
     files = find_missing_dataset_files(scope, dataset, directory, verbose)
     if files.get("error"):
         error_console.print(files["error"])
+        ctx.exit(1)
         return None
     elif len(files["missing"]) == 0 and len(files["existing"]) == 0:
         console.print("No files found at minoc.", style="bold red")

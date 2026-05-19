@@ -100,6 +100,7 @@ def clear(
             return None
     except ConnectionError as error:
         error_console.print(error)
+        ctx.exit(1)
         return None
 
     # Find number of files in common directory and size.

@@ -69,6 +69,7 @@ def list(
                 return None
         except ConnectionError as e:
             error_console.print(e)
+            ctx.exit(1)
             return None
     results = functions.list(scope, datasets, verbose, quiet)
 
@@ -131,3 +132,4 @@ def list(
     # No contact with server.
     if "error" in results.keys():
         error_console.print(results["error"])
+        ctx.exit(1)
