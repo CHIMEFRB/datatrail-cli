@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import shutil
+import stat
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -257,6 +258,29 @@ def find_missing_dataset_files(
     return {"missing": missing_files, "existing": existing_files}
 
 
+def _apply_chime_frb_rw_permissions(folder: str) -> None:
+    """Apply chime-frb-rw group and group-write permissions to a folder recursively."""
+    for root, dirs, files_in_dir in os.walk(folder):
+        try:
+            shutil.chown(root, group="chime-frb-rw")
+        except OSError:
+            pass
+        try:
+            os.chmod(root, os.stat(root).st_mode | stat.S_IWGRP)
+        except OSError:
+            pass
+        for f in files_in_dir:
+            path = os.path.join(root, f)
+            try:
+                shutil.chown(path, group="chime-frb-rw")
+            except OSError:
+                pass
+            try:
+                os.chmod(path, os.stat(path).st_mode | stat.S_IWGRP)
+            except OSError:
+                pass
+
+
 def get_files(
     files: List[str],
     site: str,
@@ -297,8 +321,7 @@ def get_files(
         if site == "canfar":
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
-                os.system(f"chgrp -R chime-frb-rw {folder}")  # nosec
-                os.system(f"chmod -R g+w {folder}")  # nosec
+                _apply_chime_frb_rw_permissions(folder)
         else:
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
