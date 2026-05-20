@@ -234,9 +234,7 @@ def create_files_table(dataset: str, scope: str, files: dict):
                 file_table.add_row(f"Storage Element: [magenta]{se}")
                 file_table.add_row(f"Common Path: {common_path}/", style="bold green")
                 file_table.add_row(f"[green]- {fn}")
-                # file_table.add_row(se, common_path, fn)
             else:
                 file_table.add_row(f"- {fn}", style="green")
-                # file_table.add_row("", "", fn)
         file_table.add_section()
     return file_table
