@@ -70,10 +70,13 @@ def _connect(
         storage = StorageInventoryClient(cert, resource_id=storage_resource_id)
         query = CadcTapClient(cert, resource_id=query_resource_id)
         return cert, storage, query
-    # TODO: Handle invalid cert
     except ValueError as error:
-        logger.error(error)
-        raise error
+        logger.error(
+            "Authorization failed: The provided CANFAR certificate is "
+            "invalid or expired. Please ensure you have a valid "
+            "certificate and try again."
+        )
+        raise ValueError("Invalid or expired CANFAR certificate.") from error
 
 
 def get(
