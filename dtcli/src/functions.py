@@ -323,6 +323,7 @@ def get_files(
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
                 _apply_chime_frb_rw_permissions(folder)
+
         else:
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
