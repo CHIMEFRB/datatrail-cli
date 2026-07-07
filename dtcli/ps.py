@@ -26,14 +26,16 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-s", "--show-files", is_flag=True, help="Show file names.")
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON.")
 @click.pass_context
-def ps(
+def ps(  # noqa: C901
     ctx: click.Context,
     scope: str,
     dataset: str,
     show_files: bool,
     verbose: int,
     quiet: bool,
+    output_json: bool,
 ):
     """Detailed status of a dataset.
 
@@ -44,6 +46,7 @@ def ps(
         show_files (bool): Show list of files.
         verbose (int): Verbosity: v=INFO, vv=DUBUG.
         quiet (bool): Set log level to ERROR.
+        output_json (bool): Output as JSON.
 
     Returns:
         None
@@ -73,11 +76,39 @@ def ps(
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)
         if isinstance(files, str) or isinstance(policies, str):
+            if output_json:
+                import json
+
+                print(
+                    json.dumps(
+                        {"error": {"files": str(files), "policies": str(policies)}},
+                        indent=2,
+                    )
+                )
+                ctx.exit(1)
             error_console.print("Error: files = ", files)
             error_console.print("Error: policies = ", policies)
             return None
     except Exception as e:
+        if output_json:
+            import json
+
+            print(json.dumps({"error": str(e)}, indent=2))
+            ctx.exit(1)
         error_console.print(e)
+        return None
+
+    # Handle JSON output
+    if output_json:
+        import json
+
+        result = {
+            "dataset": dataset,
+            "scope": scope,
+            "files": files,
+            "policies": policies,
+        }
+        print(json.dumps(result, indent=2))
         return None
 
     if show_files and files:

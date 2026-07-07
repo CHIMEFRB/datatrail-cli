@@ -11,6 +11,7 @@ Options:
   -v, --verbose  Verbosity: v=INFO, vv=DEBUG.
   -q, --quiet    Only errors shown in logs.
   --write        Write the events to file.
+  --json         Output as JSON.
   --help         Show this message and exit.
 
 ```
@@ -100,3 +101,62 @@ Within Datatrail, there are two types of datasets:
 
     Please see the CLI reference page for more information on the `list` command:
     [datatrail list](../cli/#datatrail-list)
+
+## 🤖 Machine-readable JSON output
+
+The `--json` flag outputs structured JSON instead of formatted tables, making it easy to parse the output in scripts and pipelines:
+
+```bash
+# Get all scopes as JSON
+$ datatrail ls --json
+{
+  "scopes": [
+    "chime.event.baseband.raw",
+    "chime.event.intensity.raw",
+    "kko.acquisition.processed",
+    ...
+  ]
+}
+
+# Get larger datasets as JSON
+$ datatrail ls kko.scheduled.baseband.raw --json
+{
+  "scope": "kko.scheduled.baseband.raw",
+  "larger_datasets": [
+    "20230804095251",
+    "scheduled.commissioning.steady"
+  ]
+}
+
+# Get child datasets as JSON
+$ datatrail ls kko.scheduled.baseband.raw scheduled.commissioning.steady --json
+{
+  "datasets": [
+    "20230616150511",
+    "20230604135840",
+    "20230604134842",
+    ...
+  ]
+}
+```
+
+### Usage in scripts
+
+```python
+import json
+import subprocess
+
+# Get all scopes
+result = subprocess.run(["datatrail", "ls", "--json"], capture_output=True, text=True)
+data = json.loads(result.stdout)
+scopes = data["scopes"]
+
+# Get datasets for a scope
+result = subprocess.run(
+    ["datatrail", "ls", "chime.event.baseband.raw", "--json"],
+    capture_output=True,
+    text=True,
+)
+data = json.loads(result.stdout)
+larger_datasets = data["larger_datasets"]
+```
