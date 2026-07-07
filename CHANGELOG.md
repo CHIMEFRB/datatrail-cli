@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.10.3...v0.11.0) (2026-07-07)
+
+
+### Features
+
+* **ls & ps:** add --json flag for machine readable output ([c4742a0](https://github.com/CHIMEFRB/datatrail-cli/commit/c4742a0dfe43823ce8e68f21e26e146b90db958c)), closes [#159](https://github.com/CHIMEFRB/datatrail-cli/issues/159)
+
 ## [0.10.3](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.10.2...v0.10.3) (2026-05-19)
 
 
