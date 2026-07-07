@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor
 from io import StringIO
 from multiprocessing import Process  # Use the standard library only
 from typing import Any, Dict, List, Optional, Tuple
@@ -411,25 +410,23 @@ def status(
     ]
     if not certfile:
         certfile = procure(key="vospace_certfile")
-
-    def check_url(url: str) -> bool:
+    minoc_status = False
+    luskan_status = False
+    for index, url in enumerate(urls):
         response = requests.get(url, cert=certfile, allow_redirects=True)
         try:
             response.raise_for_status()
             authorised = response.headers.get("x-vo-authenticated")
             if isinstance(authorised, str):
-                return True
+                if index == 0:
+                    minoc_status = True
+                else:
+                    luskan_status = True
             else:
                 raise TypeError
         except HTTPError as error:
             logger.warning(error)
             logger.warning(f"{url.split('/')[3]} is down.")
-            return False
         except TypeError:
             logger.error("Canfar certificate is not valid.")
-            return False
-
-    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
-        results = list(executor.map(check_url, urls))
-
-    return results[0], results[1]
+    return minoc_status, luskan_status

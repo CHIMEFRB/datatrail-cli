@@ -70,9 +70,6 @@ def split(data: List[Any], count: int) -> List[List[Any]]:
     Returns:
         List[List[Any]]: List of batches.
     """
-    if count <= 0:
-        raise ValueError("count must be greater than 0")
-
     batch_size = len(data) // count
     remainder = len(data) % count
     batches: List[Any] = []

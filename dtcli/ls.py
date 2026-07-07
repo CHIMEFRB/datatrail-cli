@@ -34,16 +34,14 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Only errors shown in logs.")
 @click.option("--write", is_flag=True, help="Write the events to file.")
-@click.option("--json", "output_json", is_flag=True, help="Output as JSON.")
 @click.pass_context
-def list(  # noqa: C901
+def list(
     ctx: click.Context,
     scope: Optional[str] = None,
     datasets: Optional[str] = None,
     verbose: int = 0,
     quiet: bool = False,
     write: bool = False,
-    output_json: bool = False,
 ):
     """List Datatrail Scopes & Datasets.
 
@@ -54,7 +52,6 @@ def list(  # noqa: C901
         verbose (int): Verbosity: v=INFO, vv=DEBUG.
         quiet (bool): Only errors shown in logs.
         write (bool): Write the events to file.
-        output_json (bool): Output as JSON.
     """
     # Set logging level.
     set_log_level(logger, verbose, quiet)
@@ -75,13 +72,6 @@ def list(  # noqa: C901
             ctx.exit(1)
             return None
     results = functions.list(scope, datasets, verbose, quiet)
-
-    # Output JSON if requested.
-    if output_json:
-        print(json.dumps(results, indent=2))
-        if "error" in results:
-            ctx.exit(1)
-        return
 
     # Display scopes.
     if "scopes" in results.keys():

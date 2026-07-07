@@ -97,15 +97,18 @@ def test_cli_list_help(runner: CliRunner) -> None:
         runner (CliRunner) -> None: Click runner.
     """
     result = runner.invoke(datatrail, ["ls", "--help"])
+    expected_response = """Usage: cli list [OPTIONS] [SCOPE] [DATASETS]
+
+  List scopes & datasets
+
+Options:
+  -v, --verbose  Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet    Only errors shown in logs.
+  --write        Write the events to file.
+  --help         Show this message and exit.
+"""
     assert result.exit_code == 0
-    # Check that all the expected elements are present
-    assert "Usage: cli list [OPTIONS] [SCOPE] [DATASETS]" in result.output
-    assert "List scopes & datasets" in result.output
-    assert "--verbose" in result.output
-    assert "--quiet" in result.output
-    assert "--write" in result.output
-    assert "--json" in result.output
-    assert "Output as JSON" in result.output
+    assert result.output == expected_response
 
 
 def test_cli_ps_help(runner: CliRunner) -> None:
@@ -115,15 +118,18 @@ def test_cli_ps_help(runner: CliRunner) -> None:
         runner (CliRunner) -> None: Click runner.
     """
     result = runner.invoke(datatrail, ["ps", "--help"])
+    expected_response = """Usage: cli ps [OPTIONS] SCOPE DATASET
+
+  Details of a dataset.
+
+Options:
+  -s, --show-files  Show file names.
+  -v, --verbose     Verbosity: v=INFO, vv=DEBUG.
+  -q, --quiet       Set log level to ERROR.
+  --help            Show this message and exit.
+"""
     assert result.exit_code == 0
-    # Check that all the expected elements are present
-    assert "Usage: cli ps [OPTIONS] SCOPE DATASET" in result.output
-    assert "Details of a dataset" in result.output
-    assert "--show-files" in result.output
-    assert "--verbose" in result.output
-    assert "--quiet" in result.output
-    assert "--json" in result.output
-    assert "Output as JSON" in result.output
+    assert result.output == expected_response
 
 
 def test_cli_pull_help(runner: CliRunner) -> None:
@@ -574,94 +580,3 @@ def test_cli_version(runner: CliRunner) -> None:
     result = runner.invoke(datatrail, ["version"])
     assert result.exit_code == 0
     assert "Datatrail Versions" in result.output
-
-
-def test_cli_list_scopes_json(runner: CliRunner) -> None:
-    """Test for CLI list to output scopes as JSON.
-
-    Args:
-        runner (CliRunner): Click runner.
-    """
-    import json
-
-    result = runner.invoke(datatrail, ["ls", "--json"])
-    assert result.exit_code == 0
-    # Extract JSON from output (skip version check message if present)
-    json_start = result.output.find("{")
-    json_output = result.output[json_start:]
-    # Parse the output as JSON
-    output_data = json.loads(json_output)
-    # Should have a 'scopes' key with a list of scopes
-    assert "scopes" in output_data
-    assert isinstance(output_data["scopes"], list)
-    assert "chime.event.intensity.raw" in output_data["scopes"]
-
-
-def test_cli_list_larger_json(runner: CliRunner) -> None:
-    """Test for CLI to list larger datasets as JSON.
-
-    Args:
-        runner (CliRunner): Click runner.
-    """
-    import json
-
-    result = runner.invoke(datatrail, ["ls", "chime.event.baseband.raw", "--json"])
-    assert result.exit_code == 0
-    # Extract JSON from output (skip version check message if present)
-    json_start = result.output.find("{")
-    json_output = result.output[json_start:]
-    # Parse the output as JSON
-    output_data = json.loads(json_output)
-    # Should have a 'larger_datasets' key with a list of datasets
-    assert "larger_datasets" in output_data
-    assert isinstance(output_data["larger_datasets"], list)
-    assert "classified.FRB" in output_data["larger_datasets"]
-
-
-def test_cli_list_children_json(runner: CliRunner) -> None:
-    """Test for CLI list to show child datasets as JSON.
-
-    Args:
-        runner (CliRunner): Click runner.
-    """
-    import json
-
-    result = runner.invoke(
-        datatrail, ["ls", "chime.event.baseband.raw", "classified.FRB", "--json"]
-    )
-    assert result.exit_code == 0
-    # Extract JSON from output (skip version check message if present)
-    json_start = result.output.find("{")
-    json_output = result.output[json_start:]
-    # Parse the output as JSON
-    output_data = json.loads(json_output)
-    # Should have a 'datasets' key with a list of datasets
-    assert "datasets" in output_data
-    assert isinstance(output_data["datasets"], list)
-    assert "289007650" in output_data["datasets"]
-
-
-def test_cli_ps_json(runner: CliRunner) -> None:
-    """Test for CLI ps command with JSON output.
-
-    Args:
-        runner (CliRunner): Click runner.
-    """
-    import json
-
-    result = runner.invoke(
-        datatrail, ["ps", "chime.event.baseband.raw", "289007650", "--json"]
-    )
-    assert result.exit_code == 0
-    # Extract JSON from output (skip version check message if present)
-    json_start = result.output.find("{")
-    json_output = result.output[json_start:]
-    # Parse the output as JSON
-    output_data = json.loads(json_output)
-    # Should have dataset, scope, files, and policies keys
-    assert "dataset" in output_data
-    assert "scope" in output_data
-    assert "files" in output_data
-    assert "policies" in output_data
-    assert output_data["dataset"] == "289007650"
-    assert output_data["scope"] == "chime.event.baseband.raw"
