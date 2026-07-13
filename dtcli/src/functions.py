@@ -6,7 +6,7 @@ import re
 import shutil
 import subprocess
 import time
-from collections import defaultdict
+from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -486,6 +486,15 @@ def get_unregistered_dataset(dataset: str, scope: str) -> Optional[Dict[str, Any
         return response[0]
 
 
+ATTACH_RE = re.compile(
+    r"Could not attach datasets: .+? ERROR: \"?dataset (.+?), (.+?) not found"  # noqa: E501
+)
+
+CREATE_RE = re.compile(
+    r"Could not create dataset: (.+?), scope: (.+?)\. .*UniqueViolation"  # noqa: E501
+)
+
+
 def signature(msg: str) -> str:
     """Create a signature for a reason unregistered message.
 
@@ -495,16 +504,6 @@ def signature(msg: str) -> str:
     Returns:
         str: Signature for error message.
     """
-    ATTACH_RE = re.compile(
-        r"Could not attach datasets: .+ ERROR: dataset (.+), (.+) not found"  # noqa: E501
-    )
-
-    CREATE_RE = re.compile(
-        r"Could not create dataset: (.+), scope: (.+)\. .*UniqueViolation"  # noqa: E501
-    )
-
-    POSTGRES_RE = re.compile(r".*psycopg.*")
-
     msg = msg.strip()
 
     # Attach-dataset errors
@@ -517,11 +516,12 @@ def signature(msg: str) -> str:
     m = CREATE_RE.search(msg)
     if m:
         dataset, scope = m.groups()
+        dataset = re.sub(r"\d+", "<ID>", dataset)
         return f"CREATE_DUPLICATE:{dataset}:{scope}"
 
     # PostgreSQL violation
-    m = POSTGRES_RE.search(msg)
-    if m:
+    if "psycopg" in msg:
+        msg = re.sub(r"\s+", " ", msg)
         return f"POSTGRES:{msg[:120]}"
 
     # Short status / token messages
@@ -552,11 +552,4 @@ def summarise_unregistered_datasets() -> Dict[str, int]:
         Dict[str, int]: Dictionary of error message signatures and their counts.
     """
     response = get_all_unregistered_datasets()
-    reason_groups: Dict[str, int] = defaultdict(int)
-    messages = [str(r["results"]["reason"]) for r in response]
-
-    for msg in messages:
-        sig = signature(msg)
-        reason_groups[sig] += 1
-
-    return reason_groups
+    return Counter(signature(str(r["results"]["reason"])) for r in response)
