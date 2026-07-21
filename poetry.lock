@@ -119,35 +119,9 @@ description = "Generic CADC Python libary of utilities"
 optional = false
 python-versions = "<4,>=3.7"
 groups = ["main"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "cadcutils-1.5.4-py3-none-any.whl", hash = "sha256:d564b5b607a46b0192cc08eaf2d53ee80e0c3ceed972ecb558801f18bb0c52a3"},
     {file = "cadcutils-1.5.4.tar.gz", hash = "sha256:9b4de174efffc39860fe74ebe151a354c56d01d866682e6474919ad9b8002d76"},
-]
-
-[package.dependencies]
-distro = "*"
-html2text = "*"
-lxml = ">=3.7.0"
-packaging = "*"
-pyopenssl = "*"
-requests = ">=2.8"
-setuptools = ">=36.0"
-
-[package.extras]
-test = ["flake8 (>=3.4.1)", "funcsigs (==1.0.2)", "mock (>=2.0.0)", "pytest", "pytest-cov (>=2.5.1)", "xml-compare (>=1.0.5)"]
-
-[[package]]
-name = "cadcutils"
-version = "1.5.5"
-description = "Generic CADC Python libary of utilities"
-optional = false
-python-versions = "<4,>=3.9"
-groups = ["main"]
-markers = "python_version >= \"3.9\" and platform_python_implementation != \"PyPy\" or python_version >= \"3.10\""
-files = [
-    {file = "cadcutils-1.5.5-py3-none-any.whl", hash = "sha256:2e6e16a35a366f34e5083a29fa4172dd6ddc612b9e1b6d6bf39ed7e5bde911e3"},
-    {file = "cadcutils-1.5.5.tar.gz", hash = "sha256:74600fdcdb4f2718576aa76b633a9e7b1989a8b37ca4cc9913cfd3ddd5415a75"},
 ]
 
 [package.dependencies]
@@ -509,26 +483,9 @@ description = "Composable command line interface toolkit"
 optional = false
 python-versions = ">=3.7"
 groups = ["main", "docs"]
-markers = "python_version < \"3.10\""
 files = [
     {file = "click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2"},
     {file = "click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a"},
-]
-
-[package.dependencies]
-colorama = {version = "*", markers = "platform_system == \"Windows\""}
-
-[[package]]
-name = "click"
-version = "8.3.1"
-description = "Composable command line interface toolkit"
-optional = false
-python-versions = ">=3.10"
-groups = ["main", "docs"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "click-8.3.1-py3-none-any.whl", hash = "sha256:981153a64e25f12d547d3426c367a4857371575ee7ad18df2a6183ab0545b2a6"},
-    {file = "click-8.3.1.tar.gz", hash = "sha256:12ff4785d337a1bb490bb7e9c2b1ee5da3112e94a8622f26a6c77f5d2fc6842a"},
 ]
 
 [package.dependencies]
@@ -992,27 +949,9 @@ description = "serialize all of Python"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "dill-0.4.0-py3-none-any.whl", hash = "sha256:44f54bf6412c2c8464c14e8243eb163690a9800dbe2c367330883b19c7561049"},
     {file = "dill-0.4.0.tar.gz", hash = "sha256:0633f1d2df477324f53a895b02c901fb961bdbf65a17122586ea7019292cbcf0"},
-]
-
-[package.extras]
-graph = ["objgraph (>=1.7.2)"]
-profile = ["gprof2dot (>=2022.7.29)"]
-
-[[package]]
-name = "dill"
-version = "0.4.1"
-description = "serialize all of Python"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-markers = "python_version >= \"3.9\" and platform_python_implementation != \"PyPy\" or python_version >= \"3.10\""
-files = [
-    {file = "dill-0.4.1-py3-none-any.whl", hash = "sha256:1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d"},
-    {file = "dill-0.4.1.tar.gz", hash = "sha256:423092df4182177d4d8ba8290c8a5b640c66ab35ec7da59ccfa00f6fa3eea5fa"},
 ]
 
 [package.extras]
@@ -1199,18 +1138,18 @@ license = ["ukkonen"]
 
 [[package]]
 name = "idna"
-version = "3.11"
+version = "3.15"
 description = "Internationalized Domain Names in Applications (IDNA)"
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "docs"]
 files = [
-    {file = "idna-3.11-py3-none-any.whl", hash = "sha256:771a87f49d9defaf64091e6e6fe9c18d4833f140bd19464795bc32d966ca37ea"},
-    {file = "idna-3.11.tar.gz", hash = "sha256:795dafcc9c04ed0c1fb032c2aa73654d8e8c5023a7df64a53f39190ada629902"},
+    {file = "idna-3.15-py3-none-any.whl", hash = "sha256:048adeaf8c2d788c40fee287673ccaa74c24ffd8dcf09ffa555a2fbb59f10ac8"},
+    {file = "idna-3.15.tar.gz", hash = "sha256:ca962446ea538f7092a95e057da437618e886f4d349216d2b1e294abfdb65fdc"},
 ]
 
 [package.extras]
-all = ["flake8 (>=7.1.1)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2)"]
+all = ["mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2)"]
 
 [[package]]
 name = "importlib-metadata"
@@ -2690,33 +2629,9 @@ description = "Python HTTP for Humans."
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "docs"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "requests-2.32.4-py3-none-any.whl", hash = "sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c"},
     {file = "requests-2.32.4.tar.gz", hash = "sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422"},
-]
-
-[package.dependencies]
-certifi = ">=2017.4.17"
-charset_normalizer = ">=2,<4"
-idna = ">=2.5,<4"
-urllib3 = ">=1.21.1,<3"
-
-[package.extras]
-socks = ["PySocks (>=1.5.6,!=1.5.7)"]
-use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
-
-[[package]]
-name = "requests"
-version = "2.32.5"
-description = "Python HTTP for Humans."
-optional = false
-python-versions = ">=3.9"
-groups = ["main", "docs"]
-markers = "python_version >= \"3.9\" and platform_python_implementation != \"PyPy\" or python_version >= \"3.10\""
-files = [
-    {file = "requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6"},
-    {file = "requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf"},
 ]
 
 [package.dependencies]
@@ -2826,44 +2741,9 @@ description = "Retry code until it succeeds"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "tenacity-9.0.0-py3-none-any.whl", hash = "sha256:93de0c98785b27fcf659856aa9f54bfbd399e29969b0621bc7f762bd441b4539"},
     {file = "tenacity-9.0.0.tar.gz", hash = "sha256:807f37ca97d62aa361264d497b0e31e92b8027044942bfa756160d908320d73b"},
-]
-
-[package.extras]
-doc = ["reno", "sphinx"]
-test = ["pytest", "tornado (>=4.5)", "typeguard"]
-
-[[package]]
-name = "tenacity"
-version = "9.1.2"
-description = "Retry code until it succeeds"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-markers = "python_full_version >= \"3.9.0\" and platform_python_implementation != \"PyPy\" and python_version < \"3.10\""
-files = [
-    {file = "tenacity-9.1.2-py3-none-any.whl", hash = "sha256:f77bf36710d8b73a50b2dd155c97b870017ad21afe6ab300326b0371b3b05138"},
-    {file = "tenacity-9.1.2.tar.gz", hash = "sha256:1169d376c297e7de388d18b4481760d478b0e99a777cad3a9c86e556f4b697cb"},
-]
-
-[package.extras]
-doc = ["reno", "sphinx"]
-test = ["pytest", "tornado (>=4.5)", "typeguard"]
-
-[[package]]
-name = "tenacity"
-version = "9.1.4"
-description = "Retry code until it succeeds"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "tenacity-9.1.4-py3-none-any.whl", hash = "sha256:6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55"},
-    {file = "tenacity-9.1.4.tar.gz", hash = "sha256:adb31d4c263f2bd041081ab33b498309a57c77f9acf2db65aadf0898179cf93a"},
 ]
 
 [package.extras]
