@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.11.0...v0.11.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* **unregistered:** improve way info displayed ([c5f0fca](https://github.com/CHIMEFRB/datatrail-cli/commit/c5f0fca6f6f53e5004e1f1868517100572d68d1a))
+
 ## [0.11.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.10.3...v0.11.0) (2026-07-07)
 
 
