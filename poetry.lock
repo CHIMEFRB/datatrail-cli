@@ -118,7 +118,6 @@ description = "Client for accessing data at the Canadian Astronomy Data Centre"
 optional = false
 python-versions = ">=3.7, <4"
 groups = ["main"]
-markers = "python_version < \"3.10\""
 files = [
     {file = "cadctap-0.9.11-py3-none-any.whl", hash = "sha256:7aa74dedd6fde95649d0607976f2d5e5459c9928c31c99263d020ae2975dc78f"},
     {file = "cadctap-0.9.11.tar.gz", hash = "sha256:fc56d7b7c7dcd22ca12c05833fa212a61baefecbc931951da62d1efe1e8f798d"},
@@ -134,35 +133,12 @@ requests-toolbelt = ">=0.8.0"
 test = ["flake8 (>=3.4.1)", "funcsigs (==1.0.2)", "mock (>=2.0.0)", "pytest", "pytest-cov (>=2.5.1)", "xml-compare (>=1.0.5)"]
 
 [[package]]
-name = "cadctap"
-version = "0.10.1"
-description = "Client for accessing data at the Canadian Astronomy Data Centre"
-optional = false
-python-versions = "<4.0,>=3.10"
-groups = ["main"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "cadctap-0.10.1-py3-none-any.whl", hash = "sha256:0f52d05f15b98accc5fbef83619ecf1061b8c018adb73c08a702241871ae12c6"},
-    {file = "cadctap-0.10.1.tar.gz", hash = "sha256:f63075bbcebac034f147d636b781bd9cfcaea27d077b52f78c68167906958eb0"},
-]
-
-[package.dependencies]
-cadcutils = ">=1.6.1"
-clint = ">=0.5.1"
-requests = ">=2.18"
-requests-toolbelt = ">=0.8.0"
-
-[package.extras]
-test = ["flake8 (>=3.4.1)", "funcsigs (==1.0.2)", "pytest", "pytest-cov (>=2.5.1)"]
-
-[[package]]
 name = "cadcutils"
 version = "1.5.4"
 description = "Generic CADC Python libary of utilities"
 optional = false
 python-versions = "<4,>=3.7"
 groups = ["main"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "cadcutils-1.5.4-py3-none-any.whl", hash = "sha256:d564b5b607a46b0192cc08eaf2d53ee80e0c3ceed972ecb558801f18bb0c52a3"},
     {file = "cadcutils-1.5.4.tar.gz", hash = "sha256:9b4de174efffc39860fe74ebe151a354c56d01d866682e6474919ad9b8002d76"},
@@ -179,55 +155,6 @@ setuptools = ">=36.0"
 
 [package.extras]
 test = ["flake8 (>=3.4.1)", "funcsigs (==1.0.2)", "mock (>=2.0.0)", "pytest", "pytest-cov (>=2.5.1)", "xml-compare (>=1.0.5)"]
-
-[[package]]
-name = "cadcutils"
-version = "1.5.5"
-description = "Generic CADC Python libary of utilities"
-optional = false
-python-versions = "<4,>=3.9"
-groups = ["main"]
-markers = "python_full_version >= \"3.9.0\" and platform_python_implementation != \"PyPy\" and python_version < \"3.10\""
-files = [
-    {file = "cadcutils-1.5.5-py3-none-any.whl", hash = "sha256:2e6e16a35a366f34e5083a29fa4172dd6ddc612b9e1b6d6bf39ed7e5bde911e3"},
-    {file = "cadcutils-1.5.5.tar.gz", hash = "sha256:74600fdcdb4f2718576aa76b633a9e7b1989a8b37ca4cc9913cfd3ddd5415a75"},
-]
-
-[package.dependencies]
-distro = "*"
-html2text = "*"
-lxml = ">=3.7.0"
-packaging = "*"
-pyopenssl = "*"
-requests = ">=2.8"
-setuptools = ">=36.0"
-
-[package.extras]
-test = ["flake8 (>=3.4.1)", "funcsigs (==1.0.2)", "mock (>=2.0.0)", "pytest", "pytest-cov (>=2.5.1)", "xml-compare (>=1.0.5)"]
-
-[[package]]
-name = "cadcutils"
-version = "1.6.2"
-description = "Generic CADC Python libary of utilities"
-optional = false
-python-versions = "<4.0,>=3.10"
-groups = ["main"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "cadcutils-1.6.2-py3-none-any.whl", hash = "sha256:a95323d422731b41f9d24c2f06785ea2231cf69d1cc6ccacc4175df72b988877"},
-    {file = "cadcutils-1.6.2.tar.gz", hash = "sha256:6e2d7822756d48a363bc5f857cd717f80aab760554df86518b957f8826a7a906"},
-]
-
-[package.dependencies]
-distro = "*"
-lxml = ">=3.7.0"
-packaging = "*"
-pyopenssl = ">=26.0.0"
-requests = ">=2.8"
-setuptools = ">=36.0"
-
-[package.extras]
-test = ["flake8 (>=3.4.1)", "funcsigs (==1.0.2)", "mock (>=2.0.0)", "pytest", "pytest-cov (>=2.5.1)"]
 
 [[package]]
 name = "certifi"
@@ -670,26 +597,9 @@ description = "Composable command line interface toolkit"
 optional = false
 python-versions = ">=3.7"
 groups = ["main", "docs"]
-markers = "python_version < \"3.10\""
 files = [
     {file = "click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2"},
     {file = "click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a"},
-]
-
-[package.dependencies]
-colorama = {version = "*", markers = "platform_system == \"Windows\""}
-
-[[package]]
-name = "click"
-version = "8.4.2"
-description = "Composable command line interface toolkit"
-optional = false
-python-versions = ">=3.10"
-groups = ["main", "docs"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "click-8.4.2-py3-none-any.whl", hash = "sha256:e6f9f66136c816745b9d65817da91d61d957fb16e02e4dcd0552553c5a197b76"},
-    {file = "click-8.4.2.tar.gz", hash = "sha256:9a6cea6e60b17ebe0a44c5cc636d94f09bd66142c1cd7d8b4cd731c4917a15f6"},
 ]
 
 [package.dependencies]
@@ -1193,27 +1103,9 @@ description = "serialize all of Python"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "dill-0.4.0-py3-none-any.whl", hash = "sha256:44f54bf6412c2c8464c14e8243eb163690a9800dbe2c367330883b19c7561049"},
     {file = "dill-0.4.0.tar.gz", hash = "sha256:0633f1d2df477324f53a895b02c901fb961bdbf65a17122586ea7019292cbcf0"},
-]
-
-[package.extras]
-graph = ["objgraph (>=1.7.2)"]
-profile = ["gprof2dot (>=2022.7.29)"]
-
-[[package]]
-name = "dill"
-version = "0.4.1"
-description = "serialize all of Python"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-markers = "python_version >= \"3.9\" and platform_python_implementation != \"PyPy\" or python_version >= \"3.10\""
-files = [
-    {file = "dill-0.4.1-py3-none-any.whl", hash = "sha256:1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d"},
-    {file = "dill-0.4.1.tar.gz", hash = "sha256:423092df4182177d4d8ba8290c8a5b640c66ab35ec7da59ccfa00f6fa3eea5fa"},
 ]
 
 [package.extras]
@@ -1251,7 +1143,7 @@ description = "Backport of PEP 654 (exception groups)"
 optional = false
 python-versions = ">=3.7"
 groups = ["dev"]
-markers = "python_version < \"3.11\""
+markers = "python_version <= \"3.10\""
 files = [
     {file = "exceptiongroup-1.3.1-py3-none-any.whl", hash = "sha256:a7a39a3bd276781e98394987d3a5701d0c4edffb633bb7a5144577f82c773598"},
     {file = "exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219"},
@@ -1344,7 +1236,7 @@ description = "Turn HTML into equivalent Markdown-structured text."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_full_version >= \"3.9.0\" and platform_python_implementation != \"PyPy\" and python_version < \"3.10\""
+markers = "python_version >= \"3.9\" and platform_python_implementation != \"PyPy\" or python_version >= \"3.10\""
 files = [
     {file = "html2text-2025.4.15-py3-none-any.whl", hash = "sha256:00569167ffdab3d7767a4cdf589b7f57e777a5ed28d12907d8c58769ec734acc"},
     {file = "html2text-2025.4.15.tar.gz", hash = "sha256:948a645f8f0bc3abe7fd587019a2197a12436cd73d0d4908af95bfc8da337588"},
@@ -2698,7 +2590,7 @@ description = "C parser in Python"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "platform_python_implementation != \"PyPy\" and python_version < \"3.10\" and (python_full_version == \"3.8.*\" or implementation_name != \"PyPy\")"
+markers = "platform_python_implementation != \"PyPy\" and (python_full_version == \"3.8.*\" or implementation_name != \"PyPy\") and python_version < \"3.10\""
 files = [
     {file = "pycparser-2.23-py3-none-any.whl", hash = "sha256:e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934"},
     {file = "pycparser-2.23.tar.gz", hash = "sha256:78816d4f24add8f10a06d6f05b4d424ad9e96cfebf68a4ddc99c65c0720d00c2"},
@@ -2711,7 +2603,7 @@ description = "C parser in Python"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and implementation_name != \"PyPy\" and platform_python_implementation != \"PyPy\""
+markers = "platform_python_implementation != \"PyPy\" and implementation_name != \"PyPy\" and python_version >= \"3.10\""
 files = [
     {file = "pycparser-3.0-py3-none-any.whl", hash = "sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992"},
     {file = "pycparser-3.0.tar.gz", hash = "sha256:600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29"},
@@ -3071,7 +2963,6 @@ description = "Python HTTP for Humans."
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "docs"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "requests-2.32.4-py3-none-any.whl", hash = "sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c"},
     {file = "requests-2.32.4.tar.gz", hash = "sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422"},
@@ -3086,52 +2977,6 @@ urllib3 = ">=1.21.1,<3"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
-
-[[package]]
-name = "requests"
-version = "2.32.5"
-description = "Python HTTP for Humans."
-optional = false
-python-versions = ">=3.9"
-groups = ["main", "docs"]
-markers = "python_full_version >= \"3.9.0\" and platform_python_implementation != \"PyPy\" and python_version < \"3.10\""
-files = [
-    {file = "requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6"},
-    {file = "requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf"},
-]
-
-[package.dependencies]
-certifi = ">=2017.4.17"
-charset_normalizer = ">=2,<4"
-idna = ">=2.5,<4"
-urllib3 = ">=1.21.1,<3"
-
-[package.extras]
-socks = ["PySocks (>=1.5.6,!=1.5.7)"]
-use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
-
-[[package]]
-name = "requests"
-version = "2.34.2"
-description = "Python HTTP for Humans."
-optional = false
-python-versions = ">=3.10"
-groups = ["main", "docs"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "requests-2.34.2-py3-none-any.whl", hash = "sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0"},
-    {file = "requests-2.34.2.tar.gz", hash = "sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed"},
-]
-
-[package.dependencies]
-certifi = ">=2023.5.7"
-charset_normalizer = ">=2,<4"
-idna = ">=2.5,<4"
-urllib3 = ">=1.26,<3"
-
-[package.extras]
-socks = ["PySocks (>=1.5.6,!=1.5.7)"]
-use-chardet-on-py3 = ["chardet (>=3.0.2,<8)"]
 
 [[package]]
 name = "requests-toolbelt"
@@ -3155,30 +3000,9 @@ description = "Render rich text, tables, progress bars, syntax highlighting, mar
 optional = false
 python-versions = ">=3.8.0"
 groups = ["main"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "rich-14.3.4-py3-none-any.whl", hash = "sha256:07e7adb4690f68864777b1450859253bed81a99a31ac321ac1817b2313558952"},
     {file = "rich-14.3.4.tar.gz", hash = "sha256:817e02727f2b25b40ef56f5aa2217f400c8489f79ca8f46ea2b70dd5e14558a9"},
-]
-
-[package.dependencies]
-markdown-it-py = ">=2.2.0"
-pygments = ">=2.13.0,<3.0.0"
-
-[package.extras]
-jupyter = ["ipywidgets (>=7.5.1,<9)"]
-
-[[package]]
-name = "rich"
-version = "15.0.0"
-description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
-optional = false
-python-versions = ">=3.9.0"
-groups = ["main"]
-markers = "python_version >= \"3.9\" and platform_python_implementation != \"PyPy\" or python_version >= \"3.10\""
-files = [
-    {file = "rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb"},
-    {file = "rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36"},
 ]
 
 [package.dependencies]
@@ -3273,44 +3097,9 @@ description = "Retry code until it succeeds"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_full_version == \"3.8.*\" or platform_python_implementation == \"PyPy\" and python_version < \"3.10\""
 files = [
     {file = "tenacity-9.0.0-py3-none-any.whl", hash = "sha256:93de0c98785b27fcf659856aa9f54bfbd399e29969b0621bc7f762bd441b4539"},
     {file = "tenacity-9.0.0.tar.gz", hash = "sha256:807f37ca97d62aa361264d497b0e31e92b8027044942bfa756160d908320d73b"},
-]
-
-[package.extras]
-doc = ["reno", "sphinx"]
-test = ["pytest", "tornado (>=4.5)", "typeguard"]
-
-[[package]]
-name = "tenacity"
-version = "9.1.2"
-description = "Retry code until it succeeds"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-markers = "python_full_version >= \"3.9.0\" and platform_python_implementation != \"PyPy\" and python_version < \"3.10\""
-files = [
-    {file = "tenacity-9.1.2-py3-none-any.whl", hash = "sha256:f77bf36710d8b73a50b2dd155c97b870017ad21afe6ab300326b0371b3b05138"},
-    {file = "tenacity-9.1.2.tar.gz", hash = "sha256:1169d376c297e7de388d18b4481760d478b0e99a777cad3a9c86e556f4b697cb"},
-]
-
-[package.extras]
-doc = ["reno", "sphinx"]
-test = ["pytest", "tornado (>=4.5)", "typeguard"]
-
-[[package]]
-name = "tenacity"
-version = "9.1.4"
-description = "Retry code until it succeeds"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-markers = "python_version >= \"3.10\""
-files = [
-    {file = "tenacity-9.1.4-py3-none-any.whl", hash = "sha256:6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55"},
-    {file = "tenacity-9.1.4.tar.gz", hash = "sha256:adb31d4c263f2bd041081ab33b498309a57c77f9acf2db65aadf0898179cf93a"},
 ]
 
 [package.extras]
@@ -3513,7 +3302,7 @@ files = [
     {file = "typing_extensions-4.16.0-py3-none-any.whl", hash = "sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"},
     {file = "typing_extensions-4.16.0.tar.gz", hash = "sha256:dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5"},
 ]
-markers = {main = "python_version >= \"3.9\" and python_version < \"3.13\" and (platform_python_implementation != \"PyPy\" or python_version >= \"3.10\")", dev = "python_version >= \"3.9\" and platform_python_implementation != \"PyPy\" or python_version >= \"3.10\"", docs = "python_full_version >= \"3.9.0\" and platform_python_implementation != \"PyPy\" and python_version < \"3.10\""}
+markers = {main = "python_version >= \"3.9\" and (python_version >= \"3.10\" or platform_python_implementation != \"PyPy\") and python_version < \"3.13\"", dev = "python_version >= \"3.9\" and platform_python_implementation != \"PyPy\" or python_version >= \"3.10\"", docs = "python_full_version >= \"3.9.0\" and platform_python_implementation != \"PyPy\" and python_version < \"3.10\""}
 
 [[package]]
 name = "urllib3"
