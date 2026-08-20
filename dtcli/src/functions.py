@@ -486,6 +486,35 @@ def get_unregistered_dataset(dataset: str, scope: str) -> Optional[Dict[str, Any
         return response[0]
 
 
+def find_unregistered_datasets(
+    event: str,
+    scope: Optional[str] = None,
+    partial: bool = False,
+    limit: int = 100,
+) -> List[Dict[str, Any]]:
+    """Find unregistered datasets recorded for an event.
+
+    Args:
+        event (str): Name of the event, i.e. the dataset name.
+        scope (Optional[str]): Only return records for this scope.
+        partial (bool): Match events containing `event` rather than exactly.
+        limit (int): Maximum number of records to return.
+
+    Returns:
+        List[Dict[str, Any]]: Unregistered dataset records for the event.
+    """
+    name: Any = {"$regex": re.escape(event)} if partial else event
+    query: Dict[str, Any] = {"results.dataset_name": name}
+    if scope:
+        query["results.dataset_scope"] = scope
+    return view_results(
+        pipeline="datatrail-unregistered-datasets",
+        query=query,
+        projection={"results.files": 0},
+        limit=limit,
+    )
+
+
 ATTACH_RE = re.compile(
     r"Could not attach datasets: .+? ERROR: \"?dataset (.+?), (.+?) not found"  # noqa: E501
 )

@@ -194,6 +194,39 @@ Options:
     assert result.output == expected_response
 
 
+def test_cli_unregistered_search_help(runner: CliRunner) -> None:
+    """Test CLI unregistered search help page.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["unregistered", "search", "--help"])
+    assert result.exit_code == 0
+    assert "Usage: cli unregistered search [OPTIONS] EVENT" in result.output
+    assert "Check whether an event is an unregistered dataset" in result.output
+    assert "--scope" in result.output
+    assert "--partial" in result.output
+    assert "--json" in result.output
+
+
+def test_cli_unregistered_search_not_found(runner: CliRunner) -> None:
+    """Test CLI unregistered search for an event that is registered.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    import json
+
+    result = runner.invoke(
+        datatrail, ["unregistered", "search", "not-an-event", "--json"]
+    )
+    assert result.exit_code == 0
+    json_start = result.output.find("{")
+    output_data = json.loads(result.output[json_start:])
+    assert output_data["event"] == "not-an-event"
+    assert output_data["unregistered"] == []
+
+
 def test_cli_config_init(runner: CliRunner) -> None:
     """Test CLI configuration initialisation.
 
