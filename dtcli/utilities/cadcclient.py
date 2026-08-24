@@ -416,15 +416,19 @@ def status(
         certfile = procure(key="vospace_certfile")
 
     def check_url(url: str) -> bool:
-        response = requests.get(url, cert=certfile, allow_redirects=True)
         try:
+            # Health probe: fail fast, and read a wedged or unreachable
+            # endpoint as "down" rather than crashing the caller.
+            response = requests.get(
+                url, cert=certfile, allow_redirects=True, timeout=(10, 30)
+            )
             response.raise_for_status()
             authorised = response.headers.get("x-vo-authenticated")
             if isinstance(authorised, str):
                 return True
             else:
                 raise TypeError
-        except HTTPError as error:
+        except (HTTPError, requests.exceptions.RequestException) as error:
             logger.warning(error)
             logger.warning(f"{url.split('/')[3]} is down.")
             return False

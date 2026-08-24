@@ -54,10 +54,13 @@ def list(  # noqa: C901
         logger.info("Finding all scopes in Datatrail.")
         try:
             url = server + "/query/dataset/scopes"
-            r = requests.get(url)
+            r = requests.get(url, timeout=utilities.REQUEST_TIMEOUT)
             response = utilities.decode_response(r)
             return {"scopes": response}
-        except requests.exceptions.ConnectionError as e:
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+        ) as e:
             logger.error(e)
             return {"error": "Datatrail Server at CHIME is not responding."}
 
@@ -69,13 +72,16 @@ def list(  # noqa: C901
         logger.info("Finding all larger datasets in Datatrail.")
         try:
             url = server + f"/query/dataset/larger?scope={scope}"
-            r = requests.get(url)
+            r = requests.get(url, timeout=utilities.REQUEST_TIMEOUT)
             response = utilities.decode_response(r)
             if isinstance(response, dict):
                 return response
             else:
                 raise requests.exceptions.ConnectionError(response)
-        except requests.exceptions.ConnectionError as error:
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+        ) as error:
             logger.error(error)
             return {"error": f"{error}"}
 
@@ -85,7 +91,7 @@ def list(  # noqa: C901
         try:
             url = server + f"/query/dataset/children/{scope}/{dataset}"
             logger.debug(f"URL: {url}")
-            r = requests.get(url)
+            r = requests.get(url, timeout=utilities.REQUEST_TIMEOUT)
             logger.debug(f"Status: {r.status_code}.")
             response = utilities.decode_response(r)
             logger.debug(f"Reponse: {response}")
@@ -143,7 +149,7 @@ def ps(
         logger.info(f"Getting policy for {dataset} in {scope}.")
         url: str = str(base_url) + f"/query/dataset/{scope}/{dataset}"
         logger.debug(f"URL: {url}")
-        r = requests.get(url)
+        r = requests.get(url, timeout=utilities.REQUEST_TIMEOUT)
         logger.debug(f"Status: {r.status_code}.")
         policy_response = utilities.decode_response(r)
         utilities.validate_request_response(policy_response, dataset, scope)
@@ -192,7 +198,7 @@ def get_dataset_file_info(
         logger.debug(f"Payload: {payload}")
         url = str(base_url) + "/query/dataset/find"
         logger.debug(f"URL: {url}")
-        r = requests.post(url, json=payload)
+        r = requests.post(url, json=payload, timeout=utilities.REQUEST_TIMEOUT)
         logger.debug(f"Status: {r.status_code}.")
         logger.debug("Decoding response.")
         response = utilities.decode_response(r)
@@ -403,7 +409,7 @@ def find_dataset_common_path(
     url = server + "/query/dataset/find"
     logger.debug(f"URL: {url}")
     try:
-        r = requests.post(url, json=payload)
+        r = requests.post(url, json=payload, timeout=utilities.REQUEST_TIMEOUT)
         dataset_locations = utilities.decode_response(r)  # type: ignore
         utilities.validate_request_response(dataset_locations, dataset, scope)
     except ConnectionError:
@@ -455,6 +461,7 @@ def view_results(
             "projection": projection,
             "limit": limit,
         },
+        timeout=utilities.REQUEST_TIMEOUT,
     )
     return response.json()
 
