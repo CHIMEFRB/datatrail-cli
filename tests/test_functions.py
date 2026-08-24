@@ -112,3 +112,77 @@ def test_list_scopes_unanswered(monkeypatch) -> None:
         )
         results: Dict[str, Any] = functions.list()
         assert results == {"error": "Datatrail did not answer the scopes query."}
+
+
+def _fake_list(scope=None, dataset=None, verbose=0, quiet=False):
+    """Stand-in for functions.list with one scope not answering."""
+    if scope is None:
+        return {"scopes": ["b.scope", "a.scope", "c.scope"]}
+    if dataset is None:
+        if scope == "a.scope":
+            return {"larger_datasets": ["data.other", "data.good", "skip.me"]}
+        if scope == "c.scope":
+            return {"larger_datasets": []}
+        return {"error": "Datatrail Server at CHIME is not responding."}
+    if dataset == "data.good":
+        return {"datasets": ["child1", "child2"]}
+    return {"error": "Datatrail Server at CHIME is not responding."}
+
+
+def test_discover_datasets(monkeypatch) -> None:
+    """Test discover_datasets filtering, sorting, and expansion."""
+    monkeypatch.setattr(functions, "list", _fake_list)
+    results: Dict[str, Any] = functions.discover_datasets(match="data", expand=True)
+    assert results["results"] == [
+        {"scope": "a.scope", "dataset": "child2", "parent": "data.good"},
+        {"scope": "a.scope", "dataset": "child1", "parent": "data.good"},
+        {"scope": "a.scope", "dataset": "data.other", "parent": None},
+    ]
+    # An unanswered query is reported, never shown as empty.
+    assert results["failed"] == [
+        "children of a.scope data.other",
+        "datasets in b.scope",
+    ]
+
+
+def test_discover_datasets_no_expand(monkeypatch) -> None:
+    """Test discover_datasets without expansion, terms ANDed against scope."""
+    monkeypatch.setattr(functions, "list", _fake_list)
+    results: Dict[str, Any] = functions.discover_datasets(match="a.scope,data")
+    assert results["results"] == [
+        {"scope": "a.scope", "dataset": "data.good", "parent": None},
+        {"scope": "a.scope", "dataset": "data.other", "parent": None},
+    ]
+    assert results["failed"] == ["datasets in b.scope"]
+
+
+def test_discover_datasets_single_scope(monkeypatch) -> None:
+    """Test discover_datasets walking one named scope only."""
+    monkeypatch.setattr(functions, "list", _fake_list)
+    results: Dict[str, Any] = functions.discover_datasets(scope="a.scope")
+    assert [r["dataset"] for r in results["results"]] == [
+        "data.good",
+        "data.other",
+        "skip.me",
+    ]
+    assert results["failed"] == []
+
+
+def test_discover_datasets_empty_scope_is_not_failure(monkeypatch) -> None:
+    """Test a scope that answers with no datasets is empty, not failed."""
+    monkeypatch.setattr(functions, "list", _fake_list)
+    results: Dict[str, Any] = functions.discover_datasets(scope="c.scope")
+    assert results["results"] == []
+    assert results["failed"] == []
+
+
+def test_discover_datasets_unanswered_scopes_query(monkeypatch) -> None:
+    """Test a non-list scopes answer is an error, never walked as text."""
+
+    def bad_list(scope=None, dataset=None, verbose=0, quiet=False):
+        return {"scopes": "Bad Gateway"}
+
+    monkeypatch.setattr(functions, "list", bad_list)
+    results: Dict[str, Any] = functions.discover_datasets(match="gain")
+    assert "error" in results
+    assert "results" not in results
