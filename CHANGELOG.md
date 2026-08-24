@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.12.0](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.11.1...v0.12.0) (2026-08-24)
+
+
+### Features
+
+* **unregistered:** command to search for event in unregistered results bucket ([1bb4ca0](https://github.com/CHIMEFRB/datatrail-cli/commit/1bb4ca0c118e042a907f38205af5d7ed6bf9f16d))
+
+
+### Documentation
+
+* add unregistered command ([d8dd35b](https://github.com/CHIMEFRB/datatrail-cli/commit/d8dd35b22069b69ff7e3e76b6dc935696f8c2840))
+
 ## [0.11.1](https://github.com/CHIMEFRB/datatrail-cli/compare/v0.11.0...v0.11.1) (2026-07-21)
 
 
