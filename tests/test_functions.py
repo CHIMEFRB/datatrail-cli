@@ -5,7 +5,11 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from dtcli.src.functions import get_unregistered_dataset, view_results
+from dtcli.src.functions import (
+    find_unregistered_datasets,
+    get_unregistered_dataset,
+    view_results,
+)
 
 
 def test_view_results() -> None:
@@ -52,3 +56,35 @@ def test_get_unregistered_dataset() -> None:
         assert "reason" in unregistered_dataset["results"].keys()
     else:
         pytest.skip("No unregistered datasets found.")
+
+
+def test_find_unregistered_datasets() -> None:
+    """Test find_unregistered_datasets."""
+    pipeline: str = "datatrail-unregistered-datasets"
+    projection: Dict[str, Any] = {"results.dataset_name": 1, "results.dataset_scope": 1}
+    try:
+        known: Dict[str, Any] = view_results(pipeline, {}, projection, 1)[0]
+    except IndexError:
+        pytest.skip("No unregistered datasets found.")
+    dataset_name: str = known["results"]["dataset_name"]
+    dataset_scope: str = known["results"]["dataset_scope"]
+
+    results: List[Dict[str, Any]] = find_unregistered_datasets(dataset_name)
+    assert len(results) > 0
+    assert all(r["results"]["dataset_name"] == dataset_name for r in results)
+    assert "reason" in results[0]["results"].keys()
+
+    # Scope of the dataset filters nothing out, an unrelated scope filters all.
+    assert find_unregistered_datasets(dataset_name, scope=dataset_scope)
+    assert find_unregistered_datasets(dataset_name, scope="not.a.scope") == []
+
+    # A partial search finds at least the datasets an exact search does.
+    partial: List[Dict[str, Any]] = find_unregistered_datasets(
+        dataset_name[:-1], partial=True
+    )
+    assert len(partial) >= len(results)
+
+
+def test_find_unregistered_datasets_no_match() -> None:
+    """Test find_unregistered_datasets with an event that is not unregistered."""
+    assert find_unregistered_datasets("not-an-event") == []

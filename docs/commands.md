@@ -18,6 +18,9 @@ The commands available to you are:
   thinks is the current number of files for a given dataset at each storage
   element, compared to what is observed. If a discrepancy is found at Minoc,
   the user can choose to create the file replicas missing for Minoc.
+- `unregistered`: This provides insight into datasets which failed to register
+  with Datatrail, either summarised across the whole unregistered bucket
+  (`summary`) or for a single event (`search`).
 - `version`: List the CLI and server version.
 
 Detailed information on all of the CLI commands can be found on the
