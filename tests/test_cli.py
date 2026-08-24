@@ -707,6 +707,8 @@ def test_cli_ps_json(runner: CliRunner) -> None:
     assert "policies" in output_data
     assert output_data["dataset"] == "289007650"
     assert output_data["scope"] == "chime.event.baseband.raw"
+    # Derived per-storage-element common path and relative file names.
+    assert "common_paths" in output_data
 
 
 def test_check_version_banner_on_stderr(monkeypatch, capsys) -> None:

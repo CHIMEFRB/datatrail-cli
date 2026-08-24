@@ -102,6 +102,16 @@ $ datatrail ps kko.event.baseband.raw 308892599 --json
       ]
     }
   },
+  "common_paths": {
+    "minoc": {
+      "common_path": "data/kko/baseband/raw/2023/08/07/astro_308892599",
+      "files": [
+        "baseband_308892599_129.h5",
+        "baseband_308892599_1013.h5",
+        ...
+      ]
+    }
+  },
   "policies": {
     "replication_policy": {
       "preferred_storage_elements": ["chime"],
@@ -127,6 +137,13 @@ $ datatrail ps kko.event.baseband.raw 308892599 --json
 }
 ```
 
+The `common_paths` field gives, per storage element, the deepest common
+directory of its file replicas and the file names relative to it, so scripts
+do not have to re-derive the split. When no common directory exists, it is
+`""` and the original paths are listed. Note that `minoc` paths keep any
+collection prefix (such as `cadc:CHIMEFRB`) exactly as reported in
+`file_replica_locations`.
+
 ### Usage in scripts
 
 ```python
@@ -144,6 +161,10 @@ data = json.loads(result.stdout)
 # Access file locations
 file_locations = data["files"]["file_replica_locations"]
 minoc_files = file_locations.get("minoc", [])
+
+# Compose full paths from the derived common path
+minoc = data["common_paths"].get("minoc", {})
+full_paths = [f"{minoc['common_path']}/{name}" for name in minoc.get("files", [])]
 
 # Access policies
 replication_policy = data["policies"]["replication_policy"]
