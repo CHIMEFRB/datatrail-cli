@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import time
 from collections import Counter
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -56,6 +57,14 @@ def list(  # noqa: C901
             url = server + "/query/dataset/scopes"
             r = requests.get(url)
             response = utilities.decode_response(r)
+            if isinstance(response, str) or not isinstance(response, Sequence):
+                # decode_response passes a non-JSON body (a proxy error page,
+                # a 5xx message) through as text; report it, or any other
+                # non-list shape, as an error instead of presenting it as
+                # the scopes list. NB: the builtin list is shadowed by this
+                # module's list(), hence the Sequence check.
+                logger.error(f"Scopes query not answered: {response}")
+                return {"error": "Datatrail did not answer the scopes query."}
             return {"scopes": response}
         except requests.exceptions.ConnectionError as e:
             logger.error(e)
