@@ -9,6 +9,8 @@ The commands available to you are:
 - `clear`: This removes all files belonging to the 'scope' and 'dataset', only
   available for the local and canfar sites.
 - `config`: Edit the `.datatrail/config.yaml` configuration file.
+- `inventory`: Recursively discover datasets and write their file replica URIs
+  to a resumable JSON manifest.
 - `list`: This list either the 'scopes' available or all of the datasets
   belonging to the given dataset.
 - `ps`: This provides detailed information for the given 'scope' and 'dataset' combination.

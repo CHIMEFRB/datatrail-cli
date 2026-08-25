@@ -10,6 +10,7 @@ nav:
       - Initialise: initialising.md
       - Commands:
           - clear: clear.md
+          - inventory: inventory.md
           - list: list.md
           - ps: ps.md
           - pull: pull.md
