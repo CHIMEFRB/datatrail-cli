@@ -30,6 +30,8 @@ jobs:
   Testing:
     needs: pre-commit-checks
     runs-on: ubuntu-latest
+    env:
+      RUN_CADC_TESTS: ${{ github.repository == 'CHIMEFRB/datatrail-cli' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     strategy:
       fail-fast: false
       matrix:
@@ -55,7 +57,7 @@ jobs:
         run: uv sync
 
       - name: Create NETRC file
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: env.RUN_CADC_TESTS == 'true'
         env:
           CANFAR_NETRC: ${{ secrets.CANFAR_NETRC }}
         run: |
@@ -64,7 +66,7 @@ jobs:
           printf '%s\n' "$CANFAR_NETRC" > "$RUNNER_TEMP/CANFAR_NETRC"
 
       - name: Obtain CADC certificate
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: env.RUN_CADC_TESTS == 'true'
         run: |
           umask 077
           mkdir -p "$HOME/.ssl"
@@ -73,17 +75,17 @@ jobs:
           openssl x509 -in "$HOME/.ssl/cadcproxy.pem" -noout -checkend 0
 
       - name: Run tests
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: env.RUN_CADC_TESTS == 'true'
         run: |
           uv run --no-sync pytest tests/ --cov . --cov-report=lcov --cov-report=xml
 
       - name: Run tests without CADC credentials
-        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        if: env.RUN_CADC_TESTS != 'true'
         run: |
           uv run --no-sync pytest tests/ -m "not cadc" --cov . --cov-report=lcov --cov-report=xml
 
       - name: Remove NETRC file and CADC certificate
-        if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ always() && env.RUN_CADC_TESTS == 'true' }}
         run: |
           rm -f -- "$RUNNER_TEMP/CANFAR_NETRC" "$HOME/.ssl/cadcproxy.pem"
 
