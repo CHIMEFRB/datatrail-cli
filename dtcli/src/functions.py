@@ -9,7 +9,7 @@ import time
 from collections import Counter
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import requests
 
@@ -122,6 +122,7 @@ def discover_datasets(
     expand: bool = False,
     verbose: int = 0,
     quiet: bool = False,
+    recursive: bool = False,
 ) -> Dict[str, Any]:
     """Map larger datasets across scopes, with filtering and expansion.
 
@@ -129,9 +130,10 @@ def discover_datasets(
     datasets whose "scope dataset" text contains every comma-separated,
     case-insensitive match term. With expand, each kept dataset is opened one
     level and its children become the rows, recording the opened dataset as
-    their parent; a dataset whose children cannot be listed keeps its own row.
-    A scope or dataset Datatrail does not answer for is reported in 'failed'
-    rather than shown as empty.
+    their parent. With recursive, each kept dataset is opened until terminal
+    datasets are reached. A dataset whose children cannot be listed keeps its
+    own row. A scope or dataset Datatrail does not answer for is reported in
+    'failed' rather than shown as empty.
 
     Args:
         scope (Optional[str], optional): Scope to walk. Defaults to None,
@@ -142,11 +144,14 @@ def discover_datasets(
             to False.
         verbose (int, optional): Verbosity. Defaults to 0.
         quiet (bool, optional): Minimal logging. Defaults to False.
+        recursive (bool, optional): Open all descendants of each kept dataset.
+            Defaults to False.
 
     Returns:
         Dict[str, Any]: Keys 'results', rows of scope, dataset and parent,
-            and 'failed', the queries Datatrail did not answer. Key 'error'
-            on a configuration or connection failure.
+            plus path for recursive rows, and 'failed', the branches Datatrail
+            did not answer. Key 'error' on a configuration or connection
+            failure.
     """
     # Set logging level.
     utilities.set_log_level(logger, verbose, quiet)
@@ -181,6 +186,13 @@ def discover_datasets(
         kept = [
             d for d in sorted(datasets) if all(t in f"{s} {d}".lower() for t in terms)
         ]
+        if recursive:
+            rows, branch_failures = _discover_descendants(
+                s, kept, verbose=verbose, quiet=quiet
+            )
+            results.extend(rows)
+            failed.extend(branch_failures)
+            continue
         for d in kept:
             if not expand:
                 results.append({"scope": s, "dataset": d, "parent": None})
@@ -196,6 +208,70 @@ def discover_datasets(
             else:
                 results.append({"scope": s, "dataset": d, "parent": None})
     return {"results": results, "failed": failed}
+
+
+def _discover_descendants(
+    scope: str,
+    roots: Sequence[str],
+    verbose: int = 0,
+    quiet: bool = False,
+) -> Tuple[List[Dict[str, Any]], List[str]]:
+    """Return unique terminal datasets below the given roots."""
+    results: List[Dict[str, Any]] = []
+    failed: List[str] = []
+    visited: Set[str] = set()
+    emitted: Set[str] = set()
+    stack: List[Tuple[str, Optional[str], Tuple[str, ...]]] = [
+        (root, None, (root,)) for root in reversed(sorted(set(roots)))
+    ]
+
+    def add_row(dataset: str, parent: Optional[str], path: Tuple[str, ...]) -> None:
+        if dataset in emitted:
+            return
+        results.append(
+            {
+                "scope": scope,
+                "dataset": dataset,
+                "parent": parent,
+                "path": [*path],
+            }
+        )
+        emitted.add(dataset)
+
+    while stack:
+        dataset, parent, path = stack.pop()
+        if dataset in visited:
+            continue
+        visited.add(dataset)
+        opened = list(scope, dataset, verbose=verbose, quiet=quiet)
+        children = None if "error" in opened else opened.get("datasets")
+        if (
+            children is None
+            or isinstance(children, str)
+            or not isinstance(children, Sequence)
+            or any(not isinstance(child, str) or not child.strip() for child in children)
+        ):
+            failed.append(f"children of {scope} {' / '.join(path)}")
+            add_row(dataset, parent, path)
+            continue
+
+        child_names = sorted(set(children))
+        if not child_names:
+            add_row(dataset, parent, path)
+            continue
+
+        cycle_found = False
+        for child in reversed(child_names):
+            if child in path:
+                failed.append(f"cycle in {scope}: {' / '.join(path + (child,))}")
+                cycle_found = True
+                continue
+            if child not in visited:
+                stack.append((child, dataset, path + (child,)))
+        if cycle_found:
+            add_row(dataset, parent, path)
+
+    return results, failed
 
 
 def ps(

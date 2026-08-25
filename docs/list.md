@@ -16,6 +16,8 @@ Options:
                  all contain.
   --expand       Open each matched larger dataset one level and list its
                  children.
+  --recursive    Open each matched larger dataset through all descendant
+                 levels.
   --help         Show this message and exit.
 
 ```
@@ -155,8 +157,24 @@ children could not be listed (or that has none) may still be a container.
     appear in the `failed` list. A partial map still exits 0; a map with **no**
     rows and unanswered queries exits 1, since nothing was determined.
 
+`--recursive` follows every descendant of each matched larger dataset instead
+of stopping after one level. It emits terminal datasets and records the full
+path used to reach each one:
+
+```shell
+$> datatrail ls gbo.acquisition.processed --match gains --recursive
+```
+
+The walk visits each dataset once, so shared descendants are not duplicated
+and hierarchy cycles cannot loop forever. The first path found in sorted order
+is retained. An answered empty child list is a terminal dataset. A branch that
+does not answer is retained as a partial row and also listed under `failed`.
+Like `--expand`, a recursive walk across all scopes requires `--match` to keep
+the request bounded.
+
 With `--json`, the map is emitted as structured rows for scripting; `parent`
-is `null` for rows that were not reached through `--expand`:
+is `null` for rows that were not reached through expansion. Recursive rows
+also include `path`, from the matched larger dataset through the terminal row:
 
 ```bash
 $ datatrail ls --match gain --expand --json
@@ -168,6 +186,21 @@ $ datatrail ls --match gain --expand --json
       "parent": "complex_gains"
     },
     ...
+  ],
+  "failed": []
+}
+```
+
+```bash
+$ datatrail ls gbo.acquisition.processed --match gains --recursive --json
+{
+  "results": [
+    {
+      "scope": "gbo.acquisition.processed",
+      "dataset": "20230525",
+      "parent": "complex_gains",
+      "path": ["complex_gains", "20230525"]
+    }
   ],
   "failed": []
 }

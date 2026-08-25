@@ -186,3 +186,131 @@ def test_discover_datasets_unanswered_scopes_query(monkeypatch) -> None:
     results: Dict[str, Any] = functions.discover_datasets(match="gain")
     assert "error" in results
     assert "results" not in results
+
+
+def test_discover_datasets_recursive_paths(monkeypatch) -> None:
+    """Test recursive discovery paths, ordering, filtering, and duplicates."""
+    calls = []
+    children = {
+        "wanted.root": ["branch.b", "branch.a", "branch.a"],
+        "branch.a": ["leaf.shared", "leaf.a"],
+        "branch.b": ["leaf.b", "leaf.shared"],
+    }
+
+    def fake_list(scope=None, dataset=None, verbose=0, quiet=False):
+        if dataset is None:
+            return {
+                "larger_datasets": [
+                    "wanted.root",
+                    "skip.root",
+                    "wanted.empty",
+                    "wanted.root",
+                ]
+            }
+        calls.append(dataset)
+        return {"datasets": children.get(dataset, [])}
+
+    monkeypatch.setattr(functions, "list", fake_list)
+    results = functions.discover_datasets(
+        scope="test.scope", match="wanted", recursive=True
+    )
+    assert results == {
+        "results": [
+            {
+                "scope": "test.scope",
+                "dataset": "wanted.empty",
+                "parent": None,
+                "path": ["wanted.empty"],
+            },
+            {
+                "scope": "test.scope",
+                "dataset": "leaf.a",
+                "parent": "branch.a",
+                "path": ["wanted.root", "branch.a", "leaf.a"],
+            },
+            {
+                "scope": "test.scope",
+                "dataset": "leaf.shared",
+                "parent": "branch.a",
+                "path": ["wanted.root", "branch.a", "leaf.shared"],
+            },
+            {
+                "scope": "test.scope",
+                "dataset": "leaf.b",
+                "parent": "branch.b",
+                "path": ["wanted.root", "branch.b", "leaf.b"],
+            },
+        ],
+        "failed": [],
+    }
+    assert "skip.root" not in calls
+    assert calls.count("wanted.root") == 1
+    assert calls.count("leaf.shared") == 1
+
+
+def test_discover_datasets_recursive_empty_and_failed(monkeypatch) -> None:
+    """Test recursive discovery keeps empty and failed branches distinct."""
+
+    def fake_list(scope=None, dataset=None, verbose=0, quiet=False):
+        if dataset is None:
+            return {"larger_datasets": ["root"]}
+        if dataset == "root":
+            return {"datasets": ["offline", "malformed", "empty"]}
+        if dataset == "offline":
+            return {"error": "service unavailable"}
+        if dataset == "malformed":
+            return {"datasets": [None]}
+        return {"datasets": []}
+
+    monkeypatch.setattr(functions, "list", fake_list)
+    results = functions.discover_datasets(scope="test.scope", recursive=True)
+    assert results["results"] == [
+        {
+            "scope": "test.scope",
+            "dataset": "empty",
+            "parent": "root",
+            "path": ["root", "empty"],
+        },
+        {
+            "scope": "test.scope",
+            "dataset": "malformed",
+            "parent": "root",
+            "path": ["root", "malformed"],
+        },
+        {
+            "scope": "test.scope",
+            "dataset": "offline",
+            "parent": "root",
+            "path": ["root", "offline"],
+        },
+    ]
+    assert results["failed"] == [
+        "children of test.scope root / malformed",
+        "children of test.scope root / offline",
+    ]
+
+
+def test_discover_datasets_recursive_cycle(monkeypatch) -> None:
+    """Test recursive discovery stops and reports a hierarchy cycle."""
+    calls = []
+
+    def fake_list(scope=None, dataset=None, verbose=0, quiet=False):
+        if dataset is None:
+            return {"larger_datasets": ["root"]}
+        calls.append(dataset)
+        return {"datasets": ["branch"] if dataset == "root" else ["root"]}
+
+    monkeypatch.setattr(functions, "list", fake_list)
+    results = functions.discover_datasets(scope="test.scope", recursive=True)
+    assert results["results"] == [
+        {
+            "scope": "test.scope",
+            "dataset": "branch",
+            "parent": "root",
+            "path": ["root", "branch"],
+        }
+    ]
+    assert results["failed"] == [
+        "cycle in test.scope: root / branch / root",
+    ]
+    assert calls == ["root", "branch"]

@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import click
 from requests.exceptions import ConnectionError
@@ -46,6 +46,11 @@ error_console = Console(stderr=True, style="bold red")
     is_flag=True,
     help="Open each matched larger dataset one level and list its children.",
 )
+@click.option(
+    "--recursive",
+    is_flag=True,
+    help="Open each matched larger dataset through all descendant levels.",
+)
 @click.pass_context
 def list(  # noqa: C901
     ctx: click.Context,
@@ -57,6 +62,7 @@ def list(  # noqa: C901
     output_json: bool = False,
     match: Optional[str] = None,
     expand: bool = False,
+    recursive: bool = False,
 ):
     """List Datatrail Scopes & Datasets.
 
@@ -70,6 +76,7 @@ def list(  # noqa: C901
         output_json (bool): Output as JSON.
         match (str): Comma-separated terms a larger dataset must all contain.
         expand (bool): Open each matched larger dataset one level.
+        recursive (bool): Open all descendants of each matched larger dataset.
     """
     # Set logging level.
     set_log_level(logger, verbose, quiet)
@@ -89,23 +96,32 @@ def list(  # noqa: C901
             error_console.print(e)
             ctx.exit(1)
             return None
-    if match is not None or expand:
+    if match is not None or expand or recursive:
         if datasets:
             error_console.print(
-                "--match and --expand map larger datasets; "
+                "--match, --expand, and --recursive map larger datasets; "
                 "omit the DATASETS argument."
             )
             ctx.exit(1)
             return None
-        if expand and match is None and not scope:
+        if (expand or recursive) and match is None and not scope:
             error_console.print(
-                "--expand alone would open every dataset in the archive; "
+                "Expansion alone would open every dataset in the archive; "
                 "give a SCOPE or --match to narrow it."
             )
             ctx.exit(1)
             return None
-        discovery = functions.discover_datasets(scope, match, expand, verbose, quiet)
-        _display_discovery(discovery, ctx, expand, write, output_json, scope)
+        discovery = functions.discover_datasets(
+            scope=scope,
+            match=match,
+            expand=expand,
+            verbose=verbose,
+            quiet=quiet,
+            recursive=recursive,
+        )
+        _display_discovery(
+            discovery, ctx, expand or recursive, write, output_json, scope, recursive
+        )
         return None
     results = functions.list(scope, datasets, verbose, quiet)
 
@@ -185,6 +201,7 @@ def _display_discovery(
     write: bool,
     output_json: bool,
     scope: Optional[str],
+    recursive: bool = False,
 ) -> None:
     """Display the dataset map built by functions.discover_datasets.
 
@@ -198,6 +215,7 @@ def _display_discovery(
         write (bool): Write the map to file.
         output_json (bool): Output as JSON.
         scope (Optional[str]): Scope walked, None when all were.
+        recursive (bool): Whether rows include their full hierarchy path.
     """
     if output_json:
         print(json.dumps(results, indent=2))
@@ -216,26 +234,8 @@ def _display_discovery(
         with open(f"./dataset_map_{scope if scope else 'all_scopes'}.json", "w") as f:
             json.dump(results, f)
     if rows:
-        table = Table(
-            title="Datatrail: Dataset Map",
-            header_style="magenta",
-            title_style="bold magenta",
-        )
-        table.add_column("Scope")
-        table.add_column("Dataset")
-        if expand:
-            table.add_column("Parent")
-        previous = None
-        for row in rows:
-            if previous is not None and row["scope"] != previous:
-                table.add_section()
-            previous = row["scope"]
-            line = [row["scope"], row["dataset"]]
-            if expand:
-                line.append(row["parent"] if row["parent"] else "")
-            table.add_row(*line)
         with console.pager(styles=False):
-            console.print(table)
+            console.print(_discovery_table(rows, expand, recursive))
     elif not failed:
         console.print("No datasets matched.")
     if failed:
@@ -244,3 +244,32 @@ def _display_discovery(
             error_console.print(f"  {item}")
         if not rows:
             ctx.exit(1)
+
+
+def _discovery_table(
+    rows: List[Dict[str, Any]], expand: bool, recursive: bool = False
+) -> Table:
+    """Build the dataset map table."""
+    table = Table(
+        title="Datatrail: Dataset Map",
+        header_style="magenta",
+        title_style="bold magenta",
+    )
+    table.add_column("Scope")
+    table.add_column("Dataset")
+    if expand:
+        table.add_column("Parent")
+    if recursive:
+        table.add_column("Path")
+    previous = None
+    for row in rows:
+        if previous is not None and row["scope"] != previous:
+            table.add_section()
+        previous = row["scope"]
+        line = [row["scope"], row["dataset"]]
+        if expand:
+            line.append(row["parent"] if row["parent"] else "")
+        if recursive:
+            line.append(" / ".join(row["path"]))
+        table.add_row(*line)
+    return table

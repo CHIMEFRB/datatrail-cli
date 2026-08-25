@@ -108,6 +108,7 @@ def test_cli_list_help(runner: CliRunner) -> None:
     assert "Output as JSON" in result.output
     assert "--match" in result.output
     assert "--expand" in result.output
+    assert "--recursive" in result.output
 
 
 def test_cli_ps_help(runner: CliRunner) -> None:
@@ -431,6 +432,77 @@ def test_cli_list_bare_expand(runner: CliRunner) -> None:
     """
     result = runner.invoke(datatrail, ["ls", "--expand"])
     assert result.exit_code == 1
+
+
+def test_cli_list_bare_recursive(runner: CliRunner) -> None:
+    """Test for CLI list rejecting an unconstrained recursive walk.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["ls", "--recursive"])
+    assert result.exit_code == 1
+
+
+def test_cli_list_recursive_plain(runner: CliRunner, monkeypatch) -> None:
+    """Test for CLI list showing recursive paths in the table.
+
+    Args:
+        runner (CliRunner): Click runner.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+
+    def fake_discovery(**kwargs):
+        assert kwargs["recursive"] is True
+        return {
+            "results": [
+                {
+                    "scope": "test.scope",
+                    "dataset": "leaf",
+                    "parent": "branch",
+                    "path": ["root", "branch", "leaf"],
+                }
+            ],
+            "failed": [],
+        }
+
+    monkeypatch.setattr("dtcli.ls.functions.discover_datasets", fake_discovery)
+    result = runner.invoke(datatrail, ["ls", "--match", "root", "--recursive"])
+    assert result.exit_code == 0
+    assert "leaf" in result.output
+    assert "root / branch / leaf" in result.output
+
+
+def test_cli_list_recursive_json(runner: CliRunner, monkeypatch) -> None:
+    """Test for CLI list retaining recursive paths in JSON.
+
+    Args:
+        runner (CliRunner): Click runner.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    import json
+
+    expected = {
+        "results": [
+            {
+                "scope": "test.scope",
+                "dataset": "leaf",
+                "parent": "branch",
+                "path": ["root", "branch", "leaf"],
+            }
+        ],
+        "failed": [],
+    }
+
+    def fake_discovery(**kwargs):
+        assert kwargs["recursive"] is True
+        return expected
+
+    monkeypatch.setattr("dtcli.ls.functions.discover_datasets", fake_discovery)
+    result = runner.invoke(datatrail, ["ls", "--match", "root", "--recursive", "--json"])
+    assert result.exit_code == 0
+    json_start = result.output.find("{")
+    assert json.loads(result.output[json_start:]) == expected
 
 
 @pytest.mark.cadc
