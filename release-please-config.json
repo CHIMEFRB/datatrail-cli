@@ -1,0 +1,15 @@
+{
+  "packages": {
+    ".": {
+      "extra-files": [
+        {
+          "jsonpath": "$.package[?(@.name.value=='datatrail-cli')].version",
+          "path": "uv.lock",
+          "type": "toml"
+        }
+      ],
+      "package-name": "datatrail-cli"
+    }
+  },
+  "release-type": "python"
+}
