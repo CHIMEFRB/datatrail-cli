@@ -366,6 +366,7 @@ def test_cli_list_children(runner: CliRunner) -> None:
     assert "289007650" in result.output
 
 
+@pytest.mark.cadc
 def test_cli_ps(runner: CliRunner) -> None:
     """Test for CLI ps command.
 
@@ -376,6 +377,7 @@ def test_cli_ps(runner: CliRunner) -> None:
     assert result.exit_code == 0
 
 
+@pytest.mark.cadc
 def test_cli_pull_no(runner: CliRunner) -> None:
     """Test for CLI pull command.
 
@@ -397,6 +399,7 @@ def test_cli_pull_no(runner: CliRunner) -> None:
     assert expect in result.output
 
 
+@pytest.mark.cadc
 def test_cli_pull_yes(
     runner: CliRunner, directory: Path, list_specific_files: Path
 ) -> None:
@@ -427,6 +430,7 @@ def test_cli_pull_yes(
     ).exists()
 
 
+@pytest.mark.cadc
 def test_cli_clear_no(runner: CliRunner, directory: Path) -> None:
     """Test for CLI clear command.
 
@@ -450,6 +454,7 @@ def test_cli_clear_no(runner: CliRunner, directory: Path) -> None:
     assert "Roger roger, no files deleted" in result.output
 
 
+@pytest.mark.cadc
 def test_cli_clear_yes(runner: CliRunner, directory: Path) -> None:
     """Test for CLI clear command.
 
@@ -479,6 +484,7 @@ def test_cli_clear_yes(runner: CliRunner, directory: Path) -> None:
     ).exists()
 
 
+@pytest.mark.cadc
 def test_cli_pull_force(
     runner: CliRunner, directory: Path, list_specific_files: Path
 ) -> None:
@@ -509,6 +515,7 @@ def test_cli_pull_force(
     ).exists()
 
 
+@pytest.mark.cadc
 def test_cli_clear_force(runner: CliRunner, directory: Path) -> None:
     """Test for CLI clear command.
 
@@ -538,6 +545,7 @@ def test_cli_clear_force(runner: CliRunner, directory: Path) -> None:
     ).exists()
 
 
+@pytest.mark.cadc
 def test_cli_pull_force_2cores(runner: CliRunner, directory: Path) -> None:
     """Test for CLI pull command.
 
@@ -674,6 +682,7 @@ def test_cli_list_children_json(runner: CliRunner) -> None:
     assert "289007650" in output_data["datasets"]
 
 
+@pytest.mark.cadc
 def test_cli_ps_json(runner: CliRunner) -> None:
     """Test for CLI ps command with JSON output.
 
