@@ -55,27 +55,37 @@ jobs:
         run: uv sync
 
       - name: Create NETRC file
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CANFAR_NETRC: ${{ secrets.CANFAR_NETRC }}
         run: |
-          export CANFAR_NETRC_FILE=$RUNNER_TEMP"/CANFAR_NETRC"
-          echo ${{ secrets.CANFAR_NETRC }} > $CANFAR_NETRC_FILE
-          echo CANFAR_NETRC_FILE=$CANFAR_NETRC_FILE >> "$GITHUB_ENV"
+          umask 077
+          test -n "$CANFAR_NETRC"
+          printf '%s\n' "$CANFAR_NETRC" > "$RUNNER_TEMP/CANFAR_NETRC"
 
       - name: Obtain CADC certificate
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          export CADC_CERT=$HOME"/.ssl/cadcproxy.pem"
-          uv run --no-sync cadc-get-cert --netrc-file ${{ env.CANFAR_NETRC_FILE }} --days-valid 1 --cert-filename $CADC_CERT
-          echo CADC_CERT=$CADC_CERT >> "$GITHUB_ENV"
+          umask 077
+          mkdir -p "$HOME/.ssl"
+          uv run --no-sync cadc-get-cert --netrc-file "$RUNNER_TEMP/CANFAR_NETRC" --days-valid 1 --cert-filename "$HOME/.ssl/cadcproxy.pem"
+          test -s "$HOME/.ssl/cadcproxy.pem"
+          openssl x509 -in "$HOME/.ssl/cadcproxy.pem" -noout -checkend 0
 
-      - name: Run Tests
+      - name: Run tests
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           uv run --no-sync pytest tests/ --cov . --cov-report=lcov --cov-report=xml
 
-      - name: Remove NETRC file and CADC certificate
+      - name: Run tests without CADC credentials
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
         run: |
-          echo "Removing file: "$CANFAR_NETRC_FILE
-          rm $CANFAR_NETRC_FILE
-          echo "Removing file: "$CADC_CERT
-          rm $CADC_CERT
+          uv run --no-sync pytest tests/ -m "not cadc" --cov . --cov-report=lcov --cov-report=xml
+
+      - name: Remove NETRC file and CADC certificate
+        if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          rm -f -- "$RUNNER_TEMP/CANFAR_NETRC" "$HOME/.ssl/cadcproxy.pem"
 
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
