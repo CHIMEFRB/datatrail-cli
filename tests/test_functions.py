@@ -107,6 +107,8 @@ def test_list_scopes_unanswered(monkeypatch) -> None:
 
     monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
     for response in (_TextResponse(), _DictResponse()):
-        monkeypatch.setattr(functions.requests, "get", lambda url, _r=response: _r)
+        monkeypatch.setattr(
+            functions.requests, "get", lambda url, timeout, _r=response: _r
+        )
         results: Dict[str, Any] = functions.list()
         assert results == {"error": "Datatrail did not answer the scopes query."}
