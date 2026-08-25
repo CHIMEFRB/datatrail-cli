@@ -3,9 +3,11 @@
 import logging
 import os
 import sys
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from io import StringIO
-from multiprocessing import Process  # Use the standard library only
+from multiprocessing import Pipe, Process  # Use the standard library only
+from multiprocessing.connection import Connection
 from typing import Any, Dict, List, Optional, Tuple
 
 import cadcutils
@@ -23,6 +25,8 @@ from dtcli.utilities.utilities import split
 
 logger = logging.getLogger("cadcclient")
 install()
+
+TransferFailure = Dict[str, str]
 
 
 class DillProcess(Process):
@@ -85,7 +89,7 @@ def get(
     certfile: Optional[str] = None,
     namespace: str = "cadc:CHIMEFRB",
     verbose: int = 0,
-):
+) -> List[TransferFailure]:
     """Retrieve a file, stored on the CANFAR file server, and copy it locally.
 
     Args:
@@ -94,6 +98,9 @@ def get(
         certfile (Optional[str], optional): Certificate. Defaults to None.
         namespace (str): Minoc Namespace. Defaults to "cadc:CHIMEFRB".
         verbose (int): Verbosity level. Defaults to 0.
+
+    Returns:
+        List[TransferFailure]: Files that could not be downloaded.
     """
     # Set logging level.
     logger.setLevel("WARNING")
@@ -102,41 +109,126 @@ def get(
     elif verbose > 1:
         logger.setLevel("DEBUG")
 
-    logger.info("Connecting to CADC...")
-    _, storage, _ = _connect(certfile=certfile)
-    not_found: List[str] = []
-    try:
-        logger.debug("Checking source and destination length match.")
-        logger.debug(f"Source length: {len(source)}")
-        logger.debug(f"Destination length: {len(destination)}")
-        assert len(source) == len(destination), (
-            "The number of source files must match the number of destination files."
+    logger.debug("Checking source and destination length match.")
+    logger.debug(f"Source length: {len(source)}")
+    logger.debug(f"Destination length: {len(destination)}")
+    if len(source) != len(destination):
+        raise ValueError(
+            "The number of source files must match the number of destination files. "
             f"Got {len(source)} source files and {len(destination)} destination files."
         )
-        for index, filename in enumerate(source):
-            try:
-                filename = namespace + "/" + filename
-                for attempt in Retrying(
-                    stop=stop_after_attempt(3),
-                    wait=wait_exponential(multiplier=1, min=4, max=10),
-                    reraise=True,
-                ):
-                    with attempt:
-                        storage.cadcget(filename, destination[index])  # type: ignore
-                logger.debug(f"{filename} -> {destination[index]} ok")
-            except cadcutils.exceptions.NotFoundException as error:  # type: ignore
-                logger.error(f"CADC Exception: {filename}")
-                not_found.append(str(error))
-    except cadcutils.exceptions.HttpException as error:  # type: ignore
-        logger.error(f"CADC Exception: {error}")
-        raise error
+    logger.info("Connecting to CADC...")
+    try:
+        _, storage, _ = _connect(certfile=certfile)
     except Exception as error:
-        logger.error(f"Error: {error}")
-        raise error
-    if len(not_found) > 0:
-        logger.error(f"Number of files not found: {len(not_found)}")
-        logger.error(f"Not found: {not_found}")
+        logger.error(f"CADC connection failed: {error}")
+        return [
+            _transfer_failure(filename, destination[index], error)
+            for index, filename in enumerate(source)
+        ]
+
+    failures: List[TransferFailure] = []
+    for index, filename in enumerate(source):
+        uri = namespace + "/" + filename
+        try:
+            expected_size = _get_expected_size(storage, uri)
+            _download_file(storage, uri, destination[index], expected_size)
+            logger.debug(f"{uri} -> {destination[index]}")
+        except Exception as error:
+            logger.error(f"Could not download {uri}: {error}")
+            failures.append(_transfer_failure(filename, destination[index], error))
+
+    if failures:
+        logger.error(f"Number of failed downloads: {len(failures)}")
     logger.info(f"Process {os.getpid()} finished.")
+    return failures
+
+
+def _get_expected_size(storage: Any, uri: str) -> Optional[int]:
+    """Return the remote size when Minoc provides one."""
+    try:
+        size = storage.cadcinfo(uri).size
+    except cadcutils.exceptions.NotFoundException:  # type: ignore
+        raise
+    except cadcutils.exceptions.HttpException as error:  # type: ignore
+        logger.warning(f"Could not get the size of {uri}: {error}")
+        return None
+
+    if isinstance(size, int) and not isinstance(size, bool) and size >= 0:
+        return size
+    return None
+
+
+def _download_file(
+    storage: Any, uri: str, destination: str, expected_size: Optional[int]
+) -> None:
+    """Download and atomically publish one file."""
+    for attempt in Retrying(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        reraise=True,
+    ):
+        with attempt:
+            temporary = _create_temporary_sibling(destination)
+            try:
+                storage.cadcget(uri, temporary)
+                actual_size = os.path.getsize(temporary)
+                if expected_size is not None and actual_size != expected_size:
+                    raise OSError(
+                        f"size mismatch: expected {expected_size} bytes, "
+                        f"received {actual_size}"
+                    )
+                os.replace(temporary, destination)
+            except BaseException:
+                try:
+                    os.unlink(temporary)
+                except FileNotFoundError:
+                    pass
+                raise
+
+
+def _create_temporary_sibling(destination: str) -> str:
+    """Create a temporary transfer path beside its destination."""
+    destination_dir = os.path.dirname(destination) or "."
+    name = os.path.basename(destination)
+    temporary = os.path.join(destination_dir, f".{name}.{uuid.uuid4().hex}.part")
+    descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o666)
+    os.close(descriptor)
+    return temporary
+
+
+def _transfer_failure(
+    source: str, destination: str, error: BaseException
+) -> TransferFailure:
+    """Describe one failed transfer."""
+    detail = str(error) or type(error).__name__
+    return {"source": source, "destination": destination, "error": detail}
+
+
+def _send_get_results(
+    connection: Connection,
+    source: List[str],
+    destination: List[str],
+    certfile: Optional[str],
+    namespace: str,
+    verbose: int,
+) -> None:
+    """Send one worker's failures to its parent."""
+    try:
+        connection.send(get(source, destination, certfile, namespace, verbose))
+    finally:
+        connection.close()
+
+
+def _terminate_workers(
+    workers: List[Tuple[DillProcess, Connection, List[str], List[str]]]
+) -> None:
+    """Stop unfinished download workers."""
+    for proc, _, _, _ in workers:
+        if proc.is_alive():
+            proc.terminate()
+    for proc, _, _, _ in workers:
+        proc.join()
 
 
 def pget(
@@ -146,7 +238,7 @@ def pget(
     namespace: str = "cadc:CHIMEFRB",
     processors: int = os.cpu_count() or 1,
     verbose: int = 0,
-):
+) -> List[TransferFailure]:
     """Parallelly retrieve files, stored on the CANFAR file server, and copy it locally.
 
     Args:
@@ -157,6 +249,9 @@ def pget(
         processors (int, optional): Number of processes to use.
             Defaults to os.cpu_count() or 1.
         verbose (int, optional): Verbosity level. Defaults to 0.
+
+    Returns:
+        List[TransferFailure]: Files that could not be downloaded.
     """
     # Set logging level.
     logger.setLevel("WARNING")
@@ -165,17 +260,28 @@ def pget(
     elif verbose > 1:
         logger.setLevel("DEBUG")
 
-    # Cap processors to the number of files so we never spawn more workers than
-    # there are files to download (avoids IndexError when -c > number of files).
+    if len(source) != len(destination):
+        raise ValueError(
+            "The number of source files must match the number of destination files. "
+            f"Got {len(source)} source files and {len(destination)} destination files."
+        )
+    if not source:
+        return []
+    if processors < 1:
+        raise ValueError("processors must be greater than 0")
+
+    # Do not start more workers than there are files.
     processors = min(processors, len(source))
     sources: List[List[Any]] = split(source, processors)
     destinations: List[List[Any]] = split(destination, processors)
     logger.info(f"Starting {processors} processes.")
-    processes: List[DillProcess] = []
+    workers: List[Tuple[DillProcess, Connection, List[str], List[str]]] = []
     for process in range(processors):
+        receiver, sender = Pipe(duplex=False)
         mp = DillProcess(
-            target=get,
+            target=_send_get_results,
             args=(
+                sender,
                 sources[process],
                 destinations[process],
                 certfile,
@@ -183,11 +289,33 @@ def pget(
                 verbose,
             ),
         )
-        processes.append(mp)
-    for proc in processes:
-        proc.start()
-    for proc in processes:
-        proc.join()
+        mp.start()
+        sender.close()
+        workers.append((mp, receiver, sources[process], destinations[process]))
+
+    failures: List[TransferFailure] = []
+    try:
+        for proc, receiver, worker_sources, worker_destinations in workers:
+            try:
+                failures.extend(receiver.recv())
+            except EOFError:
+                proc.join()
+                error = RuntimeError(f"download worker exited with code {proc.exitcode}")
+                failures.extend(
+                    _transfer_failure(filename, worker_destinations[index], error)
+                    for index, filename in enumerate(worker_sources)
+                    if not os.path.exists(worker_destinations[index])
+                )
+        for proc, _, _, _ in workers:
+            proc.join()
+    except BaseException:
+        _terminate_workers(workers)
+        raise
+    finally:
+        for _, receiver, _, _ in workers:
+            receiver.close()
+
+    return failures
 
 
 def info(
