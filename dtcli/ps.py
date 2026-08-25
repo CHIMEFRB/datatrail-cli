@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.table import Table
 
 from dtcli.ls import list
+from dtcli.results import failure
 from dtcli.src import functions
 from dtcli.utilities import cadcclient
 from dtcli.utilities.utilities import check_canfar_status, set_log_level, validate_scope
@@ -75,6 +76,14 @@ def ps(  # noqa: C901
 
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)
+        if isinstance(files, dict) and "error" in files:
+            if output_json:
+                import json
+
+                print(json.dumps(files, indent=2))
+                ctx.exit(1)
+            error_console.print(files["error"])
+            return None
         if isinstance(files, str) or isinstance(policies, str):
             if output_json:
                 import json
@@ -89,11 +98,27 @@ def ps(  # noqa: C901
             error_console.print("Error: files = ", files)
             error_console.print("Error: policies = ", policies)
             return None
+    except FileNotFoundError as e:
+        if output_json:
+            import json
+
+            print(json.dumps(failure(e, "configuration_error", False), indent=2))
+            ctx.exit(1)
+        error_console.print(e)
+        return None
+    except ConnectionError as e:
+        if output_json:
+            import json
+
+            print(json.dumps(failure(e, "service_unavailable", True), indent=2))
+            ctx.exit(1)
+        error_console.print(e)
+        return None
     except Exception as e:
         if output_json:
             import json
 
-            print(json.dumps({"error": str(e)}, indent=2))
+            print(json.dumps(failure(e, "invalid_response", False), indent=2))
             ctx.exit(1)
         error_console.print(e)
         return None

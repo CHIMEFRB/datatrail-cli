@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
+from dtcli.results import failure
 from dtcli.src import functions
 from dtcli.src.functions import (
     find_unregistered_datasets,
@@ -111,4 +112,54 @@ def test_list_scopes_unanswered(monkeypatch) -> None:
             functions.requests, "get", lambda url, timeout, _r=response: _r
         )
         results: Dict[str, Any] = functions.list()
-        assert results == {"error": "Datatrail did not answer the scopes query."}
+        assert results == {
+            "error": "Datatrail did not answer the scopes query.",
+            "error_code": "invalid_response",
+            "retryable": False,
+        }
+
+
+def test_list_scopes_connection_error_is_retryable(monkeypatch) -> None:
+    """Test a connection failure has a stable retryable result."""
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+
+    def _raise(url: str, timeout: int) -> None:
+        raise functions.requests.exceptions.ConnectionError("offline")
+
+    monkeypatch.setattr(functions.requests, "get", _raise)
+    assert functions.list() == {
+        "error": "Datatrail Server at CHIME is not responding.",
+        "error_code": "service_unavailable",
+        "retryable": True,
+    }
+
+
+def test_list_missing_config_is_not_retryable(monkeypatch) -> None:
+    """Test a local configuration failure is deterministic."""
+
+    def _raise() -> None:
+        raise FileNotFoundError
+
+    monkeypatch.setattr(functions, "procure", _raise)
+    assert functions.list() == {
+        "error": "No config. Create one with `datatrail config init`.",
+        "error_code": "configuration_error",
+        "retryable": False,
+    }
+
+
+def test_ps_preserves_file_query_failure(monkeypatch) -> None:
+    """Test ps returns the file failure without querying policies."""
+    expected = failure("offline", "service_unavailable", True)
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+    monkeypatch.setattr(
+        functions,
+        "get_dataset_file_info",
+        lambda *args, **kwargs: expected,
+    )
+
+    def _unexpected_request(url: str) -> None:
+        raise AssertionError(f"unexpected policy request: {url}")
+
+    monkeypatch.setattr(functions.requests, "get", _unexpected_request)
+    assert functions.ps("scope", "dataset") == (expected, None)
