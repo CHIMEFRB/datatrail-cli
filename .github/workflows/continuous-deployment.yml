@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Create release
         id: release-please
-        uses: google-github-actions/release-please-action@v5
+        uses: googleapis/release-please-action@v5
 
       - name: Checkout code
         if: ${{ steps.release-please.outputs.release_created }}
