@@ -61,7 +61,7 @@ def check_version() -> None:
         current_version = package_version("datatrail-cli")
         latest_version = utilities.get_latest_released_version()
         terminal_stderr.print(
-            f"A new release of datatrail-cli is available: {current_version} → {latest_version}",  # noqa: E501
+            f"A new release of datatrail-cli is available: {current_version} -> {latest_version}",  # noqa: E501
             style="bold yellow",
         )
         terminal_stderr.print()
