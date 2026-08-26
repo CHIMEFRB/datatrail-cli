@@ -66,7 +66,7 @@ def summary(
     total = sum(results.values())
 
     table = Table(
-        title=f"Summary of reasons — {total:,} unregistered datasets",
+        title=f"Summary of reasons - {total:,} unregistered datasets",
         header_style="magenta",
         title_style="bold magenta",
         row_styles=["none", "dim"],
@@ -94,7 +94,7 @@ def summary(
         reasons.sort(key=lambda reason: reason[1], reverse=True)
         for row, (detail, count) in enumerate(reasons):
             if category in ("ATTACH_MISSING", "CREATE_DUPLICATE"):
-                detail = detail.replace(":", " → ", 1)
+                detail = detail.replace(":", " -> ", 1)
             table.add_row(
                 Text(category, style=style) if row == 0 else "",
                 Text(detail) if detail else "(no reason recorded)",
