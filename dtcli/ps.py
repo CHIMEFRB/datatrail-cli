@@ -2,7 +2,6 @@
 
 import logging
 import os
-from pathlib import Path
 
 import click
 from requests.exceptions import SSLError
@@ -12,7 +11,12 @@ from rich.table import Table
 from dtcli.ls import list
 from dtcli.src import functions
 from dtcli.utilities import cadcclient
-from dtcli.utilities.utilities import check_canfar_status, set_log_level, validate_scope
+from dtcli.utilities.utilities import (
+    check_canfar_status,
+    common_paths,
+    set_log_level,
+    validate_scope,
+)
 
 logger = logging.getLogger("ps")
 
@@ -107,6 +111,9 @@ def ps(  # noqa: C901
             "scope": scope,
             "files": files,
             "policies": policies,
+            "common_paths": common_paths(files.get("file_replica_locations", {}))
+            if isinstance(files, dict)
+            else {},
         }
         print(json.dumps(result, indent=2))
         return None
@@ -255,15 +262,13 @@ def create_files_table(dataset: str, scope: str, files: dict):
         f"Datatrail: Files for {dataset} {scope}", style="bold magenta"
     )
 
-    for se in files["file_replica_locations"]:
-        common_path = os.path.commonpath(files["file_replica_locations"][se])
-        names = [
-            Path(_).relative_to(common_path) for _ in files["file_replica_locations"][se]
-        ]
-        for idx, fn in enumerate(names):
+    for se, derived in common_paths(files["file_replica_locations"]).items():
+        for idx, fn in enumerate(derived["files"]):
             if idx == 0:
                 file_table.add_row(f"Storage Element: [magenta]{se}")
-                file_table.add_row(f"Common Path: {common_path}/", style="bold green")
+                file_table.add_row(
+                    f"Common Path: {derived['common_path']}/", style="bold green"
+                )
                 file_table.add_row(f"[green]- {fn}")
             else:
                 file_table.add_row(f"- {fn}", style="green")

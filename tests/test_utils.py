@@ -41,3 +41,43 @@ def test_split_more_batches_than_items():
     assert len(result) <= len(test_array)
     # every element appears exactly once
     assert sorted(sum(result, [])) == sorted(test_array)
+
+
+def test_common_paths() -> None:
+    """Test common path derivation per storage element."""
+    derived = utilities.common_paths(
+        {
+            "minoc": [
+                "cadc:CHIMEFRB/data/event/1/a.h5",
+                "cadc:CHIMEFRB/data/event/1/b.h5",
+                "cadc:CHIMEFRB/data/event/1/sub/c.h5",
+            ],
+            "arc": ["/arc/projects/chime_frb/data/event/1/a.h5"],
+            "empty": [],
+        }
+    )
+    assert derived["minoc"] == {
+        "common_path": "cadc:CHIMEFRB/data/event/1",
+        "files": ["a.h5", "b.h5", "sub/c.h5"],
+    }
+    assert derived["arc"] == {
+        "common_path": "/arc/projects/chime_frb/data/event/1",
+        "files": ["a.h5"],
+    }
+    # A storage element with no files is omitted, not invented.
+    assert "empty" not in derived
+
+
+def test_common_paths_no_usable_split() -> None:
+    """Test elements with no common directory keep their original paths."""
+    derived = utilities.common_paths(
+        {
+            "mixed": ["/abs/a.h5", "rel/b.h5"],
+            "no_common": ["a/b.h5", "c/d.h5"],
+            "bare": ["a.h5"],
+        }
+    )
+    # No usable split: common_path is "" and the original paths survive.
+    assert derived["mixed"] == {"common_path": "", "files": ["/abs/a.h5", "rel/b.h5"]}
+    assert derived["no_common"] == {"common_path": "", "files": ["a/b.h5", "c/d.h5"]}
+    assert derived["bare"] == {"common_path": "", "files": ["a.h5"]}
