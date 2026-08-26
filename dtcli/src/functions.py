@@ -116,6 +116,88 @@ def list(  # noqa: C901
         return {}
 
 
+def discover_datasets(
+    scope: Optional[str] = None,
+    match: Optional[str] = None,
+    expand: bool = False,
+    verbose: int = 0,
+    quiet: bool = False,
+) -> Dict[str, Any]:
+    """Map larger datasets across scopes, with filtering and expansion.
+
+    Walks one scope, or every scope when none is given, and keeps the larger
+    datasets whose "scope dataset" text contains every comma-separated,
+    case-insensitive match term. With expand, each kept dataset is opened one
+    level and its children become the rows, recording the opened dataset as
+    their parent; a dataset whose children cannot be listed keeps its own row.
+    A scope or dataset Datatrail does not answer for is reported in 'failed'
+    rather than shown as empty.
+
+    Args:
+        scope (Optional[str], optional): Scope to walk. Defaults to None,
+            which walks every scope.
+        match (Optional[str], optional): Comma-separated terms a dataset must
+            all contain. Defaults to None.
+        expand (bool, optional): Open each kept dataset one level. Defaults
+            to False.
+        verbose (int, optional): Verbosity. Defaults to 0.
+        quiet (bool, optional): Minimal logging. Defaults to False.
+
+    Returns:
+        Dict[str, Any]: Keys 'results', rows of scope, dataset and parent,
+            and 'failed', the queries Datatrail did not answer. Key 'error'
+            on a configuration or connection failure.
+    """
+    # Set logging level.
+    utilities.set_log_level(logger, verbose, quiet)
+    terms = [t.strip().lower() for t in (match or "").split(",") if t.strip()]
+    if scope:
+        scopes = [scope]
+    else:
+        found = list(verbose=verbose, quiet=quiet)
+        if "error" in found:
+            return found
+        answer = found.get("scopes")
+        # A non-200 response body is passed through as a string; never walk
+        # it, or any other non-list shape, as if it were the scopes list.
+        # NB: isinstance against the builtin list is unavailable here, since
+        # this module's list() shadows it.
+        if isinstance(answer, str) or not isinstance(answer, Sequence):
+            return {"error": "Datatrail did not answer the scopes query."}
+        if not answer:
+            return {
+                "error": "Datatrail reports zero scopes: an account or "
+                "configuration problem, not an empty archive."
+            }
+        scopes = sorted(answer)
+    results: List[Dict[str, Optional[str]]] = []
+    failed: List[str] = []
+    for s in scopes:
+        listed = list(s, verbose=verbose, quiet=quiet)
+        datasets = None if "error" in listed else listed.get("larger_datasets")
+        if datasets is None:
+            failed.append(f"datasets in {s}")
+            continue
+        kept = [
+            d for d in sorted(datasets) if all(t in f"{s} {d}".lower() for t in terms)
+        ]
+        for d in kept:
+            if not expand:
+                results.append({"scope": s, "dataset": d, "parent": None})
+                continue
+            opened = list(s, d, verbose=verbose, quiet=quiet)
+            children = None if "error" in opened else opened.get("datasets")
+            if children is None:
+                failed.append(f"children of {s} {d}")
+                results.append({"scope": s, "dataset": d, "parent": None})
+            elif children:
+                for c in sorted(children, reverse=True):
+                    results.append({"scope": s, "dataset": c, "parent": d})
+            else:
+                results.append({"scope": s, "dataset": d, "parent": None})
+    return {"results": results, "failed": failed}
+
+
 def ps(
     scope: str,
     dataset: str,
