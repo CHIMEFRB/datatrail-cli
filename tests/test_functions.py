@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
+from dtcli.src import functions
 from dtcli.src.functions import (
     find_unregistered_datasets,
     get_unregistered_dataset,
@@ -88,3 +89,26 @@ def test_find_unregistered_datasets() -> None:
 def test_find_unregistered_datasets_no_match() -> None:
     """Test find_unregistered_datasets with an event that is not unregistered."""
     assert find_unregistered_datasets("not-an-event") == []
+
+
+def test_list_scopes_unanswered(monkeypatch) -> None:
+    """Test a non-list scopes response becomes an error, not a payload."""
+
+    class _TextResponse:
+        status_code = 502
+        text = "Bad Gateway"
+
+    class _DictResponse:
+        status_code = 200
+
+        @staticmethod
+        def json() -> Dict[str, Any]:
+            return {"detail": "unexpected shape"}
+
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+    for response in (_TextResponse(), _DictResponse()):
+        monkeypatch.setattr(
+            functions.requests, "get", lambda url, timeout, _r=response: _r
+        )
+        results: Dict[str, Any] = functions.list()
+        assert results == {"error": "Datatrail did not answer the scopes query."}

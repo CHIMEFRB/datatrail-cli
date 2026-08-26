@@ -11,6 +11,7 @@ from dtcli.utilities import utilities
 
 pretty.install()
 terminal = console.Console()
+terminal_stderr = console.Console(stderr=True)
 
 
 # Main CLI
@@ -51,15 +52,19 @@ cli.add_command(verify.verify)
 
 
 def check_version() -> None:
-    """Check if CLI is latest release."""
+    """Check if CLI is latest release.
+
+    The banner goes to stderr so that stdout stays parseable, e.g. for
+    `--json` output piped into another tool.
+    """
     if not utilities.cli_is_latest_release():
         current_version = package_version("datatrail-cli")
         latest_version = utilities.get_latest_released_version()
-        terminal.print(
+        terminal_stderr.print(
             f"A new release of datatrail-cli is available: {current_version} → {latest_version}",  # noqa: E501
             style="bold yellow",
         )
-        terminal.print()
+        terminal_stderr.print()
 
 
 if __name__ == "__main__":
