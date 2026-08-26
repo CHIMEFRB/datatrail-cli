@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import requests
 
 from dtcli.config import procure
+from dtcli.results import failure
 from dtcli.utilities import cadcclient, utilities
 
 logger = logging.getLogger("functions")
@@ -49,7 +50,11 @@ def list(  # noqa: C901
         logger.error(
             "No configuration file found. Create one with `datatrail config init`."
         )
-        return {"error": "No config. Create one with `datatrail config init`."}
+        return failure(
+            "No config. Create one with `datatrail config init`.",
+            "configuration_error",
+            False,
+        )
     # List all scopes.
     if not scope:
         logger.info("Finding all scopes in Datatrail.")
@@ -64,14 +69,22 @@ def list(  # noqa: C901
                 # the scopes list. NB: the builtin list is shadowed by this
                 # module's list(), hence the Sequence check.
                 logger.error(f"Scopes query not answered: {response}")
-                return {"error": "Datatrail did not answer the scopes query."}
+                return failure(
+                    "Datatrail did not answer the scopes query.",
+                    "invalid_response",
+                    False,
+                )
             return {"scopes": response}
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.Timeout,
         ) as e:
             logger.error(e)
-            return {"error": "Datatrail Server at CHIME is not responding."}
+            return failure(
+                "Datatrail Server at CHIME is not responding.",
+                "service_unavailable",
+                True,
+            )
 
     # TODO:
     # If scope defined, list all datasets in scope.
@@ -92,7 +105,7 @@ def list(  # noqa: C901
             requests.exceptions.Timeout,
         ) as error:
             logger.error(error)
-            return {"error": f"{error}"}
+            return failure(error, "service_unavailable", True)
 
     # List all datasets in dataset for scope.
     elif scope and dataset:
@@ -108,10 +121,14 @@ def list(  # noqa: C901
             return {"datasets": response["contains"]}  # type: ignore
         except requests.exceptions.ConnectionError as e:
             logger.error(e)
-            return {"error": "Datatrail Server at CHIME is not responding."}
+            return failure(
+                "Datatrail Server at CHIME is not responding.",
+                "service_unavailable",
+                True,
+            )
         except Exception as e:
             logger.error(e)
-            return {"error": e}
+            return failure(e, "invalid_response", False)
     else:
         return {}
 
@@ -154,6 +171,8 @@ def ps(
         base_url = server
     try:
         files_response = get_dataset_file_info(scope, dataset, verbose, quiet)
+        if "error" in files_response:
+            return files_response, None
 
         logger.info(f"Getting policy for {dataset} in {scope}.")
         url: str = str(base_url) + f"/query/dataset/{scope}/{dataset}"
@@ -162,8 +181,6 @@ def ps(
         logger.debug(f"Status: {r.status_code}.")
         policy_response = utilities.decode_response(r)
         utilities.validate_request_response(policy_response, dataset, scope)
-        if "error" in files_response:
-            return None, policy_response  # type: ignore
         return files_response, policy_response  # type: ignore
 
     except requests.exceptions.ConnectionError as e:
@@ -215,10 +232,14 @@ def get_dataset_file_info(
         return response  # type: ignore
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
-        return {"error": "Datatrail Server at CHIME is not responding."}
+        return failure(
+            "Datatrail Server at CHIME is not responding.",
+            "service_unavailable",
+            True,
+        )
     except Exception as e:
         logger.error(e)
-        return {"error": e}
+        return failure(e, "invalid_response", False)
 
 
 def find_missing_dataset_files(
@@ -241,7 +262,7 @@ def find_missing_dataset_files(
     # find dataset
     dataset_locations = get_dataset_file_info(scope, dataset, verbose=verbose)
     if "error" in dataset_locations:
-        return {"error": dataset_locations["error"]}
+        return dataset_locations
 
     # check for local copy of the data.
     logger.info("Checking for local copies of files.")
