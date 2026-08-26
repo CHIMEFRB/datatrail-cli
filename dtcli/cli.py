@@ -6,7 +6,7 @@ import click
 from click_aliasing import ClickAliasedGroup
 from rich import console, pretty
 
-from dtcli import clear, config, ls, ps, pull, scout, unregistered
+from dtcli import clear, config, ls, ps, pull, scout, unregistered, verify
 from dtcli.utilities import utilities
 
 pretty.install()
@@ -48,6 +48,7 @@ cli.add_command(ps.ps)
 cli.add_command(pull.pull)
 cli.add_command(scout.scout)
 cli.add_command(unregistered.unregistered)
+cli.add_command(verify.verify)
 
 
 def check_version() -> None:
