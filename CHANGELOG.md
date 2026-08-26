@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v0.13.0...datatrail-cli-v0.13.1) (2026-08-26)
+
+
+### Bug Fixes
+
+* **encoding:** use ASCII status output ([a0646d7](https://github.com/CHIMEFRB/datatrail-cli/commit/a0646d7d17e66b7507a7f6019e1cd48c3faf2f9d))
+
 ## [0.13.0](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v0.12.0...datatrail-cli-v0.13.0) (2026-08-25)
 
 
