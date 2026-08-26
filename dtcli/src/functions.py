@@ -261,10 +261,10 @@ def find_missing_dataset_files(
         existing_files = []
         for f in file_paths:
             if Path(root_path + f).exists():
-                logger.debug(f"- {f} : ✔")
+                logger.debug(f"- {f} : present")
                 existing_files.append(f)
             else:
-                logger.debug(f"- {f} : ✘")
+                logger.debug(f"- {f} : missing")
                 missing_files.append(f)
 
     else:
@@ -374,10 +374,10 @@ def clear_dataset_path(
         files: List[Path] = [f for f in parent.iterdir()]
         logger.debug(f"files: {files}")
         if files:
-            logger.debug(f"{parent}: ✗")
+            logger.debug(f"{parent}: failed")
             clear_parents = False
         else:
-            logger.debug(f"{parent}: ✔")
+            logger.debug(f"{parent}: ok")
             parent.rmdir()
             time.sleep(0.1)
         parent = parent.parent
