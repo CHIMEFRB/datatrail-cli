@@ -106,6 +106,9 @@ def test_cli_list_help(runner: CliRunner) -> None:
     assert "--write" in result.output
     assert "--json" in result.output
     assert "Output as JSON" in result.output
+    assert "--match" in result.output
+    assert "--expand" in result.output
+    assert "--recursive" in result.output
 
 
 def test_cli_ps_help(runner: CliRunner) -> None:
@@ -364,6 +367,142 @@ def test_cli_list_children(runner: CliRunner) -> None:
     )
     assert result.exit_code == 0
     assert "289007650" in result.output
+
+
+def test_cli_list_match(runner: CliRunner) -> None:
+    """Test for CLI list to filter larger datasets with --match.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail, ["ls", "chime.event.baseband.raw", "--match", "classified"]
+    )
+    assert result.exit_code == 0
+    assert "classified.FRB" in result.output
+
+
+def test_cli_list_match_expand(runner: CliRunner) -> None:
+    """Test for CLI list to expand matched larger datasets one level.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail,
+        ["ls", "chime.event.baseband.raw", "--match", "classified.FRB", "--expand"],
+    )
+    assert result.exit_code == 0
+    assert "289007650" in result.output
+    assert "classified.FRB" in result.output
+
+
+def test_cli_list_match_no_hits(runner: CliRunner) -> None:
+    """Test for CLI list with --match matching nothing.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail,
+        ["ls", "chime.event.baseband.raw", "--match", "no.such.dataset.term"],
+    )
+    assert result.exit_code == 0
+    assert "No datasets matched." in result.output
+
+
+def test_cli_list_match_with_dataset_argument(runner: CliRunner) -> None:
+    """Test for CLI list rejecting --match combined with a dataset argument.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail,
+        ["ls", "chime.event.baseband.raw", "classified.FRB", "--match", "FRB"],
+    )
+    assert result.exit_code == 1
+
+
+def test_cli_list_bare_expand(runner: CliRunner) -> None:
+    """Test for CLI list rejecting --expand without a scope or --match.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["ls", "--expand"])
+    assert result.exit_code == 1
+
+
+def test_cli_list_bare_recursive(runner: CliRunner) -> None:
+    """Test for CLI list rejecting an unconstrained recursive walk.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["ls", "--recursive"])
+    assert result.exit_code == 1
+
+
+def test_cli_list_recursive_plain(runner: CliRunner, monkeypatch) -> None:
+    """Test for CLI list showing recursive paths in the table.
+
+    Args:
+        runner (CliRunner): Click runner.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+
+    def fake_discovery(**kwargs):
+        assert kwargs["recursive"] is True
+        return {
+            "results": [
+                {
+                    "scope": "test.scope",
+                    "dataset": "leaf",
+                    "parent": "branch",
+                    "path": ["root", "branch", "leaf"],
+                }
+            ],
+            "failed": [],
+        }
+
+    monkeypatch.setattr("dtcli.ls.functions.discover_datasets", fake_discovery)
+    result = runner.invoke(datatrail, ["ls", "--match", "root", "--recursive"])
+    assert result.exit_code == 0
+    assert "leaf" in result.output
+    assert "root / branch / leaf" in result.output
+
+
+def test_cli_list_recursive_json(runner: CliRunner, monkeypatch) -> None:
+    """Test for CLI list retaining recursive paths in JSON.
+
+    Args:
+        runner (CliRunner): Click runner.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    import json
+
+    expected = {
+        "results": [
+            {
+                "scope": "test.scope",
+                "dataset": "leaf",
+                "parent": "branch",
+                "path": ["root", "branch", "leaf"],
+            }
+        ],
+        "failed": [],
+    }
+
+    def fake_discovery(**kwargs):
+        assert kwargs["recursive"] is True
+        return expected
+
+    monkeypatch.setattr("dtcli.ls.functions.discover_datasets", fake_discovery)
+    result = runner.invoke(datatrail, ["ls", "--match", "root", "--recursive", "--json"])
+    assert result.exit_code == 0
+    json_start = result.output.find("{")
+    assert json.loads(result.output[json_start:]) == expected
 
 
 @pytest.mark.cadc
@@ -680,6 +819,33 @@ def test_cli_list_children_json(runner: CliRunner) -> None:
     assert "datasets" in output_data
     assert isinstance(output_data["datasets"], list)
     assert "289007650" in output_data["datasets"]
+
+
+def test_cli_list_match_json(runner: CliRunner) -> None:
+    """Test for CLI list to output the dataset map as JSON.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    import json
+
+    result = runner.invoke(
+        datatrail,
+        ["ls", "chime.event.baseband.raw", "--match", "classified", "--json"],
+    )
+    assert result.exit_code == 0
+    # Extract JSON from output (skip version check message if present)
+    json_start = result.output.find("{")
+    json_output = result.output[json_start:]
+    # Parse the output as JSON
+    output_data = json.loads(json_output)
+    # Should have 'results' rows and a 'failed' list
+    assert {
+        "scope": "chime.event.baseband.raw",
+        "dataset": "classified.FRB",
+        "parent": None,
+    } in output_data["results"]
+    assert output_data["failed"] == []
 
 
 @pytest.mark.cadc
