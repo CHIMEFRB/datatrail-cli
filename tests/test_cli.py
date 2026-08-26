@@ -819,4 +819,6 @@ def test_check_version_banner_on_stderr(monkeypatch, capsys) -> None:
     cli_module.check_version()
     captured = capsys.readouterr()
     assert "A new release of datatrail-cli is available" in captured.err
+    assert " -> 99.0.0" in captured.err
+    assert captured.err.isascii()
     assert "A new release of datatrail-cli is available" not in captured.out

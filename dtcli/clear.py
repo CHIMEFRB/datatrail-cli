@@ -128,9 +128,9 @@ def clear(
         is_delete = True
     else:
         message = (
-            "⚠️  Delete files and empty parent directories?"
+            "WARNING: Delete files and empty parent directories?"
             if clear_parents
-            else "⚠️  Delete files?"
+            else "WARNING: Delete files?"
         )
         is_delete = Confirm.ask(message)
 

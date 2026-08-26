@@ -123,7 +123,7 @@ def get(
                 ):
                     with attempt:
                         storage.cadcget(filename, destination[index])  # type: ignore
-                logger.debug(f"{filename} ➜ {destination[index]} ✔")
+                logger.debug(f"{filename} -> {destination[index]} ok")
             except cadcutils.exceptions.NotFoundException as error:  # type: ignore
                 logger.error(f"CADC Exception: {filename}")
                 not_found.append(str(error))
