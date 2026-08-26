@@ -707,3 +707,22 @@ def test_cli_ps_json(runner: CliRunner) -> None:
     assert "policies" in output_data
     assert output_data["dataset"] == "289007650"
     assert output_data["scope"] == "chime.event.baseband.raw"
+
+
+def test_check_version_banner_on_stderr(monkeypatch, capsys) -> None:
+    """Test the update banner goes to stderr, keeping stdout parseable.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+        capsys: Pytest capture fixture.
+    """
+    from dtcli import cli as cli_module
+
+    monkeypatch.setattr(cli_module.utilities, "cli_is_latest_release", lambda: False)
+    monkeypatch.setattr(
+        cli_module.utilities, "get_latest_released_version", lambda: "99.0.0"
+    )
+    cli_module.check_version()
+    captured = capsys.readouterr()
+    assert "A new release of datatrail-cli is available" in captured.err
+    assert "A new release of datatrail-cli is available" not in captured.out

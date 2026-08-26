@@ -13,6 +13,11 @@ try:
 except ImportError:
     from pip._vendor.packaging.version import parse
 
+# Bound every REST call: a wedged connection should fail, not hang forever.
+# (connect, read): fail an unreachable host quickly; keep the read bound
+# generous, because some server-side queries are legitimately slow.
+REQUEST_TIMEOUT: Tuple[float, float] = (10.0, 300.0)
+
 
 def set_log_level(logger: logging.Logger, verbose: int = 0, quiet: bool = False) -> None:
     """Set log level."""
@@ -98,7 +103,10 @@ def validate_scope(scope: str) -> bool:
     Returns:
         bool: True if scope is valid.
     """
-    resp = requests.get("https://frb.chimenet.ca/datatrail/query/dataset/scopes")
+    resp = requests.get(
+        "https://frb.chimenet.ca/datatrail/query/dataset/scopes",
+        timeout=REQUEST_TIMEOUT,
+    )
     scopes = decode_response(resp)
     return scope in scopes
 
@@ -116,7 +124,8 @@ def get_latest_released_version(
     Returns:
         str: Latest released version.
     """
-    req = requests.get(url_pattern.format(package=package))
+    # Short timeout: this runs at CLI startup and must not delay it.
+    req = requests.get(url_pattern.format(package=package), timeout=5)
     version = parse("0")
     if req.status_code == requests.codes.ok:
         j = json.loads(req.text.encode(req.encoding))  # type: ignore
