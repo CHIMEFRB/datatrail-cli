@@ -279,7 +279,7 @@ def get_files(
     directory: str,
     cores: int,
     verbose: int,
-) -> None:
+) -> List[cadcclient.TransferFailure]:
     """Download all files from a dataset which only contains files.
 
     Args:
@@ -290,7 +290,7 @@ def get_files(
         verbose (int): Verbosity level.
 
     Returns:
-        None
+        List[cadcclient.TransferFailure]: Files that could not be downloaded.
     """
     # Set logging level.
     utilities.set_log_level(logger, verbose)
@@ -318,10 +318,10 @@ def get_files(
         else:
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
-        cadcclient.pget(
+        return cadcclient.pget(
             source=files, destination=destinations, processors=cores, verbose=verbose
         )
-    return None
+    return []
 
 
 def clear_dataset_path(
