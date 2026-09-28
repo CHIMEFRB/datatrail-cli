@@ -107,6 +107,7 @@ def pull(  # noqa: C901
             return None
     except ConnectionError as e:
         error_console.print(e)
+        ctx.exit(1)
         return None
 
     # Check Canfar status.
@@ -120,6 +121,7 @@ def pull(  # noqa: C901
     files = find_missing_dataset_files(scope, dataset, directory, verbose)
     if files.get("error"):
         error_console.print(files["error"])
+        ctx.exit(1)
         return None
     elif len(files["missing"]) == 0 and len(files["existing"]) == 0:
         console.print("No files found at minoc.", style="bold red")
@@ -182,20 +184,31 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
 
     # Download missing files.
     if is_download:
-        get_files(
+        failures = get_files(
             files["missing"],
             site=site,
             directory=directory,
             cores=cores,
             verbose=verbose,
         )
-        # Check that all files have been downloaded.
+        failed_paths = set()
+        for failure in failures:
+            failed_paths.add(failure["destination"])
+            message = (
+                f"File not downloaded: {failure['destination']} " f"({failure['error']})"
+            )
+            error_console.print(message)
+
+        missing_paths = []
         for f in files["missing"]:
             local_path = path.join(directory, f.replace("cadc:CHIMEFRB", ""))
             if not path.exists(local_path):
+                missing_paths.append(local_path)
+            if not path.exists(local_path) and local_path not in failed_paths:
                 error_console.print(
                     f"File not downloaded: {local_path}",
                     style="bold red",
                 )
-                ctx.exit(1)
+        if failures or missing_paths:
+            ctx.exit(1)
     return None

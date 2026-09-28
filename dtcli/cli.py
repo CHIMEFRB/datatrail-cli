@@ -6,11 +6,24 @@ import click
 from click_aliasing import ClickAliasedGroup
 from rich import console, pretty
 
-from dtcli import clear, config, ls, ps, pull, scout, unregistered
+from dtcli import (
+    clear,
+    config,
+    doctor,
+    inventory,
+    ls,
+    ps,
+    pull,
+    pull_manifest,
+    scout,
+    unregistered,
+    verify,
+)
 from dtcli.utilities import utilities
 
 pretty.install()
 terminal = console.Console()
+terminal_stderr = console.Console(stderr=True)
 
 
 # Main CLI
@@ -42,23 +55,31 @@ def version():
 
 cli.add_command(clear.clear)
 cli.add_command(config.config)
+cli.add_command(doctor.doctor)
+cli.add_command(inventory.inventory)
 cli.add_command(ls.list, aliases=["ls"])
 cli.add_command(ps.ps)
 cli.add_command(pull.pull)
+cli.add_command(pull_manifest.pull_manifest)
 cli.add_command(scout.scout)
 cli.add_command(unregistered.unregistered)
+cli.add_command(verify.verify)
 
 
 def check_version() -> None:
-    """Check if CLI is latest release."""
+    """Check if CLI is latest release.
+
+    The banner goes to stderr so that stdout stays parseable, e.g. for
+    `--json` output piped into another tool.
+    """
     if not utilities.cli_is_latest_release():
         current_version = package_version("datatrail-cli")
         latest_version = utilities.get_latest_released_version()
-        terminal.print(
-            f"A new release of datatrail-cli is available: {current_version} → {latest_version}",  # noqa: E501
+        terminal_stderr.print(
+            f"A new release of datatrail-cli is available: {current_version} -> {latest_version}",  # noqa: E501
             style="bold yellow",
         )
-        terminal.print()
+        terminal_stderr.print()
 
 
 if __name__ == "__main__":

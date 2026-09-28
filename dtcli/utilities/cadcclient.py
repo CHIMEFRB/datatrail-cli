@@ -3,8 +3,11 @@
 import logging
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from io import StringIO
-from multiprocessing import Process  # Use the standard library only
+from multiprocessing import Pipe, Process  # Use the standard library only
+from multiprocessing.connection import Connection
+from tempfile import TemporaryDirectory
 from typing import Any, Dict, List, Optional, Tuple
 
 import cadcutils
@@ -22,6 +25,8 @@ from dtcli.utilities.utilities import split
 
 logger = logging.getLogger("cadcclient")
 install()
+
+TransferFailure = Dict[str, str]
 
 
 class DillProcess(Process):
@@ -69,10 +74,13 @@ def _connect(
         storage = StorageInventoryClient(cert, resource_id=storage_resource_id)
         query = CadcTapClient(cert, resource_id=query_resource_id)
         return cert, storage, query
-    # TODO: Handle invalid cert
     except ValueError as error:
-        logger.error(error)
-        raise error
+        logger.error(
+            "Authorization failed: The provided CANFAR certificate is "
+            "invalid or expired. Please ensure you have a valid "
+            "certificate and try again."
+        )
+        raise ValueError("Invalid or expired CANFAR certificate.") from error
 
 
 def get(
@@ -81,7 +89,7 @@ def get(
     certfile: Optional[str] = None,
     namespace: str = "cadc:CHIMEFRB",
     verbose: int = 0,
-):
+) -> List[TransferFailure]:
     """Retrieve a file, stored on the CANFAR file server, and copy it locally.
 
     Args:
@@ -90,6 +98,9 @@ def get(
         certfile (Optional[str], optional): Certificate. Defaults to None.
         namespace (str): Minoc Namespace. Defaults to "cadc:CHIMEFRB".
         verbose (int): Verbosity level. Defaults to 0.
+
+    Returns:
+        List[TransferFailure]: Files that could not be downloaded.
     """
     # Set logging level.
     logger.setLevel("WARNING")
@@ -98,41 +109,114 @@ def get(
     elif verbose > 1:
         logger.setLevel("DEBUG")
 
-    logger.info("Connecting to CADC...")
-    _, storage, _ = _connect(certfile=certfile)
-    not_found: List[str] = []
-    try:
-        logger.debug("Checking source and destination length match.")
-        logger.debug(f"Source length: {len(source)}")
-        logger.debug(f"Destination length: {len(destination)}")
-        assert len(source) == len(destination), (
-            "The number of source files must match the number of destination files."
+    logger.debug("Checking source and destination length match.")
+    logger.debug(f"Source length: {len(source)}")
+    logger.debug(f"Destination length: {len(destination)}")
+    if len(source) != len(destination):
+        raise ValueError(
+            "The number of source files must match the number of destination files. "
             f"Got {len(source)} source files and {len(destination)} destination files."
         )
-        for index, filename in enumerate(source):
-            try:
-                filename = namespace + "/" + filename
-                for attempt in Retrying(
-                    stop=stop_after_attempt(3),
-                    wait=wait_exponential(multiplier=1, min=4, max=10),
-                    reraise=True,
-                ):
-                    with attempt:
-                        storage.cadcget(filename, destination[index])  # type: ignore
-                logger.debug(f"{filename} ➜ {destination[index]} ✔")
-            except cadcutils.exceptions.NotFoundException as error:  # type: ignore
-                logger.error(f"CADC Exception: {filename}")
-                not_found.append(str(error))
-    except cadcutils.exceptions.HttpException as error:  # type: ignore
-        logger.error(f"CADC Exception: {error}")
-        raise error
+    logger.info("Connecting to CADC...")
+    try:
+        _, storage, _ = _connect(certfile=certfile)
     except Exception as error:
-        logger.error(f"Error: {error}")
-        raise error
-    if len(not_found) > 0:
-        logger.error(f"Number of files not found: {len(not_found)}")
-        logger.error(f"Not found: {not_found}")
+        logger.error(f"CADC connection failed: {error}")
+        return [
+            _transfer_failure(filename, destination[index], error)
+            for index, filename in enumerate(source)
+        ]
+
+    failures: List[TransferFailure] = []
+    for index, filename in enumerate(source):
+        uri = namespace + "/" + filename
+        try:
+            expected_size = _get_expected_size(storage, uri)
+            _download_file(storage, uri, destination[index], expected_size)
+            logger.debug(f"{uri} -> {destination[index]}")
+        except Exception as error:
+            logger.error(f"Could not download {uri}: {error}")
+            failures.append(_transfer_failure(filename, destination[index], error))
+
+    if failures:
+        logger.error(f"Number of failed downloads: {len(failures)}")
     logger.info(f"Process {os.getpid()} finished.")
+    return failures
+
+
+def _get_expected_size(storage: Any, uri: str) -> Optional[int]:
+    """Return the remote size when Minoc provides one."""
+    try:
+        size = storage.cadcinfo(uri).size
+    except cadcutils.exceptions.NotFoundException:  # type: ignore
+        raise
+    except cadcutils.exceptions.HttpException as error:  # type: ignore
+        logger.warning(f"Could not get the size of {uri}: {error}")
+        return None
+
+    if isinstance(size, int) and not isinstance(size, bool) and size >= 0:
+        return size
+    return None
+
+
+def _download_file(
+    storage: Any, uri: str, destination: str, expected_size: Optional[int]
+) -> None:
+    """Download and atomically publish one file."""
+    destination_dir = os.path.dirname(destination) or "."
+    name = os.path.basename(destination)
+    for attempt in Retrying(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        reraise=True,
+    ):
+        with attempt:
+            # CADC may create additional resumable .part files beside this path.
+            # Own the entire staging directory so every artifact is cleaned up.
+            with TemporaryDirectory(prefix=f".{name}.", dir=destination_dir) as staging:
+                temporary = os.path.join(staging, "download.part")
+                storage.cadcget(uri, temporary)
+                actual_size = os.path.getsize(temporary)
+                if expected_size is not None and actual_size != expected_size:
+                    raise OSError(
+                        f"size mismatch: expected {expected_size} bytes, "
+                        f"received {actual_size}"
+                    )
+                os.replace(temporary, destination)
+
+
+def _transfer_failure(
+    source: str, destination: str, error: BaseException
+) -> TransferFailure:
+    """Describe one failed transfer."""
+    detail = str(error) or type(error).__name__
+    return {"source": source, "destination": destination, "error": detail}
+
+
+def _send_get_results(
+    connection: Connection,
+    source: List[str],
+    destination: List[str],
+    certfile: Optional[str],
+    namespace: str,
+    verbose: int,
+) -> None:
+    """Send one worker's failures to its parent."""
+    try:
+        connection.send(get(source, destination, certfile, namespace, verbose))
+    finally:
+        connection.close()
+
+
+def _terminate_workers(
+    workers: List[Tuple[DillProcess, Connection, List[str], List[str]]]
+) -> None:
+    """Stop unfinished download workers."""
+    for proc, _, _, _ in workers:
+        if proc.is_alive():
+            proc.terminate()
+    for proc, _, _, _ in workers:
+        proc.join()
 
 
 def pget(
@@ -142,7 +226,7 @@ def pget(
     namespace: str = "cadc:CHIMEFRB",
     processors: int = os.cpu_count() or 1,
     verbose: int = 0,
-):
+) -> List[TransferFailure]:
     """Parallelly retrieve files, stored on the CANFAR file server, and copy it locally.
 
     Args:
@@ -153,6 +237,9 @@ def pget(
         processors (int, optional): Number of processes to use.
             Defaults to os.cpu_count() or 1.
         verbose (int, optional): Verbosity level. Defaults to 0.
+
+    Returns:
+        List[TransferFailure]: Files that could not be downloaded.
     """
     # Set logging level.
     logger.setLevel("WARNING")
@@ -161,26 +248,66 @@ def pget(
     elif verbose > 1:
         logger.setLevel("DEBUG")
 
+    if len(source) != len(destination):
+        raise ValueError(
+            "The number of source files must match the number of destination files. "
+            f"Got {len(source)} source files and {len(destination)} destination files."
+        )
+    if not source:
+        return []
+    if processors < 1:
+        raise ValueError("processors must be greater than 0")
+
+    # Do not start more workers than there are files.
+    processors = min(processors, len(source))
     sources: List[List[Any]] = split(source, processors)
     destinations: List[List[Any]] = split(destination, processors)
     logger.info(f"Starting {processors} processes.")
-    processes: List[DillProcess] = []
-    for process in range(processors):
-        mp = DillProcess(
-            target=get,
-            args=(
-                sources[process],
-                destinations[process],
-                certfile,
-                namespace,
-                verbose,
-            ),
-        )
-        processes.append(mp)
-    for proc in processes:
-        proc.start()
-    for proc in processes:
-        proc.join()
+    workers: List[Tuple[DillProcess, Connection, List[str], List[str]]] = []
+    failures: List[TransferFailure] = []
+    try:
+        for process in range(processors):
+            receiver, sender = Pipe(duplex=False)
+            try:
+                mp = DillProcess(
+                    target=_send_get_results,
+                    args=(
+                        sender,
+                        sources[process],
+                        destinations[process],
+                        certfile,
+                        namespace,
+                        verbose,
+                    ),
+                )
+                mp.start()
+            except BaseException:
+                receiver.close()
+                raise
+            finally:
+                sender.close()
+            workers.append((mp, receiver, sources[process], destinations[process]))
+
+        for proc, receiver, worker_sources, worker_destinations in workers:
+            try:
+                failures.extend(receiver.recv())
+            except EOFError:
+                proc.join()
+                error = RuntimeError(f"download worker exited with code {proc.exitcode}")
+                failures.extend(
+                    _transfer_failure(filename, worker_destinations[index], error)
+                    for index, filename in enumerate(worker_sources)
+                )
+        for proc, _, _, _ in workers:
+            proc.join()
+    except BaseException:
+        _terminate_workers(workers)
+        raise
+    finally:
+        for _, receiver, _, _ in workers:
+            receiver.close()
+
+    return failures
 
 
 def info(
@@ -219,16 +346,22 @@ def info(
             "newestmod": None,
         }
         for fileinfo in information:
-            aggregate["id"].add(fileinfo["id"])
+            aggregate["ids"].add(fileinfo["id"])
             aggregate["size"] += fileinfo["size"]
-            aggregate["name"].add(fileinfo["name"])
-            aggregate["md5sum"].add(fileinfo["md5sum"])
-            aggregate["filetype"].add(fileinfo["file_type"])
-            aggregate["encoding"].add(fileinfo["encoding"])
-            if aggregate["oldest"] is None or fileinfo["lastmod"] < aggregate["oldest"]:
-                aggregate["oldest"] = fileinfo["lastmod"]
-            if aggregate["newest"] is None or fileinfo["lastmod"] > aggregate["newest"]:
-                aggregate["newest"] = fileinfo["lastmod"]
+            aggregate["names"].add(fileinfo["name"])
+            aggregate["md5sums"].add(fileinfo["md5sum"])
+            aggregate["file_types"].add(fileinfo["file_type"])
+            aggregate["encodings"].add(fileinfo["encoding"])
+            if (
+                aggregate["oldestmod"] is None
+                or fileinfo["lastmod"] < aggregate["oldestmod"]
+            ):
+                aggregate["oldestmod"] = fileinfo["lastmod"]
+            if (
+                aggregate["newestmod"] is None
+                or fileinfo["lastmod"] > aggregate["newestmod"]
+            ):
+                aggregate["newestmod"] = fileinfo["lastmod"]
         return [aggregate]
     return information
 
@@ -407,23 +540,29 @@ def status(
     ]
     if not certfile:
         certfile = procure(key="vospace_certfile")
-    minoc_status = False
-    luskan_status = False
-    for index, url in enumerate(urls):
-        response = requests.get(url, cert=certfile, allow_redirects=True)
+
+    def check_url(url: str) -> bool:
         try:
+            # Health probe: fail fast, and read a wedged or unreachable
+            # endpoint as "down" rather than crashing the caller.
+            response = requests.get(
+                url, cert=certfile, allow_redirects=True, timeout=(10, 30)
+            )
             response.raise_for_status()
             authorised = response.headers.get("x-vo-authenticated")
             if isinstance(authorised, str):
-                if index == 0:
-                    minoc_status = True
-                else:
-                    luskan_status = True
+                return True
             else:
                 raise TypeError
-        except HTTPError as error:
+        except (HTTPError, requests.exceptions.RequestException) as error:
             logger.warning(error)
             logger.warning(f"{url.split('/')[3]} is down.")
+            return False
         except TypeError:
             logger.error("Canfar certificate is not valid.")
-    return minoc_status, luskan_status
+            return False
+
+    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
+        results = list(executor.map(check_url, urls))
+
+    return results[0], results[1]

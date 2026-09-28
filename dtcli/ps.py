@@ -2,7 +2,6 @@
 
 import logging
 import os
-from pathlib import Path
 
 import click
 from requests.exceptions import SSLError
@@ -12,7 +11,13 @@ from rich.table import Table
 from dtcli.ls import list
 from dtcli.src import functions
 from dtcli.utilities import cadcclient
-from dtcli.utilities.utilities import check_canfar_status, set_log_level, validate_scope
+from dtcli.utilities.results import failure
+from dtcli.utilities.utilities import (
+    check_canfar_status,
+    common_paths,
+    set_log_level,
+    validate_scope,
+)
 
 logger = logging.getLogger("ps")
 
@@ -26,14 +31,16 @@ error_console = Console(stderr=True, style="bold red")
 @click.option("-s", "--show-files", is_flag=True, help="Show file names.")
 @click.option("-v", "--verbose", count=True, help="Verbosity: v=INFO, vv=DEBUG.")
 @click.option("-q", "--quiet", is_flag=True, help="Set log level to ERROR.")
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON.")
 @click.pass_context
-def ps(
+def ps(  # noqa: C901
     ctx: click.Context,
     scope: str,
     dataset: str,
     show_files: bool,
     verbose: int,
     quiet: bool,
+    output_json: bool,
 ):
     """Detailed status of a dataset.
 
@@ -44,6 +51,7 @@ def ps(
         show_files (bool): Show list of files.
         verbose (int): Verbosity: v=INFO, vv=DUBUG.
         quiet (bool): Set log level to ERROR.
+        output_json (bool): Output as JSON.
 
     Returns:
         None
@@ -72,12 +80,67 @@ def ps(
 
     try:
         files, policies = functions.ps(scope, dataset, verbose, quiet)
+        if isinstance(files, dict) and "error" in files:
+            if output_json:
+                import json
+
+                print(json.dumps(files, indent=2))
+                ctx.exit(1)
+            error_console.print(files["error"])
+            return None
         if isinstance(files, str) or isinstance(policies, str):
+            if output_json:
+                import json
+
+                print(
+                    json.dumps(
+                        {"error": {"files": str(files), "policies": str(policies)}},
+                        indent=2,
+                    )
+                )
+                ctx.exit(1)
             error_console.print("Error: files = ", files)
             error_console.print("Error: policies = ", policies)
             return None
-    except Exception as e:
+    except FileNotFoundError as e:
+        if output_json:
+            import json
+
+            print(json.dumps(failure(e, "configuration_error", False), indent=2))
+            ctx.exit(1)
         error_console.print(e)
+        return None
+    except ConnectionError as e:
+        if output_json:
+            import json
+
+            print(json.dumps(failure(e, "service_unavailable", True), indent=2))
+            ctx.exit(1)
+        error_console.print(e)
+        return None
+    except Exception as e:
+        if output_json:
+            import json
+
+            print(json.dumps(failure(e, "invalid_response", False), indent=2))
+            ctx.exit(1)
+        error_console.print(e)
+        return None
+
+    # Handle JSON output
+    if output_json:
+        import json
+
+        result = {
+            "dataset": dataset,
+            "scope": scope,
+            "files": files,
+            "policies": policies,
+            "common_paths": common_paths(files.get("file_replica_locations", {}))
+            if isinstance(files, dict)
+            else {},
+        }
+        print(json.dumps(result, indent=2))
         return None
 
     if show_files and files:
@@ -224,19 +287,15 @@ def create_files_table(dataset: str, scope: str, files: dict):
         f"Datatrail: Files for {dataset} {scope}", style="bold magenta"
     )
 
-    for se in files["file_replica_locations"]:
-        common_path = os.path.commonpath(files["file_replica_locations"][se])
-        names = [
-            Path(_).relative_to(common_path) for _ in files["file_replica_locations"][se]
-        ]
-        for idx, fn in enumerate(names):
+    for se, derived in common_paths(files["file_replica_locations"]).items():
+        for idx, fn in enumerate(derived["files"]):
             if idx == 0:
                 file_table.add_row(f"Storage Element: [magenta]{se}")
-                file_table.add_row(f"Common Path: {common_path}/", style="bold green")
+                file_table.add_row(
+                    f"Common Path: {derived['common_path']}/", style="bold green"
+                )
                 file_table.add_row(f"[green]- {fn}")
-                # file_table.add_row(se, common_path, fn)
             else:
                 file_table.add_row(f"- {fn}", style="green")
-                # file_table.add_row("", "", fn)
         file_table.add_section()
     return file_table

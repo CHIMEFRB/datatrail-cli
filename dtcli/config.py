@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
+from urllib.parse import urlparse
 
 import click
 import yaml
@@ -124,21 +125,60 @@ def init(site: str):
     print(f"Datatrail config file {CONFIG} created.")
 
 
-def procure(config: Path = CONFIG, key: Optional[str] = None) -> Any:
+def procure(
+    config: Path = CONFIG, key: Optional[str] = None, *, quiet: bool = False
+) -> Any:
     """Procure the configuration file.
 
     Args:
         config (Path, optional): Configuration. Defaults to CONFIG.
+        key (str, optional): Return only this configuration value when provided.
+        quiet (bool, optional): Suppress loading diagnostics. Defaults to False.
 
     Returns:
-        Dict[str, Any]: Configuration.
+        Any: Configuration or the requested value, or None if unavailable.
     """
     try:
         with open(config.as_posix()) as stream:
             configuration = yaml.safe_load(stream)
-        if key:
-            return configuration[key]
-        return configuration
-    except Exception as exception:
-        log.exception(exception)
-        configuration = None
+    except (OSError, UnicodeError, yaml.YAMLError):
+        if not quiet:
+            log.error("Configuration could not be loaded.")
+        return None
+    if not isinstance(configuration, dict):
+        if not quiet:
+            log.error("Configuration must be a mapping.")
+        return None
+    if key is not None:
+        return configuration.get(key)
+    return configuration
+
+
+def validate(configuration: Any) -> bool:
+    """Check that configuration contains the required CLI settings.
+
+    Args:
+        configuration (Any): Loaded configuration to validate.
+
+    Returns:
+        bool: Whether the server, certificate path, site, and root mount are valid.
+    """
+    if not isinstance(configuration, dict):
+        return False
+    server = configuration.get("server")
+    certificate = configuration.get("vospace_certfile")
+    site = configuration.get("site")
+    if not all(
+        isinstance(value, str) and value.strip() for value in (server, certificate, site)
+    ):
+        return False
+    try:
+        parsed = urlparse(server)
+        valid_server = parsed.scheme in ("http", "https") and bool(parsed.netloc)
+    except ValueError:
+        return False
+    root_mounts = configuration.get("root_mounts")
+    if not valid_server or not isinstance(root_mounts, dict):
+        return False
+    mount = root_mounts.get(site)
+    return isinstance(mount, str) and bool(mount.strip())

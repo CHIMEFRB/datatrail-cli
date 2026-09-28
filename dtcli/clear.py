@@ -100,6 +100,7 @@ def clear(
             return None
     except ConnectionError as error:
         error_console.print(error)
+        ctx.exit(1)
         return None
 
     # Find number of files in common directory and size.
@@ -127,9 +128,9 @@ def clear(
         is_delete = True
     else:
         message = (
-            "⚠️  Delete files and empty parent directories?"
+            "WARNING: Delete files and empty parent directories?"
             if clear_parents
-            else "⚠️  Delete files?"
+            else "WARNING: Delete files?"
         )
         is_delete = Confirm.ask(message)
 

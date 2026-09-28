@@ -11,6 +11,7 @@ Options:
   -s, --show-files  Show file names.
   -v, --verbose     Verbosity: v=INFO, vv=DEBUG.
   -q, --quiet       Set log level to ERROR.
+  --json            Output as JSON.
   --help            Show this message and exit.
 ```
 
@@ -80,3 +81,96 @@ if the `--show-files` or `-s` flag is passed.
     │ - baseband_308892599_111.h5                                     │
     :
     ```
+
+## 🤖 Machine-readable JSON output
+
+The `--json` flag outputs structured JSON instead of formatted tables, making it easy to parse dataset information in scripts and pipelines:
+
+```bash
+$ datatrail ps kko.event.baseband.raw 308892599 --json
+{
+  "dataset": "308892599",
+  "scope": "kko.event.baseband.raw",
+  "files": {
+    "contains_datasets": 0,
+    "datasets_contained": [],
+    "file_replica_locations": {
+      "minoc": [
+        "data/kko/baseband/raw/2023/08/07/astro_308892599/baseband_308892599_129.h5",
+        "data/kko/baseband/raw/2023/08/07/astro_308892599/baseband_308892599_1013.h5",
+        ...
+      ]
+    }
+  },
+  "common_paths": {
+    "minoc": {
+      "common_path": "data/kko/baseband/raw/2023/08/07/astro_308892599",
+      "files": [
+        "baseband_308892599_129.h5",
+        "baseband_308892599_1013.h5",
+        ...
+      ]
+    }
+  },
+  "policies": {
+    "replication_policy": {
+      "preferred_storage_elements": ["chime"],
+      "priority": "low",
+      "default": true
+    },
+    "deletion_policy": [
+      {
+        "storage_element": "minoc",
+        "priority": "low",
+        "default": true,
+        "delete_after_days": 36500
+      },
+      ...
+    ],
+    "belongs_to": [
+      {
+        "scope": "kko.event.baseband.raw",
+        "name": "B0531+21.commissioning.pulsar.temp"
+      }
+    ]
+  }
+}
+```
+
+The `common_paths` field gives, per storage element, the deepest common
+directory of its file replicas and the file names relative to it, so scripts
+do not have to re-derive the split. When no common directory exists, it is
+`""` and the original paths are listed. Note that `minoc` paths keep any
+collection prefix (such as `cadc:CHIMEFRB`) exactly as reported in
+`file_replica_locations`.
+
+### Usage in scripts
+
+```python
+import json
+import subprocess
+
+# Get dataset information
+result = subprocess.run(
+    ["datatrail", "ps", "kko.event.baseband.raw", "308892599", "--json"],
+    capture_output=True,
+    text=True,
+)
+data = json.loads(result.stdout)
+
+# Access file locations
+file_locations = data["files"]["file_replica_locations"]
+minoc_files = file_locations.get("minoc", [])
+
+# Compose full paths from the derived common path
+minoc = data["common_paths"].get("minoc", {})
+full_paths = [
+    f"{minoc['common_path']}/{name}" if minoc["common_path"] else name
+    for name in minoc.get("files", [])
+]
+
+# Access policies
+replication_policy = data["policies"]["replication_policy"]
+deletion_policy = data["policies"]["deletion_policy"]
+belongs_to = data["policies"]["belongs_to"]
+```

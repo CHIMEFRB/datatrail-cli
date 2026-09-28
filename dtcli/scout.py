@@ -13,7 +13,12 @@ from rich.table import Table
 from dtcli.config import procure
 from dtcli.ls import list as ls
 from dtcli.utilities import cadcclient
-from dtcli.utilities.utilities import check_canfar_status, set_log_level, validate_scope
+from dtcli.utilities.utilities import (
+    REQUEST_TIMEOUT,
+    check_canfar_status,
+    set_log_level,
+    validate_scope,
+)
 
 logger = logging.getLogger("scout")
 
@@ -89,7 +94,11 @@ def scout(  # noqa: C901
     )
     url = server + endpoint
     logger.debug(f"URL: {url}")
-    response = requests.get(url)
+    try:
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
+    except requests.exceptions.Timeout:
+        error_console.print("Error: Datatrail server timed out.")
+        return None
     try:
         data = response.json()
         logger.debug(f"Data: {data}")
@@ -160,14 +169,22 @@ def scout(  # noqa: C901
                     + "/query/datasset/scout/md5sums"
                     + f"?basepath={basepath}&site={se}&filetype={file_type}"
                 )
-                response = requests.get(md5_url)
+                try:
+                    response = requests.get(md5_url, timeout=REQUEST_TIMEOUT)
+                except requests.exceptions.Timeout:
+                    error_console.print(f"{scope} - Healing timed out; skipping.")
+                    continue
                 file_md5s = response.json()
             url = (
                 server
                 + "/commit/dataset/scout/sync"
                 + f"?name={dataset}&scope={scope}&replicate_to={se}"
             )
-            response = requests.post(url, json=file_md5s)
+            try:
+                response = requests.post(url, json=file_md5s, timeout=REQUEST_TIMEOUT)
+            except requests.exceptions.Timeout:
+                error_console.print(f"{scope} - Healing timed out; skipping.")
+                continue
             if response.status_code == 200:
                 console.print(f"{scope} - Healing successful.")
             else:

@@ -109,7 +109,7 @@ will ask for confirmation before removing the dataset.
                         PosixPath('dtcli'), PosixPath('pyproject.toml'), PosixPath('tests'),
                         PosixPath('docs'), PosixPath('README.md'), PosixPath('.gitignore'),
                         PosixPath('.github'), PosixPath('tox.ini'),
-                        PosixPath('poetry.lock'), PosixPath('.git')]
+                        PosixPath('uv.lock'), PosixPath('.git')]
                DEBUG    .: ✗ # (2)!
     ```
 
