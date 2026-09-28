@@ -1,6 +1,7 @@
 """Datatrail dataset verification command."""
 
 import json
+import logging
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import click
@@ -36,9 +37,9 @@ def _relative_path(uri: str) -> str:
 
 def _checksum(value: Any) -> Optional[str]:
     """Normalise an MD5 checksum."""
-    if value is None:
+    if not isinstance(value, str):
         return None
-    checksum = str(value).strip().lower()
+    checksum = value.strip().lower()
     if checksum.startswith("md5:"):
         checksum = checksum[4:]
     return checksum or None
@@ -46,10 +47,13 @@ def _checksum(value: Any) -> Optional[str]:
 
 def _size(value: Any) -> Optional[int]:
     """Convert a size value to bytes."""
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        return None
     try:
-        return int(value)
+        size = int(value)
     except (TypeError, ValueError):
         return None
+    return size if size >= 0 else None
 
 
 def _minoc_metadata(
@@ -61,6 +65,11 @@ def _minoc_metadata(
     try:
         response = cadcclient.info([_relative_path(uri) for uri in uris])
     except Exception:
+        return {}, set(uris)
+    if not isinstance(response, list) or not all(
+        isinstance(item, dict) and isinstance(item.get("id"), str) and item["id"]
+        for item in response
+    ):
         return {}, set(uris)
 
     metadata: Dict[str, Dict[str, Any]] = {}
@@ -91,6 +100,13 @@ def _inventory_metadata(
         try:
             rows = cadcclient.query(query)
         except Exception:
+            unavailable.update(batch)
+            continue
+        if not isinstance(rows, list) or not all(
+            isinstance(row, (list, tuple))
+            and (row == [""] or (len(row) == 3 and isinstance(row[0], str) and row[0]))
+            for row in rows
+        ):
             unavailable.update(batch)
             continue
         batch_set = set(batch)
@@ -294,7 +310,14 @@ def _show_report(report: Dict[str, Any]) -> None:
 @click.pass_context
 def verify(ctx: click.Context, scope: str, dataset: str, output_json: bool) -> None:
     """Verify registered Minoc files against CADC metadata."""
-    report = verify_dataset(scope, dataset)
+    previous_disable = logging.root.manager.disable
+    try:
+        if output_json:
+            logging.disable(max(previous_disable, logging.CRITICAL))
+        report = verify_dataset(scope, dataset)
+    finally:
+        if output_json:
+            logging.disable(previous_disable)
     if output_json:
         click.echo(json.dumps(report, indent=2))
     else:
