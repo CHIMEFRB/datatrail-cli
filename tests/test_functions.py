@@ -1,9 +1,7 @@
 """Tests for Datatrail CLI."""
 
 from datetime import datetime as dt
-from typing import Any, Dict, List, Optional
-
-import pytest
+from typing import Any, Dict
 
 from dtcli.src import functions
 from dtcli.src.functions import (
@@ -14,81 +12,100 @@ from dtcli.src.functions import (
 from dtcli.utilities.results import failure
 
 
-def test_view_results() -> None:
-    """Test view_results."""
-    pipeline: str = "datatrail-registration-last-completed-date"
-    query: Dict[str, Any] = {"site": "chime"}
-    projection: Dict[str, Any] = {"results": 1}
-    results: List[Dict[str, Any]] = view_results(pipeline, query, projection)
+def test_view_results(results_response) -> None:
+    """Test view_results with a fixed pipeline record."""
+    pipeline = "datatrail-registration-last-completed-date"
+    query = {"site": "chime"}
+    projection = {"results": 1}
+    expected = [{"results": {"last_completed_date": "2024-01-02"}}]
+    results_response(pipeline, query, projection, expected)
+    results = view_results(pipeline, query, projection)
+    assert results == expected
     assert dt.strptime(
-        results[0]["results"]["last_completed_date"], "%Y-%M-%d"
-    ) > dt.strptime("2023-12-01", "%Y-%M-%d")
+        results[0]["results"]["last_completed_date"], "%Y-%m-%d"
+    ) > dt.strptime("2023-12-01", "%Y-%m-%d")
 
 
-def test_view_results_bad_pipeline() -> None:
-    """Test view_results with bad pipeline."""
-    pipeline: str = "bad-pipeline-name"
-    query: Dict[str, Any] = {"site": "chime"}
-    projection: Dict[str, Any] = {"results": 1}
-    results: List[Dict[str, Any]] = view_results(pipeline, query, projection)
-    if results:
-        assert results == []
-    else:
-        pytest.skip("No results found.")
+def test_view_results_bad_pipeline(results_response) -> None:
+    """Test an unknown pipeline returns an empty result."""
+    pipeline = "bad-pipeline-name"
+    query = {"site": "chime"}
+    projection = {"results": 1}
+    results_response(pipeline, query, projection, [])
+    assert view_results(pipeline, query, projection) == []
 
 
-def test_get_unregistered_dataset() -> None:
-    """Test get_unregistered_dataset."""
-    pipeline: str = "datatrail-unregistered-datasets"
-    query: Dict[str, Any] = {}
-    projection: Dict[str, Any] = {"results.dataset_name": 1, "results.dataset_scope": 1}
-    limit: int = 1
-    try:
-        results: Dict[str, Any] = view_results(pipeline, query, projection, limit)[0]
-    except IndexError:
-        pytest.skip("No unregistered datasets found.")
-    dataset_name: str = results["results"]["dataset_name"]
-    dataset_scope: str = results["results"]["dataset_scope"]
-
-    unregistered_dataset: Optional[Dict[str, Any]] = get_unregistered_dataset(
-        dataset_name, dataset_scope
+def test_get_unregistered_dataset(results_response) -> None:
+    """Test the event lookup returns its registration details."""
+    record = {
+        "results": {
+            "dataset_name": "289007650",
+            "dataset_scope": "chime.event.baseband.raw",
+            "attach_to_dataset": "classified.FRB",
+            "reason": "Parent dataset is missing.",
+        }
+    }
+    results_response(
+        "datatrail-unregistered-datasets",
+        {"site": "chime", "results.dataset_name": "289007650"},
+        {"results.files": 0},
+        [record],
+        limit=1,
     )
-    if unregistered_dataset:
-        assert "attach_to_dataset" in unregistered_dataset["results"].keys()
-        assert "reason" in unregistered_dataset["results"].keys()
-    else:
-        pytest.skip("No unregistered datasets found.")
+    result = get_unregistered_dataset("289007650", "chime.event.baseband.raw")
+    assert result == record
+    assert "attach_to_dataset" in result["results"]
+    assert "reason" in result["results"]
 
 
-def test_find_unregistered_datasets() -> None:
-    """Test find_unregistered_datasets."""
-    pipeline: str = "datatrail-unregistered-datasets"
-    projection: Dict[str, Any] = {"results.dataset_name": 1, "results.dataset_scope": 1}
-    try:
-        known: Dict[str, Any] = view_results(pipeline, {}, projection, 1)[0]
-    except IndexError:
-        pytest.skip("No unregistered datasets found.")
-    dataset_name: str = known["results"]["dataset_name"]
-    dataset_scope: str = known["results"]["dataset_scope"]
-
-    results: List[Dict[str, Any]] = find_unregistered_datasets(dataset_name)
-    assert len(results) > 0
-    assert all(r["results"]["dataset_name"] == dataset_name for r in results)
-    assert "reason" in results[0]["results"].keys()
-
-    # Scope of the dataset filters nothing out, an unrelated scope filters all.
-    assert find_unregistered_datasets(dataset_name, scope=dataset_scope)
-    assert find_unregistered_datasets(dataset_name, scope="not.a.scope") == []
-
-    # A partial search finds at least the datasets an exact search does.
-    partial: List[Dict[str, Any]] = find_unregistered_datasets(
-        dataset_name[:-1], partial=True
+def test_find_unregistered_datasets(results_response) -> None:
+    """Test exact, scoped, and partial event queries against fixed responses."""
+    pipeline = "datatrail-unregistered-datasets"
+    projection = {"results.files": 0}
+    name, scope = "289007650", "chime.event.baseband.raw"
+    record = {
+        "results": {
+            "dataset_name": name,
+            "dataset_scope": scope,
+            "reason": "Parent dataset is missing.",
+        }
+    }
+    results_response(pipeline, {"results.dataset_name": name}, projection, [record])
+    results_response(
+        pipeline,
+        {"results.dataset_name": name, "results.dataset_scope": scope},
+        projection,
+        [record],
     )
-    assert len(partial) >= len(results)
+    results_response(
+        pipeline,
+        {"results.dataset_name": name, "results.dataset_scope": "not.a.scope"},
+        projection,
+        [],
+    )
+    results_response(
+        pipeline,
+        {"results.dataset_name": {"$regex": name[:-1]}},
+        projection,
+        [record],
+    )
+    results = find_unregistered_datasets(name)
+    assert results == [record]
+    assert all(r["results"]["dataset_name"] == name for r in results)
+    assert "reason" in results[0]["results"]
+    assert find_unregistered_datasets(name, scope=scope) == [record]
+    assert find_unregistered_datasets(name, scope="not.a.scope") == []
+    assert find_unregistered_datasets(name[:-1], partial=True) == [record]
 
 
-def test_find_unregistered_datasets_no_match() -> None:
-    """Test find_unregistered_datasets with an event that is not unregistered."""
+def test_find_unregistered_datasets_no_match(results_response) -> None:
+    """Test an event with no unregistered records."""
+    results_response(
+        "datatrail-unregistered-datasets",
+        {"results.dataset_name": "not-an-event"},
+        {"results.files": 0},
+        [],
+    )
     assert find_unregistered_datasets("not-an-event") == []
 
 

@@ -8,6 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from dtcli.cli import cli as datatrail
+from dtcli.utilities import utilities
 
 
 @pytest.fixture(scope="module")
@@ -40,12 +41,15 @@ def list_specific_files(directory):
 
 
 @pytest.fixture
-def runner() -> CliRunner:
+def runner(request, monkeypatch) -> CliRunner:
     """Click CLI runner for testing.
 
     Returns:
         (CliRunner) -> None:
     """
+    if request.node.get_closest_marker("cadc") is None:
+        request.getfixturevalue("datatrail_api")
+        monkeypatch.setattr(utilities, "cli_is_latest_release", lambda: True)
     return CliRunner()
 
 
@@ -707,6 +711,8 @@ def test_cli_ps_json(runner: CliRunner) -> None:
     assert "policies" in output_data
     assert output_data["dataset"] == "289007650"
     assert output_data["scope"] == "chime.event.baseband.raw"
+    # Derived per-storage-element common path and relative file names.
+    assert "common_paths" in output_data
 
 
 def test_check_version_banner_on_stderr(monkeypatch, capsys) -> None:
