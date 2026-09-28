@@ -6,7 +6,18 @@ import click
 from click_aliasing import ClickAliasedGroup
 from rich import console, pretty
 
-from dtcli import clear, config, inventory, ls, ps, pull, scout, unregistered, verify
+from dtcli import (
+    clear,
+    config,
+    doctor,
+    inventory,
+    ls,
+    ps,
+    pull,
+    scout,
+    unregistered,
+    verify,
+)
 from dtcli.utilities import utilities
 
 pretty.install()
@@ -43,6 +54,7 @@ def version():
 
 cli.add_command(clear.clear)
 cli.add_command(config.config)
+cli.add_command(doctor.doctor)
 cli.add_command(inventory.inventory)
 cli.add_command(ls.list, aliases=["ls"])
 cli.add_command(ps.ps)
