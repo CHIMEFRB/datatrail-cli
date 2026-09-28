@@ -210,3 +210,68 @@ def test_pull_interruption_exits_nonzero(monkeypatch, tmp_path):
     )
 
     assert result.exit_code != 0
+
+
+@pytest.mark.parametrize("existing", [False, True])
+def test_pget_reports_worker_without_result(monkeypatch, tmp_path, existing):
+    """A worker that disappears cannot confirm an existing file was replaced."""
+    destination = tmp_path / "file.dat"
+    if existing:
+        destination.write_bytes(b"stale")
+
+    def exit_without_result(connection, *args):
+        connection.close()
+
+    monkeypatch.setattr(cadcclient, "_send_get_results", exit_without_result)
+    failures = cadcclient.pget(["data/file.dat"], [str(destination)], processors=1)
+
+    assert len(failures) == 1
+    assert failures[0]["source"] == "data/file.dat"
+    assert "worker exited" in failures[0]["error"]
+    if existing:
+        assert destination.read_bytes() == b"stale"
+
+
+def test_pget_cleans_up_when_worker_start_fails(monkeypatch, tmp_path):
+    """A startup failure closes pipes and stops earlier download workers."""
+    processes = []
+    pipes = []
+    real_pipe = cadcclient.Pipe
+
+    class Process:
+        def __init__(self, **kwargs):
+            self.alive = False
+            self.joined = False
+            processes.append(self)
+
+        def start(self):
+            if len(processes) == 2:
+                raise OSError("cannot start worker")
+            self.alive = True
+
+        def is_alive(self):
+            return self.alive
+
+        def terminate(self):
+            self.alive = False
+
+        def join(self):
+            self.joined = True
+
+    def pipe(**kwargs):
+        pair = real_pipe(**kwargs)
+        pipes.extend(pair)
+        return pair
+
+    monkeypatch.setattr(cadcclient, "DillProcess", Process)
+    monkeypatch.setattr(cadcclient, "Pipe", pipe)
+    with pytest.raises(OSError, match="cannot start worker"):
+        cadcclient.pget(
+            ["data/a", "data/b"],
+            [str(tmp_path / "a"), str(tmp_path / "b")],
+            processors=2,
+        )
+
+    assert not processes[0].alive
+    assert processes[0].joined
+    assert all(connection.closed for connection in pipes)

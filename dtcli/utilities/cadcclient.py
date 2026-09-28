@@ -276,25 +276,30 @@ def pget(
     destinations: List[List[Any]] = split(destination, processors)
     logger.info(f"Starting {processors} processes.")
     workers: List[Tuple[DillProcess, Connection, List[str], List[str]]] = []
-    for process in range(processors):
-        receiver, sender = Pipe(duplex=False)
-        mp = DillProcess(
-            target=_send_get_results,
-            args=(
-                sender,
-                sources[process],
-                destinations[process],
-                certfile,
-                namespace,
-                verbose,
-            ),
-        )
-        mp.start()
-        sender.close()
-        workers.append((mp, receiver, sources[process], destinations[process]))
-
     failures: List[TransferFailure] = []
     try:
+        for process in range(processors):
+            receiver, sender = Pipe(duplex=False)
+            try:
+                mp = DillProcess(
+                    target=_send_get_results,
+                    args=(
+                        sender,
+                        sources[process],
+                        destinations[process],
+                        certfile,
+                        namespace,
+                        verbose,
+                    ),
+                )
+                mp.start()
+            except BaseException:
+                receiver.close()
+                raise
+            finally:
+                sender.close()
+            workers.append((mp, receiver, sources[process], destinations[process]))
+
         for proc, receiver, worker_sources, worker_destinations in workers:
             try:
                 failures.extend(receiver.recv())
@@ -304,7 +309,6 @@ def pget(
                 failures.extend(
                     _transfer_failure(filename, worker_destinations[index], error)
                     for index, filename in enumerate(worker_sources)
-                    if not os.path.exists(worker_destinations[index])
                 )
         for proc, _, _, _ in workers:
             proc.join()
