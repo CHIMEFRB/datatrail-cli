@@ -39,13 +39,14 @@ def common_paths(
     """
     derived: Dict[str, Dict[str, Any]] = {}
     for se, paths in file_replica_locations.items():
-        if not paths or not all(isinstance(p, str) and p for p in paths):
+        if (
+            not isinstance(paths, list)
+            or not paths
+            or not all(isinstance(p, str) and p for p in paths)
+        ):
             continue
         try:
-            if len(paths) == 1:
-                base = os.path.dirname(paths[0])
-            else:
-                base = os.path.commonpath(paths)
+            base = os.path.commonpath([os.path.dirname(path) for path in paths])
         except ValueError:
             base = ""
         names = [str(Path(p).relative_to(base)) for p in paths] if base else [*paths]

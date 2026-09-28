@@ -164,7 +164,10 @@ minoc_files = file_locations.get("minoc", [])
 
 # Compose full paths from the derived common path
 minoc = data["common_paths"].get("minoc", {})
-full_paths = [f"{minoc['common_path']}/{name}" for name in minoc.get("files", [])]
+full_paths = [
+    f"{minoc['common_path']}/{name}" if minoc["common_path"] else name
+    for name in minoc.get("files", [])
+]
 
 # Access policies
 replication_policy = data["policies"]["replication_policy"]

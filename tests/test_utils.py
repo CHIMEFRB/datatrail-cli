@@ -81,3 +81,16 @@ def test_common_paths_no_usable_split() -> None:
     assert derived["mixed"] == {"common_path": "", "files": ["/abs/a.h5", "rel/b.h5"]}
     assert derived["no_common"] == {"common_path": "", "files": ["a/b.h5", "c/d.h5"]}
     assert derived["bare"] == {"common_path": "", "files": ["a.h5"]}
+
+
+@pytest.mark.parametrize("paths", ["data/a.h5", 1, None, {}, [None], [""]])
+def test_common_paths_omits_invalid_file_lists(paths):
+    """Omit malformed replica lists instead of interpreting them as file paths."""
+    assert utilities.common_paths({"minoc": paths}) == {}
+
+
+def test_common_paths_preserves_duplicate_file_names():
+    """Derive the parent directory when all replicas identify the same file."""
+    assert utilities.common_paths({"minoc": ["data/a.h5", "data/a.h5"]}) == {
+        "minoc": {"common_path": "data", "files": ["a.h5", "a.h5"]}
+    }
