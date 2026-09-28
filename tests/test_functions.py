@@ -3,6 +3,8 @@
 from datetime import datetime as dt
 from typing import Any, Dict
 
+import pytest
+
 from dtcli.src import functions
 from dtcli.src.functions import (
     find_unregistered_datasets,
@@ -336,6 +338,63 @@ def test_discover_datasets_recursive_cycle(monkeypatch) -> None:
         "cycle in test.scope: root / branch / root",
     ]
     assert calls == ["root", "branch"]
+
+
+@pytest.mark.parametrize(
+    "names", ["Bad Gateway", {"name": "root"}, [None], ["root", None], [" "], 7]
+)
+def test_discovery_rejects_invalid_scope_names(monkeypatch, http_responses, names):
+    """Malformed scope names cannot start an incomplete archive walk."""
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+    http_responses("GET", "http://testserver/query/dataset/scopes", names)
+
+    result = functions.discover_datasets(match="root")
+
+    assert "error" in result
+    assert "results" not in result
+
+
+@pytest.mark.parametrize(
+    "names", ["Bad Gateway", {"name": "root"}, [None], ["root", None], [" "], 7]
+)
+def test_discovery_rejects_invalid_larger_dataset_names(
+    monkeypatch, http_responses, names
+):
+    """An invalid collection is a failed scope, never a list of bogus rows."""
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+    http_responses(
+        "GET",
+        "http://testserver/query/dataset/larger?scope=test.scope",
+        {"larger_datasets": names},
+    )
+
+    assert functions.discover_datasets(scope="test.scope") == {
+        "results": [],
+        "failed": ["datasets in test.scope"],
+    }
+
+
+@pytest.mark.parametrize(
+    "names", ["Bad Gateway", {"name": "leaf"}, [None], ["leaf", None], [" "], 7]
+)
+def test_discovery_rejects_invalid_child_names(monkeypatch, http_responses, names):
+    """Malformed children retain the parent and report an incomplete map."""
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+    http_responses(
+        "GET",
+        "http://testserver/query/dataset/larger?scope=test.scope",
+        {"larger_datasets": ["root"]},
+    )
+    http_responses(
+        "GET",
+        "http://testserver/query/dataset/children/test.scope/root",
+        {"contains": names},
+    )
+
+    assert functions.discover_datasets(scope="test.scope", expand=True) == {
+        "results": [{"scope": "test.scope", "dataset": "root", "parent": None}],
+        "failed": ["children of test.scope root"],
+    }
 
 
 def test_list_scopes_connection_error_is_retryable(monkeypatch) -> None:

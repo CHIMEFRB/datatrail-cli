@@ -328,3 +328,79 @@ def test_inventory_preserves_output_symlink(tmp_path: Path, monkeypatch) -> None
     saved = inventory_command.build_inventory("first.scope", None, None, alias)
     assert alias.is_symlink()
     assert json.loads(output.read_text()) == saved
+
+
+@pytest.mark.parametrize("other_failures", [[], ["datasets in other.scope"]])
+def test_inventory_replaces_recovered_discovery_parent(
+    tmp_path: Path, monkeypatch, other_failures
+):
+    """A failed discovery placeholder must not keep a recovered inventory failed."""
+    output = tmp_path / "inventory.json"
+    responses = iter(
+        [
+            {"results": [_row("root", ["root"])], "failed": ["children of root"]},
+            {"results": [_row("leaf", ["root", "leaf"])], "failed": other_failures},
+        ]
+    )
+    monkeypatch.setattr(
+        inventory_command.functions,
+        "discover_datasets",
+        lambda **kwargs: next(responses),
+    )
+    calls = []
+
+    def file_info(scope, dataset, **kwargs):
+        calls.append(dataset)
+        if dataset == "root":
+            return {"error": "A parent dataset does not contain files."}
+        return {"file_replica_locations": {"minoc": ["data/leaf.dat"]}}
+
+    monkeypatch.setattr(inventory_command.functions, "get_dataset_file_info", file_info)
+    first = inventory_command.build_inventory("test.scope", None, None, output)
+    assert first["complete"] is False
+
+    recovered = inventory_command.build_inventory("test.scope", None, None, output)
+    assert recovered["complete"] is (not other_failures)
+    assert [entry["dataset"] for entry in recovered["datasets"]] == ["leaf"]
+    assert calls == ["root", "leaf"]
+
+
+def test_inventory_retains_checkpoints_during_discovery_outage(tmp_path, monkeypatch):
+    """A failed crawl cannot discard finished entries from an earlier run."""
+    output = tmp_path / "inventory.json"
+    responses = iter(
+        [
+            {"results": [_row("leaf", ["root", "leaf"])], "failed": []},
+            {"results": [], "failed": ["datasets in test.scope"]},
+        ]
+    )
+    monkeypatch.setattr(
+        inventory_command.functions,
+        "discover_datasets",
+        lambda **kwargs: next(responses),
+    )
+    monkeypatch.setattr(
+        inventory_command.functions,
+        "get_dataset_file_info",
+        lambda *args, **kwargs: {"file_replica_locations": {"minoc": ["data/leaf.dat"]}},
+    )
+    first = inventory_command.build_inventory("test.scope", None, None, output)
+    outage = inventory_command.build_inventory("test.scope", None, None, output)
+    assert outage["complete"] is False
+    assert outage["datasets"] == first["datasets"]
+
+
+def test_interrupted_inventory_write_keeps_previous_checkpoint(tmp_path, monkeypatch):
+    """Interruptions during serialization keep the old manifest and remove the temp."""
+    output = tmp_path / "inventory.json"
+    output.write_text("previous checkpoint")
+
+    def interrupt_write(*args, **kwargs):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(inventory_command.json, "dump", interrupt_write)
+    with pytest.raises(KeyboardInterrupt):
+        inventory_command._write_manifest(output, {"datasets": []})
+
+    assert output.read_text() == "previous checkpoint"
+    assert not list(tmp_path.glob(".inventory.json.*.tmp"))

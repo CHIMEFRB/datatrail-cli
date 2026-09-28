@@ -114,7 +114,8 @@ Navigating the hierarchy one name at a time gets slow when you do not know
 where a dataset lives. `--match` filters the larger datasets of a scope, or
 of **every** scope when no scope is given, by one or more comma-separated,
 case-insensitive terms, which must all appear in the combined
-`scope dataset` text:
+`scope dataset` text. At least one nonempty term is required; whitespace and
+commas alone are rejected:
 
 ```shell
 $> datatrail ls chime.acquisition.processed --match gains
