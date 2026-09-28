@@ -3,6 +3,8 @@
 from datetime import datetime as dt
 from typing import Any, Dict
 
+import pytest
+
 from dtcli.src import functions
 from dtcli.src.functions import (
     find_unregistered_datasets,
@@ -134,6 +136,137 @@ def test_list_scopes_unanswered(monkeypatch) -> None:
             "error_code": "invalid_response",
             "retryable": False,
         }
+
+
+def _fake_list(scope=None, dataset=None, verbose=0, quiet=False):
+    """Stand-in for functions.list with one scope not answering."""
+    if scope is None:
+        return {"scopes": ["b.scope", "a.scope", "c.scope"]}
+    if dataset is None:
+        if scope == "a.scope":
+            return {"larger_datasets": ["data.other", "data.good", "skip.me"]}
+        if scope == "c.scope":
+            return {"larger_datasets": []}
+        return {"error": "Datatrail Server at CHIME is not responding."}
+    if dataset == "data.good":
+        return {"datasets": ["child1", "child2"]}
+    return {"error": "Datatrail Server at CHIME is not responding."}
+
+
+def test_discover_datasets(monkeypatch) -> None:
+    """Test discover_datasets filtering, sorting, and expansion."""
+    monkeypatch.setattr(functions, "list", _fake_list)
+    results: Dict[str, Any] = functions.discover_datasets(match="data", expand=True)
+    assert results["results"] == [
+        {"scope": "a.scope", "dataset": "child2", "parent": "data.good"},
+        {"scope": "a.scope", "dataset": "child1", "parent": "data.good"},
+        {"scope": "a.scope", "dataset": "data.other", "parent": None},
+    ]
+    # An unanswered query is reported, never shown as empty.
+    assert results["failed"] == [
+        "children of a.scope data.other",
+        "datasets in b.scope",
+    ]
+
+
+def test_discover_datasets_no_expand(monkeypatch) -> None:
+    """Test discover_datasets without expansion, terms ANDed against scope."""
+    monkeypatch.setattr(functions, "list", _fake_list)
+    results: Dict[str, Any] = functions.discover_datasets(match="a.scope,data")
+    assert results["results"] == [
+        {"scope": "a.scope", "dataset": "data.good", "parent": None},
+        {"scope": "a.scope", "dataset": "data.other", "parent": None},
+    ]
+    assert results["failed"] == ["datasets in b.scope"]
+
+
+def test_discover_datasets_single_scope(monkeypatch) -> None:
+    """Test discover_datasets walking one named scope only."""
+    monkeypatch.setattr(functions, "list", _fake_list)
+    results: Dict[str, Any] = functions.discover_datasets(scope="a.scope")
+    assert [r["dataset"] for r in results["results"]] == [
+        "data.good",
+        "data.other",
+        "skip.me",
+    ]
+    assert results["failed"] == []
+
+
+def test_discover_datasets_empty_scope_is_not_failure(monkeypatch) -> None:
+    """Test a scope that answers with no datasets is empty, not failed."""
+    monkeypatch.setattr(functions, "list", _fake_list)
+    results: Dict[str, Any] = functions.discover_datasets(scope="c.scope")
+    assert results["results"] == []
+    assert results["failed"] == []
+
+
+def test_discover_datasets_unanswered_scopes_query(monkeypatch) -> None:
+    """Test a non-list scopes answer is an error, never walked as text."""
+
+    def bad_list(scope=None, dataset=None, verbose=0, quiet=False):
+        return {"scopes": "Bad Gateway"}
+
+    monkeypatch.setattr(functions, "list", bad_list)
+    results: Dict[str, Any] = functions.discover_datasets(match="gain")
+    assert "error" in results
+    assert "results" not in results
+
+
+@pytest.mark.parametrize(
+    "names", ["Bad Gateway", {"name": "root"}, [None], ["root", None], [" "], 7]
+)
+def test_discovery_rejects_invalid_scope_names(monkeypatch, http_responses, names):
+    """Malformed scope names cannot start an incomplete archive walk."""
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+    http_responses("GET", "http://testserver/query/dataset/scopes", names)
+
+    result = functions.discover_datasets(match="root")
+
+    assert "error" in result
+    assert "results" not in result
+
+
+@pytest.mark.parametrize(
+    "names", ["Bad Gateway", {"name": "root"}, [None], ["root", None], [" "], 7]
+)
+def test_discovery_rejects_invalid_larger_dataset_names(
+    monkeypatch, http_responses, names
+):
+    """An invalid collection is a failed scope, never a list of bogus rows."""
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+    http_responses(
+        "GET",
+        "http://testserver/query/dataset/larger?scope=test.scope",
+        {"larger_datasets": names},
+    )
+
+    assert functions.discover_datasets(scope="test.scope") == {
+        "results": [],
+        "failed": ["datasets in test.scope"],
+    }
+
+
+@pytest.mark.parametrize(
+    "names", ["Bad Gateway", {"name": "leaf"}, [None], ["leaf", None], [" "], 7]
+)
+def test_discovery_rejects_invalid_child_names(monkeypatch, http_responses, names):
+    """Malformed children retain the parent and report an incomplete map."""
+    monkeypatch.setattr(functions, "procure", lambda: {"server": "http://testserver"})
+    http_responses(
+        "GET",
+        "http://testserver/query/dataset/larger?scope=test.scope",
+        {"larger_datasets": ["root"]},
+    )
+    http_responses(
+        "GET",
+        "http://testserver/query/dataset/children/test.scope/root",
+        {"contains": names},
+    )
+
+    assert functions.discover_datasets(scope="test.scope", expand=True) == {
+        "results": [{"scope": "test.scope", "dataset": "root", "parent": None}],
+        "failed": ["children of test.scope root"],
+    }
 
 
 def test_list_scopes_connection_error_is_retryable(monkeypatch) -> None:
