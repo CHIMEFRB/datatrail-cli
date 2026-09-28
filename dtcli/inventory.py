@@ -286,7 +286,8 @@ def _valid_entry(entry: Dict[str, Any]) -> bool:
     replicas = entry.get("replicas")
     status = entry.get("status")
     if (
-        status not in ENTRY_STATUSES
+        not isinstance(status, str)
+        or status not in ENTRY_STATUSES
         or not isinstance(path, list)
         or not path
         or any(not isinstance(part, str) or not part for part in path)
@@ -319,11 +320,28 @@ def _valid_replica(replica: Any) -> bool:
 
 def _merge_rows(manifest: Dict[str, Any], rows: List[Dict[str, Any]]) -> None:
     """Add newly discovered datasets without resetting finished entries."""
+    contexts = [_row_context(row) for row in rows]
+    discovered = {(row["scope"], row["dataset"]) for row in contexts}
+    expanded = {
+        (row["scope"], tuple(row["path"][:index]))
+        for row in contexts
+        for index in range(1, len(row["path"]))
+    }
+    # A complete crawl defines the current terminal datasets. During an outage,
+    # keep prior checkpoints except parents now proven to have descendants.
+    manifest["datasets"] = [
+        entry
+        for entry in manifest["datasets"]
+        if (entry["scope"], entry["dataset"]) in discovered
+        or (
+            manifest["discovery_failures"]
+            and (entry["scope"], tuple(entry["path"])) not in expanded
+        )
+    ]
     by_key = {
         (entry["scope"], entry["dataset"]): entry for entry in manifest["datasets"]
     }
-    for row in rows:
-        context = _row_context(row)
+    for context in contexts:
         key = (context["scope"], context["dataset"])
         if key in by_key:
             by_key[key]["parent"] = context["parent"]
@@ -391,7 +409,7 @@ def _write_manifest(path: Path, manifest: Dict[str, Any]) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temporary, path)
-    except Exception:
+    except BaseException:
         try:
             os.unlink(temporary)
         except FileNotFoundError:
