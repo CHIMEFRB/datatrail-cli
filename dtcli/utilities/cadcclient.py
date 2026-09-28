@@ -226,16 +226,22 @@ def info(
             "newestmod": None,
         }
         for fileinfo in information:
-            aggregate["id"].add(fileinfo["id"])
+            aggregate["ids"].add(fileinfo["id"])
             aggregate["size"] += fileinfo["size"]
-            aggregate["name"].add(fileinfo["name"])
-            aggregate["md5sum"].add(fileinfo["md5sum"])
-            aggregate["filetype"].add(fileinfo["file_type"])
-            aggregate["encoding"].add(fileinfo["encoding"])
-            if aggregate["oldest"] is None or fileinfo["lastmod"] < aggregate["oldest"]:
-                aggregate["oldest"] = fileinfo["lastmod"]
-            if aggregate["newest"] is None or fileinfo["lastmod"] > aggregate["newest"]:
-                aggregate["newest"] = fileinfo["lastmod"]
+            aggregate["names"].add(fileinfo["name"])
+            aggregate["md5sums"].add(fileinfo["md5sum"])
+            aggregate["file_types"].add(fileinfo["file_type"])
+            aggregate["encodings"].add(fileinfo["encoding"])
+            if (
+                aggregate["oldestmod"] is None
+                or fileinfo["lastmod"] < aggregate["oldestmod"]
+            ):
+                aggregate["oldestmod"] = fileinfo["lastmod"]
+            if (
+                aggregate["newestmod"] is None
+                or fileinfo["lastmod"] > aggregate["newestmod"]
+            ):
+                aggregate["newestmod"] = fileinfo["lastmod"]
         return [aggregate]
     return information
 
