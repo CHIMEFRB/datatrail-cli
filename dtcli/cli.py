@@ -9,6 +9,7 @@ from rich import console, pretty
 from dtcli import (
     clear,
     config,
+    doctor,
     inventory,
     ls,
     ps,
@@ -16,6 +17,7 @@ from dtcli import (
     pull_manifest,
     scout,
     unregistered,
+    verify,
 )
 from dtcli.utilities import utilities
 
@@ -53,6 +55,7 @@ def version():
 
 cli.add_command(clear.clear)
 cli.add_command(config.config)
+cli.add_command(doctor.doctor)
 cli.add_command(inventory.inventory)
 cli.add_command(ls.list, aliases=["ls"])
 cli.add_command(ps.ps)
@@ -60,6 +63,7 @@ cli.add_command(pull.pull)
 cli.add_command(pull_manifest.pull_manifest)
 cli.add_command(scout.scout)
 cli.add_command(unregistered.unregistered)
+cli.add_command(verify.verify)
 
 
 def check_version() -> None:
