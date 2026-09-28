@@ -224,13 +224,14 @@ def _control_paths(manifest: Path, directory: Path, state: Path) -> Set[Path]:
     """Reserve the inventory, checkpoint, and files that provide ownership."""
     if manifest == state:
         raise ValueError("The inventory and transfer state paths must differ.")
+    directory_owner = (directory / "datatrail-pull").resolve()
     lock_paths = {
         path.with_name(f".{path.name}.lock").resolve()
-        for path in (manifest, state, directory / "datatrail-pull")
+        for path in (manifest, state, directory_owner)
     }
-    if manifest in lock_paths or state in lock_paths:
+    if manifest in lock_paths or state in lock_paths or state == directory_owner:
         raise ValueError("Inventory and state must not replace a control file.")
-    return {manifest, state} | lock_paths
+    return {manifest, state, directory_owner} | lock_paths
 
 
 def _validate_destinations(

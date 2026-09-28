@@ -443,3 +443,20 @@ def test_command_without_configuration_has_actionable_error(tmp_path, monkeypatc
     assert result.exit_code == 1
     assert "use --directory" in result.output
     assert not manifest.with_suffix(".pull.json").exists()
+
+
+@pytest.mark.parametrize("filename", ["datatrail-pull", ".owner.lock"])
+def test_transfer_reserves_aliased_directory_ownership(tmp_path, filename):
+    """A sentinel alias and its actual lock cannot be replaced by a download."""
+    manifest = tmp_path / "inventory.json"
+    state = tmp_path / "pull.json"
+    destination = tmp_path / "data"
+    destination.mkdir()
+    (destination / "datatrail-pull").symlink_to(destination / "owner")
+    write_inventory(manifest, [filename])
+
+    with pytest.raises(ValueError, match="control file"):
+        with pull_manifest_module.transfer_session(manifest, destination, state):
+            pytest.fail("A download could invalidate directory ownership")
+
+    assert not state.exists()
