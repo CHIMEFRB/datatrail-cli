@@ -14,6 +14,7 @@ nav:
           - list: list.md
           - ps: ps.md
           - pull: pull.md
+          - pull-manifest: pull-manifest.md
           - scout: scout.md
           - unregistered: unregistered.md
   - Command Line Interface:

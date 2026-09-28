@@ -16,6 +16,7 @@ The commands available to you are:
 - `ps`: This provides detailed information for the given 'scope' and 'dataset' combination.
 - `pull`: This allows you to download all files belonging to the 'scope' and
   'dataset' provided.
+- `pull-manifest`: Download Minoc files from a resumable inventory manifest.
 - `scout`: This command provides an overview of what the Datatrail database
   thinks is the current number of files for a given dataset at each storage
   element, compared to what is observed. If a discrepancy is found at Minoc,

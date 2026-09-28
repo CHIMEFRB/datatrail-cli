@@ -14,6 +14,7 @@ from dtcli import (
     ls,
     ps,
     pull,
+    pull_manifest,
     scout,
     unregistered,
     verify,
@@ -59,6 +60,7 @@ cli.add_command(inventory.inventory)
 cli.add_command(ls.list, aliases=["ls"])
 cli.add_command(ps.ps)
 cli.add_command(pull.pull)
+cli.add_command(pull_manifest.pull_manifest)
 cli.add_command(scout.scout)
 cli.add_command(unregistered.unregistered)
 cli.add_command(verify.verify)
