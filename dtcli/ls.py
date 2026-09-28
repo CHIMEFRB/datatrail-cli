@@ -78,6 +78,10 @@ def list(  # noqa: C901
     logger.debug(f"datasets: {datasets} [{type(datasets)}]")
     logger.debug(f"verbose: {verbose} [{type(verbose)}]")
     logger.debug(f"quiet: {quiet} [{type(quiet)}]")
+    if match is not None and not any(term.strip() for term in match.split(",")):
+        error_console.print("--match requires at least one nonempty term.")
+        ctx.exit(1)
+        return None
     if scope:
         try:
             if not validate_scope(scope):

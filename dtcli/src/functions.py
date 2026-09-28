@@ -133,6 +133,15 @@ def list(  # noqa: C901
         return {}
 
 
+def _valid_names(names: Any) -> bool:
+    """Check that a response is a collection of nonempty names."""
+    return (
+        isinstance(names, Sequence)
+        and not isinstance(names, (str, bytes))
+        and all(isinstance(name, str) and name.strip() for name in names)
+    )
+
+
 def discover_datasets(
     scope: Optional[str] = None,
     match: Optional[str] = None,
@@ -179,7 +188,7 @@ def discover_datasets(
         # it, or any other non-list shape, as if it were the scopes list.
         # NB: isinstance against the builtin list is unavailable here, since
         # this module's list() shadows it.
-        if isinstance(answer, str) or not isinstance(answer, Sequence):
+        if not _valid_names(answer):
             return {"error": "Datatrail did not answer the scopes query."}
         if not answer:
             return {
@@ -192,7 +201,7 @@ def discover_datasets(
     for s in scopes:
         listed = list(s, verbose=verbose, quiet=quiet)
         datasets = None if "error" in listed else listed.get("larger_datasets")
-        if datasets is None:
+        if datasets is None or not _valid_names(datasets):
             failed.append(f"datasets in {s}")
             continue
         kept = [
@@ -204,7 +213,7 @@ def discover_datasets(
                 continue
             opened = list(s, d, verbose=verbose, quiet=quiet)
             children = None if "error" in opened else opened.get("datasets")
-            if children is None:
+            if not _valid_names(children):
                 failed.append(f"children of {s} {d}")
                 results.append({"scope": s, "dataset": d, "parent": None})
             elif children:
