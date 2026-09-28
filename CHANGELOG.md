@@ -1,5 +1,55 @@
 # Changelog
 
+## [1.0.0](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v0.13.0...datatrail-cli-v1.0.0) (2026-09-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* require Python 3.10 for patched dependencies
+
+### Features
+
+* **doctor:** add readiness checks ([ae0565c](https://github.com/CHIMEFRB/datatrail-cli/commit/ae0565cd7963758e465889f312f0fac2d0418c3d))
+* **doctor:** add readiness checks ([6691c31](https://github.com/CHIMEFRB/datatrail-cli/commit/6691c31cb20e5419588af7a21f62810aee1fbc02))
+* **inventory:** add resumable manifests ([c7c4df5](https://github.com/CHIMEFRB/datatrail-cli/commit/c7c4df5d1634e8573f700ba2b1368105f4f67fb7))
+* **inventory:** add resumable manifests ([343a28a](https://github.com/CHIMEFRB/datatrail-cli/commit/343a28a74366f91b8a0bd428250f1576cd4a752f))
+* **ls:** add --match and --expand for dataset discovery ([bf08635](https://github.com/CHIMEFRB/datatrail-cli/commit/bf08635a75f6ec3b1415541ff1b9a1f31e9d443b))
+* **ls:** add match and expand for dataset discovery ([31cccde](https://github.com/CHIMEFRB/datatrail-cli/commit/31cccde47ee8827aec17df7ce13ba5a7ac7b13d3))
+* **ls:** add recursive dataset discovery ([8ea3bc4](https://github.com/CHIMEFRB/datatrail-cli/commit/8ea3bc4e5026fbb9fedb231a0bdb7b78a8f90bdf))
+* **ls:** add recursive dataset discovery ([6f9a85e](https://github.com/CHIMEFRB/datatrail-cli/commit/6f9a85e608eea73a5b3e8b30331203a09908c71c))
+* **ps:** expose common paths in JSON output ([3ee4238](https://github.com/CHIMEFRB/datatrail-cli/commit/3ee423828ee81fca7c9a661051975920e71e17bf))
+* **ps:** expose per-storage-element common paths in --json output ([b748fb4](https://github.com/CHIMEFRB/datatrail-cli/commit/b748fb442589a0259b483774ed6fcf391a8eb391))
+* **pull:** add resumable manifest transfers ([9017c11](https://github.com/CHIMEFRB/datatrail-cli/commit/9017c118450ee98082f72b4142b2c76d77c94f28))
+* **pull:** add resumable manifest transfers ([7272daa](https://github.com/CHIMEFRB/datatrail-cli/commit/7272daa58fc76b3130181fdc1171da7453b01f82))
+* **verify:** verify registered dataset files ([cef2ab7](https://github.com/CHIMEFRB/datatrail-cli/commit/cef2ab708b2d4f26bae4131d18f5613ba86ec0e3))
+* **verify:** verify registered dataset files ([27f3810](https://github.com/CHIMEFRB/datatrail-cli/commit/27f3810dfe78c1f889cb94abae3836a7058ebfd5))
+
+
+### Bug Fixes
+
+* add stable command error metadata ([d1096ff](https://github.com/CHIMEFRB/datatrail-cli/commit/d1096ffb850b6bd1a690370318dcec5be97ce4f3))
+* **deps:** require patched Requests on Python 3.10 and newer ([e0fb559](https://github.com/CHIMEFRB/datatrail-cli/commit/e0fb55951975d60c202181644c703f280602fa5f))
+* **deps:** require patched Requests on Python 3.10+ ([7d1c4ba](https://github.com/CHIMEFRB/datatrail-cli/commit/7d1c4ba3ead33b46cc6c042e554464fca4e78438))
+* **deps:** require patched urllib3 on Python 3.10+ ([5a4ad0b](https://github.com/CHIMEFRB/datatrail-cli/commit/5a4ad0bc1a29dcad305cad8ec739dd47e703ef6a))
+* **deps:** use patched dependencies on Python 3.10 and newer ([69f0806](https://github.com/CHIMEFRB/datatrail-cli/commit/69f080682a6fa11f18c4acbc890b3c043bc22393))
+* **doctor:** handle certificate and authentication failures ([3584b7b](https://github.com/CHIMEFRB/datatrail-cli/commit/3584b7b0d71ee9bc18479bba75e5b10b96ac8ac2))
+* **encoding:** use ASCII status output ([a0646d7](https://github.com/CHIMEFRB/datatrail-cli/commit/a0646d7d17e66b7507a7f6019e1cd48c3faf2f9d))
+* enforce patched urllib3 on Python 3.10 and newer ([ab12a03](https://github.com/CHIMEFRB/datatrail-cli/commit/ab12a03402cb0ecfec471b2c1941bc3513101762))
+* **failure:** add stable command error metadata ([f52a917](https://github.com/CHIMEFRB/datatrail-cli/commit/f52a917acc05a88b4cbe1364ce3d41af8e1af4ae))
+* **inventory:** reconcile recovered discovery checkpoints ([2a0bda5](https://github.com/CHIMEFRB/datatrail-cli/commit/2a0bda5751e849503903c96bba65fe530bb016d2))
+* **ls:** validate discovery filters and response names ([af2de4f](https://github.com/CHIMEFRB/datatrail-cli/commit/af2de4f3526da507e54dc30f68cc139227f3381b))
+* **ps:** preserve paths for duplicate and invalid replicas ([2dae57d](https://github.com/CHIMEFRB/datatrail-cli/commit/2dae57d4654c4a22c81aea17827a5d0f041b977c))
+* **pull:** clean up CADC SDK partial downloads ([1b15bff](https://github.com/CHIMEFRB/datatrail-cli/commit/1b15bffaa32b2685669a74f4d18f9d6bb73ee1ef))
+* **pull:** protect aliased directory ownership paths ([c03f284](https://github.com/CHIMEFRB/datatrail-cli/commit/c03f284d730fdf1dd9bf2f8dbe5ddda8780324ac))
+* **pull:** publish downloads atomically ([b512e5f](https://github.com/CHIMEFRB/datatrail-cli/commit/b512e5f8ba5b6acd3a5a09c68440eb914d9e8d8e))
+* **pull:** publish downloads atomically ([bf7846f](https://github.com/CHIMEFRB/datatrail-cli/commit/bf7846f4efb41ea55d3edd3961b19c5da7d79eb3))
+* **pull:** report lost workers and clean up failed starts ([bfe5d91](https://github.com/CHIMEFRB/datatrail-cli/commit/bfe5d91d71d130230f5a6b232953e09e34fc8219))
+* **pull:** validate manifest paths before creating state ([b0dc320](https://github.com/CHIMEFRB/datatrail-cli/commit/b0dc32064e1859fc90466da5ed2b4a7f62aa8ccd))
+* require Python 3.10 for patched dependencies ([07de5af](https://github.com/CHIMEFRB/datatrail-cli/commit/07de5af18da463d514ca4b05da06a749c5c2b0dd))
+* update TLS dependencies without raising Python minimum ([8658c58](https://github.com/CHIMEFRB/datatrail-cli/commit/8658c5828ce63772ba229ffa6f4ff93b5c9575fe))
+* update TLS dependencies without raising Python minimum ([ec11019](https://github.com/CHIMEFRB/datatrail-cli/commit/ec110197e2f5281cd22261b605de1d1ad47405e3))
+* **verify:** preserve reports when metadata services fail ([8dbeea3](https://github.com/CHIMEFRB/datatrail-cli/commit/8dbeea34caa8a87d94f4f4d0e3418f3bcfb2df9f))
+
 ## [0.13.0](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v0.12.0...datatrail-cli-v0.13.0) (2026-08-25)
 
 
