@@ -7,13 +7,15 @@ import shutil
 import subprocess
 import time
 from collections import Counter
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import requests
 
 from dtcli.config import procure
 from dtcli.utilities import cadcclient, utilities
+from dtcli.utilities.results import failure
 
 logger = logging.getLogger("functions")
 
@@ -48,18 +50,41 @@ def list(  # noqa: C901
         logger.error(
             "No configuration file found. Create one with `datatrail config init`."
         )
-        return {"error": "No config. Create one with `datatrail config init`."}
+        return failure(
+            "No config. Create one with `datatrail config init`.",
+            "configuration_error",
+            False,
+        )
     # List all scopes.
     if not scope:
         logger.info("Finding all scopes in Datatrail.")
         try:
             url = server + "/query/dataset/scopes"
-            r = requests.get(url)
+            r = requests.get(url, timeout=utilities.REQUEST_TIMEOUT)
             response = utilities.decode_response(r)
+            if isinstance(response, str) or not isinstance(response, Sequence):
+                # decode_response passes a non-JSON body (a proxy error page,
+                # a 5xx message) through as text; report it, or any other
+                # non-list shape, as an error instead of presenting it as
+                # the scopes list. NB: the builtin list is shadowed by this
+                # module's list(), hence the Sequence check.
+                logger.error(f"Scopes query not answered: {response}")
+                return failure(
+                    "Datatrail did not answer the scopes query.",
+                    "invalid_response",
+                    False,
+                )
             return {"scopes": response}
-        except requests.exceptions.ConnectionError as e:
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+        ) as e:
             logger.error(e)
-            return {"error": "Datatrail Server at CHIME is not responding."}
+            return failure(
+                "Datatrail Server at CHIME is not responding.",
+                "service_unavailable",
+                True,
+            )
 
     # TODO:
     # If scope defined, list all datasets in scope.
@@ -69,15 +94,18 @@ def list(  # noqa: C901
         logger.info("Finding all larger datasets in Datatrail.")
         try:
             url = server + f"/query/dataset/larger?scope={scope}"
-            r = requests.get(url)
+            r = requests.get(url, timeout=utilities.REQUEST_TIMEOUT)
             response = utilities.decode_response(r)
             if isinstance(response, dict):
                 return response
             else:
                 raise requests.exceptions.ConnectionError(response)
-        except requests.exceptions.ConnectionError as error:
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+        ) as error:
             logger.error(error)
-            return {"error": f"{error}"}
+            return failure(error, "service_unavailable", True)
 
     # List all datasets in dataset for scope.
     elif scope and dataset:
@@ -85,7 +113,7 @@ def list(  # noqa: C901
         try:
             url = server + f"/query/dataset/children/{scope}/{dataset}"
             logger.debug(f"URL: {url}")
-            r = requests.get(url)
+            r = requests.get(url, timeout=utilities.REQUEST_TIMEOUT)
             logger.debug(f"Status: {r.status_code}.")
             response = utilities.decode_response(r)
             logger.debug(f"Reponse: {response}")
@@ -93,12 +121,183 @@ def list(  # noqa: C901
             return {"datasets": response["contains"]}  # type: ignore
         except requests.exceptions.ConnectionError as e:
             logger.error(e)
-            return {"error": "Datatrail Server at CHIME is not responding."}
+            return failure(
+                "Datatrail Server at CHIME is not responding.",
+                "service_unavailable",
+                True,
+            )
         except Exception as e:
             logger.error(e)
-            return {"error": e}
+            return failure(e, "invalid_response", False)
     else:
         return {}
+
+
+def _valid_names(names: Any) -> bool:
+    """Check that a response is a collection of nonempty names."""
+    return (
+        isinstance(names, Sequence)
+        and not isinstance(names, (str, bytes))
+        and all(isinstance(name, str) and name.strip() for name in names)
+    )
+
+
+def discover_datasets(
+    scope: Optional[str] = None,
+    match: Optional[str] = None,
+    expand: bool = False,
+    verbose: int = 0,
+    quiet: bool = False,
+    recursive: bool = False,
+) -> Dict[str, Any]:
+    """Map larger datasets across scopes, with filtering and expansion.
+
+    Walks one scope, or every scope when none is given, and keeps the larger
+    datasets whose "scope dataset" text contains every comma-separated,
+    case-insensitive match term. With expand, each kept dataset is opened one
+    level and its children become the rows, recording the opened dataset as
+    their parent. With recursive, each kept dataset is opened until terminal
+    datasets are reached. A dataset whose children cannot be listed keeps its
+    own row. A scope or dataset Datatrail does not answer for is reported in
+    'failed' rather than shown as empty.
+
+    Args:
+        scope (Optional[str], optional): Scope to walk. Defaults to None,
+            which walks every scope.
+        match (Optional[str], optional): Comma-separated terms a dataset must
+            all contain. Defaults to None.
+        expand (bool, optional): Open each kept dataset one level. Defaults
+            to False.
+        verbose (int, optional): Verbosity. Defaults to 0.
+        quiet (bool, optional): Minimal logging. Defaults to False.
+        recursive (bool, optional): Open all descendants of each kept dataset.
+            Defaults to False.
+
+    Returns:
+        Dict[str, Any]: Keys 'results', rows of scope, dataset and parent,
+            plus path for recursive rows, and 'failed', the branches Datatrail
+            did not answer. Key 'error' on a configuration or connection
+            failure.
+    """
+    # Set logging level.
+    utilities.set_log_level(logger, verbose, quiet)
+    terms = [t.strip().lower() for t in (match or "").split(",") if t.strip()]
+    if scope:
+        scopes = [scope]
+    else:
+        found = list(verbose=verbose, quiet=quiet)
+        if "error" in found:
+            return found
+        answer = found.get("scopes")
+        # A non-200 response body is passed through as a string; never walk
+        # it, or any other non-list shape, as if it were the scopes list.
+        # NB: isinstance against the builtin list is unavailable here, since
+        # this module's list() shadows it.
+        if not _valid_names(answer):
+            return {"error": "Datatrail did not answer the scopes query."}
+        if not answer:
+            return {
+                "error": "Datatrail reports zero scopes: an account or "
+                "configuration problem, not an empty archive."
+            }
+        scopes = sorted(answer)
+    results: List[Dict[str, Optional[str]]] = []
+    failed: List[str] = []
+    for s in scopes:
+        listed = list(s, verbose=verbose, quiet=quiet)
+        datasets = None if "error" in listed else listed.get("larger_datasets")
+        if datasets is None or not _valid_names(datasets):
+            failed.append(f"datasets in {s}")
+            continue
+        kept = [
+            d for d in sorted(datasets) if all(t in f"{s} {d}".lower() for t in terms)
+        ]
+        if recursive:
+            rows, branch_failures = _discover_descendants(
+                s, kept, verbose=verbose, quiet=quiet
+            )
+            results.extend(rows)
+            failed.extend(branch_failures)
+            continue
+        for d in kept:
+            if not expand:
+                results.append({"scope": s, "dataset": d, "parent": None})
+                continue
+            opened = list(s, d, verbose=verbose, quiet=quiet)
+            children = None if "error" in opened else opened.get("datasets")
+            if not _valid_names(children):
+                failed.append(f"children of {s} {d}")
+                results.append({"scope": s, "dataset": d, "parent": None})
+            elif children:
+                for c in sorted(children, reverse=True):
+                    results.append({"scope": s, "dataset": c, "parent": d})
+            else:
+                results.append({"scope": s, "dataset": d, "parent": None})
+    return {"results": results, "failed": failed}
+
+
+def _discover_descendants(
+    scope: str,
+    roots: Sequence[str],
+    verbose: int = 0,
+    quiet: bool = False,
+) -> Tuple[List[Dict[str, Any]], List[str]]:
+    """Return unique terminal datasets below the given roots."""
+    results: List[Dict[str, Any]] = []
+    failed: List[str] = []
+    visited: Set[str] = set()
+    emitted: Set[str] = set()
+    stack: List[Tuple[str, Optional[str], Tuple[str, ...]]] = [
+        (root, None, (root,)) for root in reversed(sorted(set(roots)))
+    ]
+
+    def add_row(dataset: str, parent: Optional[str], path: Tuple[str, ...]) -> None:
+        if dataset in emitted:
+            return
+        results.append(
+            {
+                "scope": scope,
+                "dataset": dataset,
+                "parent": parent,
+                "path": [*path],
+            }
+        )
+        emitted.add(dataset)
+
+    while stack:
+        dataset, parent, path = stack.pop()
+        if dataset in visited:
+            continue
+        visited.add(dataset)
+        opened = list(scope, dataset, verbose=verbose, quiet=quiet)
+        children = None if "error" in opened else opened.get("datasets")
+        if (
+            children is None
+            or isinstance(children, str)
+            or not isinstance(children, Sequence)
+            or any(not isinstance(child, str) or not child.strip() for child in children)
+        ):
+            failed.append(f"children of {scope} {' / '.join(path)}")
+            add_row(dataset, parent, path)
+            continue
+
+        child_names = sorted(set(children))
+        if not child_names:
+            add_row(dataset, parent, path)
+            continue
+
+        cycle_found = False
+        for child in reversed(child_names):
+            if child in path:
+                failed.append(f"cycle in {scope}: {' / '.join(path + (child,))}")
+                cycle_found = True
+                continue
+            if child not in visited:
+                stack.append((child, dataset, path + (child,)))
+        if cycle_found:
+            add_row(dataset, parent, path)
+
+    return results, failed
 
 
 def ps(
@@ -139,16 +338,16 @@ def ps(
         base_url = server
     try:
         files_response = get_dataset_file_info(scope, dataset, verbose, quiet)
+        if "error" in files_response:
+            return files_response, None
 
         logger.info(f"Getting policy for {dataset} in {scope}.")
         url: str = str(base_url) + f"/query/dataset/{scope}/{dataset}"
         logger.debug(f"URL: {url}")
-        r = requests.get(url)
+        r = requests.get(url, timeout=utilities.REQUEST_TIMEOUT)
         logger.debug(f"Status: {r.status_code}.")
         policy_response = utilities.decode_response(r)
         utilities.validate_request_response(policy_response, dataset, scope)
-        if "error" in files_response:
-            return None, policy_response  # type: ignore
         return files_response, policy_response  # type: ignore
 
     except requests.exceptions.ConnectionError as e:
@@ -192,7 +391,7 @@ def get_dataset_file_info(
         logger.debug(f"Payload: {payload}")
         url = str(base_url) + "/query/dataset/find"
         logger.debug(f"URL: {url}")
-        r = requests.post(url, json=payload)
+        r = requests.post(url, json=payload, timeout=utilities.REQUEST_TIMEOUT)
         logger.debug(f"Status: {r.status_code}.")
         logger.debug("Decoding response.")
         response = utilities.decode_response(r)
@@ -200,10 +399,14 @@ def get_dataset_file_info(
         return response  # type: ignore
     except requests.exceptions.ConnectionError as e:
         logger.error(e)
-        return {"error": "Datatrail Server at CHIME is not responding."}
+        return failure(
+            "Datatrail Server at CHIME is not responding.",
+            "service_unavailable",
+            True,
+        )
     except Exception as e:
         logger.error(e)
-        return {"error": e}
+        return failure(e, "invalid_response", False)
 
 
 def find_missing_dataset_files(
@@ -226,7 +429,7 @@ def find_missing_dataset_files(
     # find dataset
     dataset_locations = get_dataset_file_info(scope, dataset, verbose=verbose)
     if "error" in dataset_locations:
-        return {"error": dataset_locations["error"]}
+        return dataset_locations
 
     # check for local copy of the data.
     logger.info("Checking for local copies of files.")
@@ -246,10 +449,10 @@ def find_missing_dataset_files(
         existing_files = []
         for f in file_paths:
             if Path(root_path + f).exists():
-                logger.debug(f"- {f} : ✔")
+                logger.debug(f"- {f} : present")
                 existing_files.append(f)
             else:
-                logger.debug(f"- {f} : ✘")
+                logger.debug(f"- {f} : missing")
                 missing_files.append(f)
 
     else:
@@ -264,7 +467,7 @@ def get_files(
     directory: str,
     cores: int,
     verbose: int,
-) -> None:
+) -> List[cadcclient.TransferFailure]:
     """Download all files from a dataset which only contains files.
 
     Args:
@@ -275,7 +478,7 @@ def get_files(
         verbose (int): Verbosity level.
 
     Returns:
-        None
+        List[cadcclient.TransferFailure]: Files that could not be downloaded.
     """
     # Set logging level.
     utilities.set_log_level(logger, verbose)
@@ -303,10 +506,10 @@ def get_files(
         else:
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
-        cadcclient.pget(
+        return cadcclient.pget(
             source=files, destination=destinations, processors=cores, verbose=verbose
         )
-    return None
+    return []
 
 
 def clear_dataset_path(
@@ -359,10 +562,10 @@ def clear_dataset_path(
         files: List[Path] = [f for f in parent.iterdir()]
         logger.debug(f"files: {files}")
         if files:
-            logger.debug(f"{parent}: ✗")
+            logger.debug(f"{parent}: failed")
             clear_parents = False
         else:
-            logger.debug(f"{parent}: ✔")
+            logger.debug(f"{parent}: ok")
             parent.rmdir()
             time.sleep(0.1)
         parent = parent.parent
@@ -403,7 +606,7 @@ def find_dataset_common_path(
     url = server + "/query/dataset/find"
     logger.debug(f"URL: {url}")
     try:
-        r = requests.post(url, json=payload)
+        r = requests.post(url, json=payload, timeout=utilities.REQUEST_TIMEOUT)
         dataset_locations = utilities.decode_response(r)  # type: ignore
         utilities.validate_request_response(dataset_locations, dataset, scope)
     except ConnectionError:
@@ -455,6 +658,7 @@ def view_results(
             "projection": projection,
             "limit": limit,
         },
+        timeout=utilities.REQUEST_TIMEOUT,
     )
     return response.json()
 
@@ -484,6 +688,35 @@ def get_unregistered_dataset(dataset: str, scope: str) -> Optional[Dict[str, Any
         return None
     else:
         return response[0]
+
+
+def find_unregistered_datasets(
+    event: str,
+    scope: Optional[str] = None,
+    partial: bool = False,
+    limit: int = 100,
+) -> List[Dict[str, Any]]:
+    """Find unregistered datasets recorded for an event.
+
+    Args:
+        event (str): Name of the event, i.e. the dataset name.
+        scope (Optional[str]): Only return records for this scope.
+        partial (bool): Match events containing `event` rather than exactly.
+        limit (int): Maximum number of records to return.
+
+    Returns:
+        List[Dict[str, Any]]: Unregistered dataset records for the event.
+    """
+    name: Any = {"$regex": re.escape(event)} if partial else event
+    query: Dict[str, Any] = {"results.dataset_name": name}
+    if scope:
+        query["results.dataset_scope"] = scope
+    return view_results(
+        pipeline="datatrail-unregistered-datasets",
+        query=query,
+        projection={"results.files": 0},
+        limit=limit,
+    )
 
 
 ATTACH_RE = re.compile(

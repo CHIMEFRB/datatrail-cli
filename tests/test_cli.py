@@ -8,6 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from dtcli.cli import cli as datatrail
+from dtcli.utilities import utilities
 
 
 @pytest.fixture(scope="module")
@@ -40,12 +41,15 @@ def list_specific_files(directory):
 
 
 @pytest.fixture
-def runner() -> CliRunner:
+def runner(request, monkeypatch) -> CliRunner:
     """Click CLI runner for testing.
 
     Returns:
         (CliRunner) -> None:
     """
+    if request.node.get_closest_marker("cadc") is None:
+        request.getfixturevalue("datatrail_api")
+        monkeypatch.setattr(utilities, "cli_is_latest_release", lambda: True)
     return CliRunner()
 
 
@@ -106,6 +110,9 @@ def test_cli_list_help(runner: CliRunner) -> None:
     assert "--write" in result.output
     assert "--json" in result.output
     assert "Output as JSON" in result.output
+    assert "--match" in result.output
+    assert "--expand" in result.output
+    assert "--recursive" in result.output
 
 
 def test_cli_ps_help(runner: CliRunner) -> None:
@@ -192,6 +199,39 @@ Options:
 """
     assert result.exit_code == 0
     assert result.output == expected_response
+
+
+def test_cli_unregistered_search_help(runner: CliRunner) -> None:
+    """Test CLI unregistered search help page.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["unregistered", "search", "--help"])
+    assert result.exit_code == 0
+    assert "Usage: cli unregistered search [OPTIONS] EVENT" in result.output
+    assert "Check whether an event is an unregistered dataset" in result.output
+    assert "--scope" in result.output
+    assert "--partial" in result.output
+    assert "--json" in result.output
+
+
+def test_cli_unregistered_search_not_found(runner: CliRunner) -> None:
+    """Test CLI unregistered search for an event that is registered.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    import json
+
+    result = runner.invoke(
+        datatrail, ["unregistered", "search", "not-an-event", "--json"]
+    )
+    assert result.exit_code == 0
+    json_start = result.output.find("{")
+    output_data = json.loads(result.output[json_start:])
+    assert output_data["event"] == "not-an-event"
+    assert output_data["unregistered"] == []
 
 
 def test_cli_config_init(runner: CliRunner) -> None:
@@ -333,6 +373,152 @@ def test_cli_list_children(runner: CliRunner) -> None:
     assert "289007650" in result.output
 
 
+def test_cli_list_match(runner: CliRunner) -> None:
+    """Test for CLI list to filter larger datasets with --match.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail, ["ls", "chime.event.baseband.raw", "--match", "classified"]
+    )
+    assert result.exit_code == 0
+    assert "classified.FRB" in result.output
+
+
+def test_cli_list_match_expand(runner: CliRunner) -> None:
+    """Test for CLI list to expand matched larger datasets one level.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail,
+        ["ls", "chime.event.baseband.raw", "--match", "classified.FRB", "--expand"],
+    )
+    assert result.exit_code == 0
+    assert "289007650" in result.output
+    assert "classified.FRB" in result.output
+
+
+def test_cli_list_match_no_hits(runner: CliRunner) -> None:
+    """Test for CLI list with --match matching nothing.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail,
+        ["ls", "chime.event.baseband.raw", "--match", "no.such.dataset.term"],
+    )
+    assert result.exit_code == 0
+    assert "No datasets matched." in result.output
+
+
+def test_cli_list_match_with_dataset_argument(runner: CliRunner) -> None:
+    """Test for CLI list rejecting --match combined with a dataset argument.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(
+        datatrail,
+        ["ls", "chime.event.baseband.raw", "classified.FRB", "--match", "FRB"],
+    )
+    assert result.exit_code == 1
+
+
+def test_cli_list_bare_expand(runner: CliRunner) -> None:
+    """Test for CLI list rejecting --expand without a scope or --match.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["ls", "--expand"])
+    assert result.exit_code == 1
+
+
+def test_cli_list_bare_recursive(runner: CliRunner) -> None:
+    """Test for CLI list rejecting an unconstrained recursive walk.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    result = runner.invoke(datatrail, ["ls", "--recursive"])
+    assert result.exit_code == 1
+
+
+def test_cli_list_recursive_plain(runner: CliRunner, monkeypatch) -> None:
+    """Test for CLI list showing recursive paths in the table.
+
+    Args:
+        runner (CliRunner): Click runner.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+
+    def fake_discovery(**kwargs):
+        assert kwargs["recursive"] is True
+        return {
+            "results": [
+                {
+                    "scope": "test.scope",
+                    "dataset": "leaf",
+                    "parent": "branch",
+                    "path": ["root", "branch", "leaf"],
+                }
+            ],
+            "failed": [],
+        }
+
+    monkeypatch.setattr("dtcli.ls.functions.discover_datasets", fake_discovery)
+    result = runner.invoke(datatrail, ["ls", "--match", "root", "--recursive"])
+    assert result.exit_code == 0
+    assert "leaf" in result.output
+    assert "root / branch / leaf" in result.output
+
+
+def test_cli_list_recursive_json(runner: CliRunner, monkeypatch) -> None:
+    """Test for CLI list retaining recursive paths in JSON.
+
+    Args:
+        runner (CliRunner): Click runner.
+        monkeypatch: Pytest monkeypatch fixture.
+    """
+    import json
+
+    expected = {
+        "results": [
+            {
+                "scope": "test.scope",
+                "dataset": "leaf",
+                "parent": "branch",
+                "path": ["root", "branch", "leaf"],
+            }
+        ],
+        "failed": [],
+    }
+
+    def fake_discovery(**kwargs):
+        assert kwargs["recursive"] is True
+        return expected
+
+    monkeypatch.setattr("dtcli.ls.functions.discover_datasets", fake_discovery)
+    result = runner.invoke(datatrail, ["ls", "--match", "root", "--recursive", "--json"])
+    assert result.exit_code == 0
+    json_start = result.output.find("{")
+    assert json.loads(result.output[json_start:]) == expected
+
+
+@pytest.mark.parametrize("match", ["", "   ", ", ,"])
+@pytest.mark.parametrize("options", [[], ["--expand"], ["--recursive"]])
+def test_cli_list_rejects_empty_match(runner, match, options) -> None:
+    """An empty filter cannot bypass the archive expansion boundary."""
+    result = runner.invoke(datatrail, ["ls", "--match", match, *options])
+    assert result.exit_code == 1
+    assert "--match requires at least one nonempty term." in result.output
+
+
+@pytest.mark.cadc
 def test_cli_ps(runner: CliRunner) -> None:
     """Test for CLI ps command.
 
@@ -343,6 +529,7 @@ def test_cli_ps(runner: CliRunner) -> None:
     assert result.exit_code == 0
 
 
+@pytest.mark.cadc
 def test_cli_pull_no(runner: CliRunner) -> None:
     """Test for CLI pull command.
 
@@ -364,6 +551,7 @@ def test_cli_pull_no(runner: CliRunner) -> None:
     assert expect in result.output
 
 
+@pytest.mark.cadc
 def test_cli_pull_yes(
     runner: CliRunner, directory: Path, list_specific_files: Path
 ) -> None:
@@ -394,6 +582,7 @@ def test_cli_pull_yes(
     ).exists()
 
 
+@pytest.mark.cadc
 def test_cli_clear_no(runner: CliRunner, directory: Path) -> None:
     """Test for CLI clear command.
 
@@ -417,6 +606,7 @@ def test_cli_clear_no(runner: CliRunner, directory: Path) -> None:
     assert "Roger roger, no files deleted" in result.output
 
 
+@pytest.mark.cadc
 def test_cli_clear_yes(runner: CliRunner, directory: Path) -> None:
     """Test for CLI clear command.
 
@@ -446,6 +636,7 @@ def test_cli_clear_yes(runner: CliRunner, directory: Path) -> None:
     ).exists()
 
 
+@pytest.mark.cadc
 def test_cli_pull_force(
     runner: CliRunner, directory: Path, list_specific_files: Path
 ) -> None:
@@ -476,6 +667,7 @@ def test_cli_pull_force(
     ).exists()
 
 
+@pytest.mark.cadc
 def test_cli_clear_force(runner: CliRunner, directory: Path) -> None:
     """Test for CLI clear command.
 
@@ -505,6 +697,7 @@ def test_cli_clear_force(runner: CliRunner, directory: Path) -> None:
     ).exists()
 
 
+@pytest.mark.cadc
 def test_cli_pull_force_2cores(runner: CliRunner, directory: Path) -> None:
     """Test for CLI pull command.
 
@@ -641,6 +834,34 @@ def test_cli_list_children_json(runner: CliRunner) -> None:
     assert "289007650" in output_data["datasets"]
 
 
+def test_cli_list_match_json(runner: CliRunner) -> None:
+    """Test for CLI list to output the dataset map as JSON.
+
+    Args:
+        runner (CliRunner): Click runner.
+    """
+    import json
+
+    result = runner.invoke(
+        datatrail,
+        ["ls", "chime.event.baseband.raw", "--match", "classified", "--json"],
+    )
+    assert result.exit_code == 0
+    # Extract JSON from output (skip version check message if present)
+    json_start = result.output.find("{")
+    json_output = result.output[json_start:]
+    # Parse the output as JSON
+    output_data = json.loads(json_output)
+    # Should have 'results' rows and a 'failed' list
+    assert {
+        "scope": "chime.event.baseband.raw",
+        "dataset": "classified.FRB",
+        "parent": None,
+    } in output_data["results"]
+    assert output_data["failed"] == []
+
+
+@pytest.mark.cadc
 def test_cli_ps_json(runner: CliRunner) -> None:
     """Test for CLI ps command with JSON output.
 
@@ -665,3 +886,26 @@ def test_cli_ps_json(runner: CliRunner) -> None:
     assert "policies" in output_data
     assert output_data["dataset"] == "289007650"
     assert output_data["scope"] == "chime.event.baseband.raw"
+    # Derived per-storage-element common path and relative file names.
+    assert "common_paths" in output_data
+
+
+def test_check_version_banner_on_stderr(monkeypatch, capsys) -> None:
+    """Test the update banner goes to stderr, keeping stdout parseable.
+
+    Args:
+        monkeypatch: Pytest monkeypatch fixture.
+        capsys: Pytest capture fixture.
+    """
+    from dtcli import cli as cli_module
+
+    monkeypatch.setattr(cli_module.utilities, "cli_is_latest_release", lambda: False)
+    monkeypatch.setattr(
+        cli_module.utilities, "get_latest_released_version", lambda: "99.0.0"
+    )
+    cli_module.check_version()
+    captured = capsys.readouterr()
+    assert "A new release of datatrail-cli is available" in captured.err
+    assert " -> 99.0.0" in captured.err
+    assert captured.err.isascii()
+    assert "A new release of datatrail-cli is available" not in captured.out
