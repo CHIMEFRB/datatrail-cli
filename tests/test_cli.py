@@ -509,6 +509,15 @@ def test_cli_list_recursive_json(runner: CliRunner, monkeypatch) -> None:
     assert json.loads(result.output[json_start:]) == expected
 
 
+@pytest.mark.parametrize("match", ["", "   ", ", ,"])
+@pytest.mark.parametrize("options", [[], ["--expand"], ["--recursive"]])
+def test_cli_list_rejects_empty_match(runner, match, options) -> None:
+    """An empty filter cannot bypass the archive expansion boundary."""
+    result = runner.invoke(datatrail, ["ls", "--match", match, *options])
+    assert result.exit_code == 1
+    assert "--match requires at least one nonempty term." in result.output
+
+
 @pytest.mark.cadc
 def test_cli_ps(runner: CliRunner) -> None:
     """Test for CLI ps command.
