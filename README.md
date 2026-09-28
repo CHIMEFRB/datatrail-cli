@@ -33,6 +33,8 @@
 
 ## 🛠️ Installation
 
+Python 3.10 or newer is required for the supported dependency versions.
+
 ### Install from PYPI
 
 ```shell
