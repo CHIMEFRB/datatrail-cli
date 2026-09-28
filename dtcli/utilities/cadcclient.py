@@ -3,11 +3,11 @@
 import logging
 import os
 import sys
-import uuid
 from concurrent.futures import ThreadPoolExecutor
 from io import StringIO
 from multiprocessing import Pipe, Process  # Use the standard library only
 from multiprocessing.connection import Connection
+from tempfile import TemporaryDirectory
 from typing import Any, Dict, List, Optional, Tuple
 
 import cadcutils
@@ -163,14 +163,18 @@ def _download_file(
     storage: Any, uri: str, destination: str, expected_size: Optional[int]
 ) -> None:
     """Download and atomically publish one file."""
+    destination_dir = os.path.dirname(destination) or "."
+    name = os.path.basename(destination)
     for attempt in Retrying(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
         reraise=True,
     ):
         with attempt:
-            temporary = _create_temporary_sibling(destination)
-            try:
+            # CADC may create additional resumable .part files beside this path.
+            # Own the entire staging directory so every artifact is cleaned up.
+            with TemporaryDirectory(prefix=f".{name}.", dir=destination_dir) as staging:
+                temporary = os.path.join(staging, "download.part")
                 storage.cadcget(uri, temporary)
                 actual_size = os.path.getsize(temporary)
                 if expected_size is not None and actual_size != expected_size:
@@ -179,22 +183,6 @@ def _download_file(
                         f"received {actual_size}"
                     )
                 os.replace(temporary, destination)
-            except BaseException:
-                try:
-                    os.unlink(temporary)
-                except FileNotFoundError:
-                    pass
-                raise
-
-
-def _create_temporary_sibling(destination: str) -> str:
-    """Create a temporary transfer path beside its destination."""
-    destination_dir = os.path.dirname(destination) or "."
-    name = os.path.basename(destination)
-    temporary = os.path.join(destination_dir, f".{name}.{uuid.uuid4().hex}.part")
-    descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o666)
-    os.close(descriptor)
-    return temporary
 
 
 def _transfer_failure(

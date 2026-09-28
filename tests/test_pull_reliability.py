@@ -1,9 +1,15 @@
 """Tests for reliable downloads."""
 
+import hashlib
+import logging
+import os
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import requests
+from cadcutils.net import add_md5_header
+from cadcutils.net.ws import BaseDataClient
 from click.testing import CliRunner
 from tenacity import wait_none
 
@@ -41,7 +47,7 @@ def test_get_publishes_complete_file_atomically(monkeypatch, tmp_path):
     class AtomicStorage(FakeStorage):
         def cadcget(self, uri, temporary):
             temporary_path = Path(temporary)
-            assert temporary_path.parent == destination.parent
+            assert temporary_path.parent.parent == destination.parent
             assert temporary_path != destination
             assert destination.read_bytes() == b"old"
             super().cadcget(uri, temporary)
@@ -120,6 +126,78 @@ def test_get_works_without_remote_size(monkeypatch, tmp_path):
 
     assert failures == []
     assert destination.read_bytes() == b"complete"
+
+
+@pytest.mark.parametrize("outcome", ["success", "failure", "interruption"])
+def test_download_cleans_sdk_partial_files(monkeypatch, tmp_path, outcome):
+    """Clean up the real CADC client's MD5-named partial files on every exit."""
+    disable_retry_wait(monkeypatch)
+    contents = b"complete"
+    destination = tmp_path / "file.dat"
+    destination.write_bytes(b"old")
+    attempts = []
+
+    class Raw:
+        def __init__(self):
+            self.reads = 0
+
+        def read(self, size):
+            self.reads += 1
+            if self.reads == 1:
+                return contents if outcome == "success" else contents[:3]
+            if outcome == "interruption":
+                raise KeyboardInterrupt
+            if outcome == "failure":
+                raise OSError("transfer interrupted")
+            return b""
+
+    class Client(BaseDataClient):
+        def __init__(self):
+            self.logger = logging.getLogger(__name__)
+
+        def get(self, url, **kwargs):
+            response = requests.Response()
+            response.status_code = 200
+            response.headers["Content-Length"] = str(len(contents))
+            add_md5_header(
+                response.headers,
+                hashlib.md5(contents, usedforsecurity=False).hexdigest(),
+            )
+            response.raw = Raw()
+            return response
+
+    def download(uri, temporary):
+        attempts.append(temporary)
+        Client().download_file(uri, dest=temporary)
+
+    storage = SimpleNamespace(cadcget=download)
+    if outcome == "success":
+        cadcclient._download_file(
+            storage, "https://testserver/file", str(destination), 8
+        )
+        assert destination.read_bytes() == contents
+    else:
+        error = KeyboardInterrupt if outcome == "interruption" else OSError
+        with pytest.raises(error):
+            cadcclient._download_file(
+                storage, "https://testserver/file", str(destination), 8
+            )
+        assert destination.read_bytes() == b"old"
+    assert len(attempts) == (3 if outcome == "failure" else 1)
+    assert list(tmp_path.iterdir()) == [destination]
+
+
+def test_download_preserves_normal_file_permissions(tmp_path):
+    """Published files retain the normal umask-derived group permissions."""
+    destination = tmp_path / "file.dat"
+    uri = "cadc:CHIMEFRB/data/file.dat"
+    storage = FakeStorage({uri: b"complete"})
+    original_mask = os.umask(0o002)
+    try:
+        cadcclient._download_file(storage, uri, str(destination), 8)
+    finally:
+        os.umask(original_mask)
+    assert destination.stat().st_mode & 0o777 == 0o664
 
 
 def test_pget_returns_worker_failures(monkeypatch, tmp_path):
