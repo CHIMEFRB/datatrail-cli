@@ -17,6 +17,9 @@ dependencies = [
   "cadcutils>=1.5.1.1",
   "cadcdata>=2.5.0",
   "cadctap>=0.9.11",
+  # Patched TLS dependencies support Python 3.9 and newer.
+  "cryptography>=50.0.0; python_full_version >= '3.9.2'",
+  "pyOpenSSL>=26.4.0; python_full_version >= '3.9.2'",
   "mergedeep>=1.3.4",
   "dill>=0.3.6",
   "lxml>=6.1.0",
