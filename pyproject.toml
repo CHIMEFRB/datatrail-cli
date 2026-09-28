@@ -26,6 +26,8 @@ dependencies = [
   "lxml>=6.1.0",
   "click-aliasing>=1.0.0",
   "tenacity>=8.0.0",
+  # Current urllib3 security fixes require Python 3.10 or newer.
+  "urllib3>=2.7.0; python_version >= '3.10'",
 ]
 
 [project.scripts]
