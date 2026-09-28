@@ -238,14 +238,42 @@ def test_server_hides_request_errors(monkeypatch, error) -> None:
     assert result == {"ok": False, "message": "Datatrail server request failed."}
 
 
-def test_service_requires_authentication_header(monkeypatch) -> None:
+@pytest.mark.parametrize("identity", [None, "", " \t"])
+def test_service_requires_authentication_header(monkeypatch, identity) -> None:
     """Reject a service response without authenticated identity."""
-    monkeypatch.setattr(doctor.requests, "get", lambda url, **kwargs: FakeResponse())
+    monkeypatch.setattr(
+        doctor.requests,
+        "get",
+        lambda url, **kwargs: FakeResponse(headers={"x-vo-authenticated": identity}),
+    )
 
     result = doctor._check_service("minoc", "https://example.invalid", "cert.pem")
 
     assert result["ok"] is False
     assert result["message"] == "minoc did not authenticate the certificate."
+
+
+def test_certificate_rejects_invalid_path():
+    """Report an invalid configured path without raising an exception."""
+    assert doctor._check_certificate("invalid\x00path") == {
+        "ok": False,
+        "message": "CANFAR certificate could not be read.",
+    }
+
+
+def test_service_handles_certificate_read_failure(monkeypatch):
+    """Handle a certificate that disappears before Requests opens it."""
+
+    def fail_request(*args, **kwargs):
+        """Raise the certificate path error produced by Requests."""
+        raise OSError("private-certificate-path")
+
+    monkeypatch.setattr(doctor.requests, "get", fail_request)
+
+    assert doctor._check_service("minoc", "https://example.invalid", "cert.pem") == {
+        "ok": False,
+        "message": "minoc request failed.",
+    }
 
 
 def test_doctor_json_hides_request_details(monkeypatch, tmp_path: Path) -> None:

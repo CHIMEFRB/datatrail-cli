@@ -82,7 +82,7 @@ def _check_certificate(certfile: str) -> Dict[str, Any]:
     """Check that the configured certificate is current."""
     try:
         pem = Path(certfile).read_bytes()
-    except OSError:
+    except (OSError, ValueError):
         return _result(False, "CANFAR certificate could not be read.")
     try:
         certificate = crypto.load_certificate(crypto.FILETYPE_PEM, pem)
@@ -110,11 +110,12 @@ def _check_service(name: str, url: str, certfile: str) -> Dict[str, Any]:
             allow_redirects=True,
             timeout=REQUEST_TIMEOUT,
         )
-    except requests.RequestException:
+    except (OSError, requests.RequestException):
         return _result(False, f"{name} request failed.")
     if not 200 <= response.status_code < 300:
         return _result(False, f"{name} returned HTTP {response.status_code}.")
-    if not isinstance(response.headers.get("x-vo-authenticated"), str):
+    identity = response.headers.get("x-vo-authenticated")
+    if not isinstance(identity, str) or not identity.strip():
         return _result(False, f"{name} did not authenticate the certificate.")
     return _result(True, f"{name} is ready.")
 
