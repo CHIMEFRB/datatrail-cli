@@ -12,6 +12,11 @@ elsewhere. Each completed batch is written atomically, so rerunning the same
 command skips completed files whose recorded size still matches and retries
 pending or failed files.
 
+Minoc replicas may use `cadc:CHIMEFRB/...`, `data/...`, or `/...` paths, matching
+the formats accepted by dataset downloads. Equivalent paths are downloaded
+once. Paths that escape the destination, collide with one another, or replace
+the inventory, transfer state, or lock files are refused before creating state.
+
 Transfers are limited by `--cores`, which defaults to one. A larger value runs
 only that many files at once:
 
@@ -34,6 +39,8 @@ even if they use different state files for the same destination. Symlinks to the
 same paths share ownership. The locks are held through confirmation and all
 download batches, and released when the process exits. Leave the hidden `.lock`
 files in place; their presence does not mean a transfer is active.
+Use separate destination trees for concurrent commands; these locks do not
+coordinate a directory with a nested destination used by another command.
 
 ## Transfer state
 

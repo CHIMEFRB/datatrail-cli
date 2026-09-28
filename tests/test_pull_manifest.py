@@ -140,6 +140,10 @@ def test_interruption_keeps_previous_checkpoint(tmp_path: Path, monkeypatch) -> 
         "cadc:CHIMEFRB/../file.dat",
         "cadc:CHIMEFRB//file.dat",
         "cadc:CHIMEFRB/folder\\file.dat",
+        "data/../file.dat",
+        "/../file.dat",
+        "//file.dat",
+        "cadc:CHIMEFRB/invalid\0file.dat",
     ],
 )
 def test_unsafe_or_unsupported_uri_is_rejected(tmp_path: Path, uri: str) -> None:
@@ -340,3 +344,102 @@ def test_failed_second_lock_releases_first_lock(tmp_path: Path) -> None:
                 pytest.fail("A competing session acquired the destination")
         with pull_manifest_module.output_lock(state):
             assert not state.exists()
+
+
+@pytest.mark.parametrize(
+    "reserved",
+    ["inventory.json", "pull.json", ".pull.json.lock", ".datatrail-pull.lock"],
+)
+def test_transfer_rejects_files_that_replace_its_metadata(tmp_path, reserved):
+    """Downloads cannot overwrite their inventory, checkpoint, or active locks."""
+    manifest = tmp_path / "inventory.json"
+    state = tmp_path / "pull.json"
+    write_inventory(manifest, [reserved])
+    original = manifest.read_bytes()
+
+    with pytest.raises(ValueError, match="control file"):
+        with pull_manifest_module.transfer_session(manifest, tmp_path, state):
+            pytest.fail("A download could overwrite transfer metadata")
+
+    assert manifest.read_bytes() == original
+    assert not state.exists()
+
+
+def test_transfer_normalizes_legacy_minoc_paths(tmp_path):
+    """Inventories produced from supported Datatrail Minoc paths remain usable."""
+    manifest = tmp_path / "inventory.json"
+    state = tmp_path / "pull.json"
+    write_inventory(manifest, ["data/file.dat"])
+    inventory = json.loads(manifest.read_text())
+    inventory["datasets"][0]["replicas"].extend(
+        {"storage_element": "minoc", "uri": uri}
+        for uri in ["data/file.dat", "/data/file.dat"]
+    )
+    manifest.write_text(json.dumps(inventory))
+
+    transfer = pull_manifest_module.prepare_transfer(manifest, tmp_path / "data", state)
+
+    assert transfer["files"] == [
+        {
+            "uri": "cadc:CHIMEFRB/data/file.dat",
+            "path": "data/file.dat",
+            "status": "pending",
+        }
+    ]
+
+
+def test_transfer_rejects_conflicting_destination_paths(tmp_path):
+    """A file cannot also be a directory for another file in the same manifest."""
+    manifest = tmp_path / "inventory.json"
+    state = tmp_path / "pull.json"
+    write_inventory(manifest, ["folder", "folder/file.dat"])
+
+    with pytest.raises(ValueError, match="conflicting destination"):
+        pull_manifest_module.prepare_transfer(manifest, tmp_path / "data", state)
+
+    assert not state.exists()
+
+
+def test_transfer_rejects_destinations_aliased_through_symlinks(tmp_path):
+    """Distinct remote files cannot overwrite the same local path through an alias."""
+    manifest = tmp_path / "inventory.json"
+    state = tmp_path / "pull.json"
+    destination = tmp_path / "data"
+    (destination / "actual").mkdir(parents=True)
+    (destination / "alias").symlink_to(destination / "actual", target_is_directory=True)
+    write_inventory(manifest, ["actual/file.dat", "alias/file.dat"])
+
+    with pytest.raises(ValueError, match="conflicting destination"):
+        pull_manifest_module.prepare_transfer(manifest, destination, state)
+
+    assert not state.exists()
+
+
+@pytest.mark.parametrize("state_name", [".inventory.json.lock", ".datatrail-pull.lock"])
+def test_transfer_checkpoint_cannot_replace_a_lock(tmp_path, state_name):
+    """Checkpoint updates must never replace an inode providing active ownership."""
+    manifest = tmp_path / "inventory.json"
+    write_inventory(manifest, ["file.dat"])
+    original = manifest.read_bytes()
+
+    with pytest.raises(ValueError, match="control file"):
+        with pull_manifest_module.transfer_session(
+            manifest, tmp_path, tmp_path / state_name
+        ):
+            pytest.fail("A checkpoint could replace an active lock")
+
+    assert manifest.read_bytes() == original
+
+
+def test_command_without_configuration_has_actionable_error(tmp_path, monkeypatch):
+    """A missing default destination reports a CLI error without a traceback."""
+    manifest = tmp_path / "inventory.json"
+    write_inventory(manifest, ["file.dat"])
+    monkeypatch.setattr(pull_manifest_module, "procure", lambda: None)
+    result = CliRunner().invoke(
+        pull_manifest_module.pull_manifest, [str(manifest), "-f"]
+    )
+
+    assert result.exit_code == 1
+    assert "use --directory" in result.output
+    assert not manifest.with_suffix(".pull.json").exists()

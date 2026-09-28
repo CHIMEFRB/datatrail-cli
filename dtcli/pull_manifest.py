@@ -5,7 +5,7 @@ import os
 import tempfile
 from contextlib import ExitStack, contextmanager
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 
 import click
 
@@ -116,6 +116,7 @@ def transfer_session(
     """
     directory = directory.resolve()
     state_path = state_path.resolve()
+    _control_paths(manifest_path.resolve(), directory, state_path)
     targets = {state_path, directory / "datatrail-pull"}
     with ExitStack() as locks:
         for target in sorted(targets):
@@ -136,6 +137,7 @@ def prepare_transfer(
 
     inventory = _read_json(manifest_path, "inventory manifest")
     files, unavailable = _inventory_files(inventory)
+    _validate_destinations(files, manifest_path, directory, state_path)
     previous = _load_state(state_path, manifest_path, directory)
     previous_files = {entry["uri"]: entry for entry in previous.get("files", [])}
 
@@ -210,8 +212,51 @@ def run_transfer(
 def _default_directory() -> Path:
     """Return the configured local root."""
     config = procure()
+    if not isinstance(config, dict):
+        raise ValueError(
+            "No configuration. Run datatrail config init or use --directory."
+        )
     site = config["site"]
     return Path(config["root_mounts"][site])
+
+
+def _control_paths(manifest: Path, directory: Path, state: Path) -> Set[Path]:
+    """Reserve the inventory, checkpoint, and files that provide ownership."""
+    if manifest == state:
+        raise ValueError("The inventory and transfer state paths must differ.")
+    lock_paths = {
+        path.with_name(f".{path.name}.lock").resolve()
+        for path in (manifest, state, directory / "datatrail-pull")
+    }
+    if manifest in lock_paths or state in lock_paths:
+        raise ValueError("Inventory and state must not replace a control file.")
+    return {manifest, state} | lock_paths
+
+
+def _validate_destinations(
+    files: List[Tuple[str, str]], manifest: Path, directory: Path, state: Path
+) -> None:
+    """Reject aliases and metadata collisions before creating transfer state."""
+    controls = _control_paths(manifest, directory, state)
+    destinations: Set[Path] = set()
+    for _, relative in files:
+        destination = _destination(directory, relative).resolve()
+        if any(
+            destination == control
+            or destination in control.parents
+            or control in destination.parents
+            for control in controls
+        ):
+            raise ValueError(f"Download would replace a control file: {relative}")
+        if destination in destinations:
+            raise ValueError(f"Manifest has conflicting destination paths: {relative}")
+        destinations.add(destination)
+    if any(
+        parent in destinations
+        for destination in destinations
+        for parent in destination.parents
+    ):
+        raise ValueError("Manifest has conflicting destination paths.")
 
 
 def _inventory_files(
@@ -231,7 +276,7 @@ def _inventory_files(
     for dataset in datasets:
         minoc, unavailable_dataset = _dataset_files(dataset)
         for uri, relative in minoc:
-            files[uri] = relative
+            files[MINOC_PREFIX + relative] = relative
         if unavailable_dataset:
             unavailable.append(unavailable_dataset)
     return sorted(files.items()), sorted(
@@ -246,7 +291,7 @@ def _dataset_files(
     if not isinstance(dataset, dict):
         raise ValueError("Inventory contains an invalid dataset entry.")
     status = dataset.get("status")
-    if status not in INVENTORY_STATUSES:
+    if not isinstance(status, str) or status not in INVENTORY_STATUSES:
         raise ValueError("Inventory contains an invalid dataset status.")
     if status != "ready":
         return [], None
@@ -279,15 +324,21 @@ def _dataset_files(
 
 def _relative_path(uri: str) -> str:
     """Convert a Minoc URI to a safe relative path."""
-    if not uri.startswith(MINOC_PREFIX):
+    if uri.startswith(MINOC_PREFIX):
+        relative = uri[len(MINOC_PREFIX) :]  # noqa: E203
+    elif uri.startswith("data/"):
+        relative = uri
+    elif uri.startswith("/"):
+        relative = uri[1:]
+    else:
         raise ValueError(f"Unsupported Minoc URI: {uri}")
-    relative = uri[len(MINOC_PREFIX) :]  # noqa: E203
     parts = relative.split("/")
     pure = PurePosixPath(relative)
     if (
         not relative
         or relative.startswith("/")
         or "\\" in relative
+        or "\0" in relative
         or any(part in {"", ".", ".."} for part in parts)
     ):
         raise ValueError(f"Unsafe Minoc URI: {uri}")
@@ -326,6 +377,7 @@ def _load_state(
             not isinstance(entry, dict)
             or not isinstance(entry.get("uri"), str)
             or not isinstance(entry.get("path"), str)
+            or not isinstance(entry.get("status"), str)
             or entry.get("status") not in FILE_STATUSES
             or entry["uri"] in seen
         ):
