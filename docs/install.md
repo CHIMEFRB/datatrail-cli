@@ -1,5 +1,7 @@
 # 🛠️ Installation
 
+Python 3.10 or newer is required.
+
 There are two ways to install the Datatrail CLI:
 
 === "PYPI"
