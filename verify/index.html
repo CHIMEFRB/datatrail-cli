@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://chimefrb.github.io/datatrail-cli/clear/">
+        <link rel="canonical" href="https://chimefrb.github.io/datatrail-cli/verify/">
       
       
-        <link rel="prev" href="../discovery/">
+        <link rel="prev" href="../unregistered/">
       
       
-        <link rel="next" href="../doctor/">
+        <link rel="next" href="../commands/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>clear - Datatrail CLI</title>
+        <title>verify - Datatrail CLI</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#removing-a-dataset-with-clear" class="md-skip">
+        <a href="#compare-registered-minoc-files-with-verify" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              clear
+              verify
             
           </span>
         </div>
@@ -608,19 +608,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../clear/" class="md-nav__link">
         
   
   
@@ -636,7 +627,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -870,10 +860,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../verify/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    verify
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -889,6 +906,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#read-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read the results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#save-a-detailed-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Save a detailed report
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1044,6 +1103,36 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#read-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read the results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#save-a-detailed-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Save a detailed report
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1062,108 +1151,97 @@
   
 
 
-<h1 id="removing-a-dataset-with-clear">🗑️ Removing a dataset with <code>clear</code><a class="headerlink" href="#removing-a-dataset-with-clear" title="Permanent link">&para;</a></h1>
-<div class="termy" data-termynal data-ty-macos data-ty-title="bash"><span data-ty="input" data-ty-prompt="$">datatrail clear --help</span><span data-ty>Usage: datatrail clear [OPTIONS] SCOPE DATASET<br><br>  Clear a dataset.<br><br>Options:<br>  -d, --directory DIRECTORY  Directory to clear data from.<br>  --clear-parents            Clear all empty parent directories of dataset.<br>  -v, --verbose              Verbosity: v=INFO, vv=DEBUG.<br>  -q, --quiet                Set log level to ERROR.<br>  -f, --force                Do not prompt for confirmation.<br>  --help                     Show this message and exit.<br></span></div>
-
-<p>Once you have completed your analysis, or no longer have need of a dataset, you
-can remove it with <code>datatrail clear</code>. This will remove the common path of all
-of the downloaded files, typically "astro_xxxxxxxx" for baseband datasets.
-However, during the download, parent directories would've also been created,
-to remove these you can use the <code>--clear-parents</code> flag. Like <code>pull</code>, <code>clear</code>
-will ask for confirmation before removing the dataset.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Default</label><label for="__tabbed_1_2">With --clear-parents</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>datatrail<span class="w"> </span>clear<span class="w"> </span>kko.event.baseband.raw<span class="w"> </span><span class="m">308892599</span>
-
-Searching<span class="w"> </span><span class="k">for</span><span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="m">308892599</span><span class="w"> </span>kko.event.baseband.raw...
-
-Directory:<span class="w"> </span>./data/kko/baseband/raw/2023/08/07/astro_308892599
-<span class="w"> </span>-<span class="w"> </span>Found<span class="w"> </span><span class="m">4</span><span class="w"> </span>files.
-<span class="w"> </span>-<span class="w"> </span>Total<span class="w"> </span>size:<span class="w"> </span><span class="m">0</span>.02<span class="w"> </span>GB.
-
-⚠️<span class="w">  </span>Delete<span class="w"> </span>files?<span class="w"> </span><span class="o">[</span>y/n<span class="o">]</span>:<span class="w"> </span>y
+<h1 id="compare-registered-minoc-files-with-verify">Compare registered Minoc files with <code>verify</code><a class="headerlink" href="#compare-registered-minoc-files-with-verify" title="Permanent link">&para;</a></h1>
+<p>Use <code>verify</code> to check whether the Minoc files recorded by Datatrail have consistent
+metadata in Minoc and the Luskan inventory. Datatrail supplies the file list;
+<code>verify</code> compares the sizes and MD5 checksums reported by the two CADC services.</p>
+<div class="highlight"><pre><span></span><code>datatrail<span class="w"> </span>verify<span class="w"> </span>chime.event.baseband.raw<span class="w"> </span>EVENT_ID
 </code></pre></div>
+<p>Replace the scope and <code>EVENT_ID</code> with your dataset's actual identifiers. The CLI
+needs its normal configuration and a valid CADC certificate with service access.
+Use <a href="../doctor/"><code>doctor</code></a> to troubleshoot configuration or authentication first.</p>
+<h2 id="read-the-results">Read the results<a class="headerlink" href="#read-the-results" title="Permanent link">&para;</a></h2>
+<p>The report starts with the scope, dataset, and <code>registered</code> count: the number of
+unique Minoc file URIs returned by Datatrail. It then shows these result counts
+and lists the URIs with problems:</p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>present</code></td>
+<td>Both services returned complete, matching size and checksum metadata.</td>
+</tr>
+<tr>
+<td><code>missing</code></td>
+<td>A successful metadata lookup did not return the registered URI from Minoc, Luskan, or both.</td>
+</tr>
+<tr>
+<td><code>size-mismatch</code></td>
+<td>Both sizes are available, but their byte counts differ.</td>
+</tr>
+<tr>
+<td><code>checksum-mismatch</code></td>
+<td>Both MD5 values are available, but they differ.</td>
+</tr>
+<tr>
+<td><code>unavailable</code></td>
+<td>A service request failed, a response was invalid, or required metadata was incomplete. The comparison could not be completed.</td>
+</tr>
+</tbody>
+</table>
+<p>One file can have more than one problem, so problem counts need not add up to
+<code>registered</code>. An unavailable lookup is not reported as proof that a file is
+missing.</p>
+<div class="admonition note">
+<p class="admonition-title">An empty check can succeed</p>
+<p>If Datatrail returns no registered Minoc files, the command reports
+<code>registered: 0</code> and succeeds. This does not establish that the dataset has
+been replicated. Inspect its recorded locations with <a href="../ps/"><code>ps</code></a>.</p>
 </div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>datatrail<span class="w"> </span>clear<span class="w"> </span>kko.event.baseband.raw<span class="w"> </span><span class="m">308892599</span><span class="w"> </span>--clear-parents
-
-Searching<span class="w"> </span><span class="k">for</span><span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="m">308892599</span><span class="w"> </span>kko.event.baseband.raw...
-
-Directory:<span class="w"> </span>./data/kko/baseband/raw/2023/08/07/astro_308892599
-<span class="w"> </span>-<span class="w"> </span>Found<span class="w"> </span><span class="m">9</span><span class="w"> </span>files.
-<span class="w"> </span>-<span class="w"> </span>Total<span class="w"> </span>size:<span class="w"> </span><span class="m">0</span>.04<span class="w"> </span>GB.
-
-⚠️<span class="w">  </span>Delete<span class="w"> </span>files<span class="w"> </span>and<span class="w"> </span>empty<span class="w"> </span>parent<span class="w"> </span>directories?<span class="w"> </span><span class="o">[</span>y/n<span class="o">]</span>:<span class="w"> </span>y
+<p>This command reads metadata; it does not download files, recompute checksums from
+their contents, or repair registrations. It checks only the registered Minoc
+URIs supplied by Datatrail, so it does not discover unregistered files or verify
+other storage elements. Matching service metadata is not a fresh integrity check
+of the stored bytes.</p>
+<h2 id="save-a-detailed-report">Save a detailed report<a class="headerlink" href="#save-a-detailed-report" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>datatrail<span class="w"> </span>verify<span class="w"> </span>chime.event.baseband.raw<span class="w"> </span>EVENT_ID<span class="w"> </span>--json<span class="w"> </span>&gt;<span class="w"> </span>verification.json
 </code></pre></div>
-</div>
-</div>
-</div>
-<div class="admonition danger">
-<p class="admonition-title">Warning: Modified download paths (<code>--directory</code>)</p>
-<p>If you'd downloaded a dataset to a different directory than the root
-mount for your site, you'll need to use the <code>--directory</code> flag with
-same value.</p>
-</div>
-<div class="admonition tip">
-<p class="admonition-title">Verbosity: More insight</p>
-<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>datatrail<span class="w"> </span>clear<span class="w"> </span>kko.event.baseband.raw<span class="w"> </span><span class="m">308892599</span><span class="w"> </span>--clear-parents<span class="w"> </span>-vv
-<span class="o">[</span><span class="m">17</span>:13:28<span class="o">]</span><span class="w"> </span>DEBUG<span class="w">    </span><span class="sb">`</span>clear<span class="sb">`</span><span class="w"> </span>called<span class="w"> </span>with:<span class="w">                         </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>scope:<span class="w"> </span>kko.event.baseband.raw<span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'str'</span>&gt;<span class="o">]</span>
-<span class="w">           </span>DEBUG<span class="w">    </span>dataset:<span class="w"> </span><span class="m">308892599</span><span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'str'</span>&gt;<span class="o">]</span><span class="w">           </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>directory:<span class="w"> </span>None<span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'NoneType'</span>&gt;<span class="o">]</span><span class="w">         </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>clear_parents:<span class="w"> </span>True<span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'bool'</span>&gt;<span class="o">]</span><span class="w">         </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>verbose:<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'int'</span>&gt;<span class="o">]</span><span class="w">                   </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>quiet:<span class="w"> </span>False<span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'bool'</span>&gt;<span class="o">]</span><span class="w">                </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Loading<span class="w"> </span>configuration.<span class="w">                       </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Site<span class="w"> </span><span class="nb">set</span><span class="w"> </span>to:<span class="w"> </span><span class="nb">local</span><span class="w">                           </span>
-<span class="w">           </span>INFO<span class="w">     </span>No<span class="w"> </span>directory,<span class="w"> </span>setting<span class="w"> </span>to:<span class="w"> </span>./<span class="w">                 </span>
-
-Searching<span class="w"> </span><span class="k">for</span><span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="m">308892599</span><span class="w"> </span>kko.event.baseband.raw...
-
-<span class="w">           </span>DEBUG<span class="w">    </span>Loading<span class="w"> </span>configuration.<span class="w">                                               </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Server:<span class="w"> </span>https://frb.chimenet.ca/datatrail<span class="w">                            </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Configuration<span class="w"> </span>loaded<span class="w"> </span>successfully.<span class="w">                                   </span>
-<span class="w">           </span>INFO<span class="w">     </span>Querying<span class="w"> </span>Datatrail<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="m">308892599</span><span class="w"> </span>kko.event.baseband.raw.<span class="w">             </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>URL:<span class="w"> </span>https://frb.chimenet.ca/datatrail/query/dataset/find<span class="w">            </span>
-Directory:<span class="w"> </span>./data/kko/baseband/raw/2023/08/07/astro_308892599
-<span class="w"> </span>-<span class="w"> </span>Found<span class="w"> </span><span class="m">2</span><span class="w"> </span>files.
-<span class="w"> </span>-<span class="w"> </span>Total<span class="w"> </span>size:<span class="w"> </span><span class="m">0</span>.01<span class="w"> </span>GB.
-
-⚠️<span class="w">  </span>Delete<span class="w"> </span>files<span class="w"> </span>and<span class="w"> </span>empty<span class="w"> </span>parent<span class="w"> </span>directories?<span class="w"> </span><span class="o">[</span>y/n<span class="o">]</span>:<span class="w"> </span>y
-<span class="o">[</span><span class="m">17</span>:13:34<span class="o">]</span><span class="w"> </span>DEBUG<span class="w">    </span>clear_parents:<span class="w"> </span>True<span class="w">                                                  </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Checking<span class="w"> </span><span class="k">if</span><span class="w"> </span>path<span class="w"> </span>./data/kko/baseband/raw/2023/08/07/astro_308892599<span class="w">  </span>
-<span class="w">                    </span>exists.
-<span class="w">           </span>INFO<span class="w">     </span>Path<span class="w"> </span>successfully<span class="w"> </span>removed.<span class="w">                                           </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Clearing<span class="w"> </span>parent<span class="w"> </span>directories<span class="w"> </span>of<span class="w"> </span>data/kko/baseband/raw/2023/08/07.<span class="w">     </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>files:<span class="w"> </span><span class="o">[]</span><span class="w">                                                            </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>data/kko/baseband/raw/2023/08/07:<span class="w"> </span>✔<span class="w"> </span><span class="c1"># (1)!                                 </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>files:<span class="w"> </span><span class="o">[]</span><span class="w">                                                            </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>data/kko/baseband/raw/2023/08:<span class="w"> </span>✔<span class="w">                                     </span>
-<span class="o">[</span><span class="m">17</span>:13:35<span class="o">]</span><span class="w"> </span>DEBUG<span class="w">    </span>files:<span class="w"> </span><span class="o">[]</span><span class="w">                                                            </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>data/kko/baseband/raw/2023:<span class="w"> </span>✔<span class="w">                                        </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>files:<span class="w"> </span><span class="o">[]</span><span class="w">                                                            </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>data/kko/baseband/raw:<span class="w"> </span>✔<span class="w">                                             </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>files:<span class="w"> </span><span class="o">[]</span><span class="w">                                                            </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>data/kko/baseband:<span class="w"> </span>✔<span class="w">                                                 </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>files:<span class="w"> </span><span class="o">[]</span><span class="w">                                                            </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>data/kko:<span class="w"> </span>✔<span class="w">                                                          </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>files:<span class="w"> </span><span class="o">[]</span><span class="w">                                                            </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>data:<span class="w"> </span>✔<span class="w">                                                              </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>files:<span class="w"> </span><span class="o">[</span>PosixPath<span class="o">(</span><span class="s1">'.DS_Store'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'mkdocs.yml'</span><span class="o">)</span>,<span class="w">             </span>
-<span class="w">                    </span>PosixPath<span class="o">(</span><span class="s1">'LICENSE'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'.pytest_cache'</span><span class="o">)</span>,
-<span class="w">                    </span>PosixPath<span class="o">(</span><span class="s1">'CHANGELOG.md'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'.pre-commit-config.yaml'</span><span class="o">)</span>,
-<span class="w">                    </span>PosixPath<span class="o">(</span><span class="s1">'dtcli'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'pyproject.toml'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'tests'</span><span class="o">)</span>,
-<span class="w">                    </span>PosixPath<span class="o">(</span><span class="s1">'docs'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'README.md'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'.gitignore'</span><span class="o">)</span>,
-<span class="w">                    </span>PosixPath<span class="o">(</span><span class="s1">'.github'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'tox.ini'</span><span class="o">)</span>,
-<span class="w">                    </span>PosixPath<span class="o">(</span><span class="s1">'uv.lock'</span><span class="o">)</span>,<span class="w"> </span>PosixPath<span class="o">(</span><span class="s1">'.git'</span><span class="o">)]</span>
-<span class="w">           </span>DEBUG<span class="w">    </span>.:<span class="w"> </span>✗<span class="w"> </span><span class="c1"># (2)!</span>
-</code></pre></div>
-<ol>
-<li><code>--clear-parents</code> checks if each successive parent directory is empty before deleting it.</li>
-<li>If files are found in a parent directory, it is <em>NOT</em> deleted.</li>
-</ol>
-</div>
+<p><code>--json</code> writes a JSON object on standard output, including on verification
+failure. It contains <code>scope</code>, <code>dataset</code>, <code>registered</code>, <code>ok</code>, <code>summary</code>, and
+<code>results</code>. The category keys use underscores (<code>size_mismatch</code> and
+<code>checksum_mismatch</code>). Detailed results identify the URI, affected services, or
+the differing Minoc and Luskan values as appropriate.</p>
+<table>
+<thead>
+<tr>
+<th>Exit status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>No missing files, mismatches, or unavailable metadata were reported; this includes an empty registered file list.</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>Missing files or metadata mismatches were found, with no unavailable results.</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>At least one result was unavailable, even if other files also had mismatches.</td>
+</tr>
+</tbody>
+</table>
+<p>For unavailable results, check service readiness and retry after the underlying
+problem is resolved. For missing files or mismatches, retain the detailed report
+and investigate the dataset with <a href="../ps/"><code>ps</code></a> and <a href="../scout/"><code>scout</code></a> before
+requesting corrective work.</p>
 
 
 

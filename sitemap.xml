@@ -17,6 +17,14 @@
          <lastmod>2026-09-29</lastmod>
     </url>
     <url>
+         <loc>https://chimefrb.github.io/datatrail-cli/discovery/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
+         <loc>https://chimefrb.github.io/datatrail-cli/doctor/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
          <loc>https://chimefrb.github.io/datatrail-cli/initialising/</loc>
          <lastmod>2026-09-29</lastmod>
     </url>
@@ -54,6 +62,10 @@
     </url>
     <url>
          <loc>https://chimefrb.github.io/datatrail-cli/user_guide/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
+         <loc>https://chimefrb.github.io/datatrail-cli/verify/</loc>
          <lastmod>2026-09-29</lastmod>
     </url>
 </urlset>
