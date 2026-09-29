@@ -27,4 +27,4 @@ The commands available to you are:
 - `version`: List the CLI and server version.
 
 Detailed information on all of the CLI commands can be found on the
-[Reference](cli) page.
+[Reference](cli.md) page.

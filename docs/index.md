@@ -9,7 +9,7 @@ comments: true
 <h1 align="center">Datatrail CLI</h1>
 
 <h4 align="center">
-  <a src="https://github.com/CHIMEFRB/datatrail-cli/install/">Install</a>
+  <a href="install/">Install</a>
   ·
   <a href="https://chimefrb.github.io/datatrail-cli/">Docs</a>
 </h4>

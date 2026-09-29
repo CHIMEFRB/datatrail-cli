@@ -1,0 +1,37 @@
+# Standalone public site; mkdocs.yml remains the handbook navigation source.
+INHERIT: mkdocs.yml
+
+site_name: Datatrail CLI
+site_url: https://chimefrb.github.io/datatrail-cli/
+repo_name: CHIMEFRB/datatrail-cli
+repo_url: https://github.com/CHIMEFRB/datatrail-cli
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: yellow
+  features:
+    - navigation.expand
+    - navigation.top
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - content.code.copy
+
+plugins:
+  - search
+  - termynal
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - mkdocs-click
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
