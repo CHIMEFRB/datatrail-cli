@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.1](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v1.0.0...datatrail-cli-v1.0.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **pull:** continue when optional size query is unavailable ([#195](https://github.com/CHIMEFRB/datatrail-cli/issues/195)) ([b36bbbf](https://github.com/CHIMEFRB/datatrail-cli/commit/b36bbbf90d47eb22f20eaa7a12cfea8f4ae703bb))
+* **scout:** restore discrepancy detection and confirmed repairs ([#197](https://github.com/CHIMEFRB/datatrail-cli/issues/197)) ([54dfbf4](https://github.com/CHIMEFRB/datatrail-cli/commit/54dfbf4b3abf8ff0f7f9db13e5eb7ccdb28ccce1))
+
+
+### Performance Improvements
+
+* **pull:** apply CANFAR permissions without subprocesses ([#157](https://github.com/CHIMEFRB/datatrail-cli/issues/157)) ([b8c2230](https://github.com/CHIMEFRB/datatrail-cli/commit/b8c22306432a6b24b435b5ddb421ac5cdcd9e1eb))
+
 ## [1.0.0](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v0.13.0...datatrail-cli-v1.0.0) (2026-09-28)
 
 
