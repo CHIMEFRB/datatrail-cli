@@ -56,13 +56,13 @@ one of the outrigger sites. See below for a guide for each of the sites.
         of 30 days. You must refresh the certificate periodically.
 
     If you do not keep your CADC certificate in the default location, you must
-    update the configuration file to pointt to the correct location.
+    update the configuration file to point to the correct location.
 
     ```shell
     # Updating CADC Certificate location
-    $> datatrail config set vospace_certificate /non/standard/location/cadcproxy.pem
-    Attempting to set vospace_certificate to /non/standard/location/cadcproxy.pem
-    Set vospace_certificate to /non/standard/location/cadcproxy.pem
+    $> datatrail config set vospace_certfile /non/standard/location/cadcproxy.pem
+    Attempting to set vospace_certfile to /non/standard/location/cadcproxy.pem
+    Set vospace_certfile to /non/standard/location/cadcproxy.pem
     ```
 
 === "CANFAR"
@@ -123,13 +123,13 @@ one of the outrigger sites. See below for a guide for each of the sites.
         of 30 days. You must refresh the certificate periodically.
 
     If you do not keep your CADC certificate in the default location, you must
-    update the configuration file to pointt to the correct location.
+    update the configuration file to point to the correct location.
 
     ```shell
     # Updating CADC Certificate location
-    $> datatrail config set vospace_certificate /non/standard/location/cadcproxy.pem
-    Attempting to set vospace_certificate to /non/standard/location/cadcproxy.pem
-    Set vospace_certificate to /non/standard/location/cadcproxy.pem
+    $> datatrail config set vospace_certfile /non/standard/location/cadcproxy.pem
+    Attempting to set vospace_certfile to /non/standard/location/cadcproxy.pem
+    Set vospace_certfile to /non/standard/location/cadcproxy.pem
     ```
 
 === "CHIME"
@@ -171,3 +171,15 @@ one of the outrigger sites. See below for a guide for each of the sites.
     # Ensure valid CADC Certificate exists
     cadc-get-cert -u [username]
     ```
+
+## Check your setup
+
+After initializing the configuration and obtaining your certificate, run
+[`doctor`](doctor.md) to check configuration, server health, certificate validity,
+and authentication to Minoc and Luskan:
+
+```shell
+datatrail doctor
+```
+
+The [doctor guide](doctor.md) explains failed checks and JSON output for scripts.

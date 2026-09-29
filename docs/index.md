@@ -41,6 +41,10 @@ In order to fully utilise this CLI, you must have an account with
 [CANFAR](https://www.canfar.net) and access to the either of the following
 groups: `chime-frb-ro` or `chime-frb-rw`.
 
+Check your setup with [`doctor`](doctor.md). The [User Guide](user_guide.md)
+covers [recursive dataset discovery](discovery.md), resumable inventory and downloads,
+[`verify`](verify.md), and registration troubleshooting.
+
 ## 🛠️ [Installation](install.md)
 
 ## ⚙️  [Initialise](initialising.md)

@@ -6,25 +6,29 @@
 
 The commands available to you are:
 
-- `clear`: This removes all files belonging to the 'scope' and 'dataset', only
-  available for the local and canfar sites.
-- `config`: Edit the `.datatrail/config.yaml` configuration file.
-- `inventory`: Recursively discover datasets and write their file replica URIs
-  to a resumable JSON manifest.
-- `list`: This list either the 'scopes' available or all of the datasets
-  belonging to the given dataset.
-- `ps`: This provides detailed information for the given 'scope' and 'dataset' combination.
-- `pull`: This allows you to download all files belonging to the 'scope' and
-  'dataset' provided.
-- `pull-manifest`: Download Minoc files from a resumable inventory manifest.
-- `scout`: This command provides an overview of what the Datatrail database
-  thinks is the current number of files for a given dataset at each storage
-  element, compared to what is observed. If a discrepancy is found at Minoc,
-  the user can choose to create the file replicas missing for Minoc.
-- `unregistered`: This provides insight into datasets which failed to register
-  with Datatrail, either summarised across the whole unregistered bucket
-  (`summary`) or for a single event (`search`).
-- `version`: List the CLI and server version.
+- [`clear`](clear.md): Remove a dataset's files at the local or CANFAR site.
+- [`config`](cli.md#datatrail-config): Initialize, inspect, or edit the CLI
+  configuration.
+- [`doctor`](doctor.md): Check configuration, server health, certificate validity,
+  and authentication to Minoc and Luskan.
+- [`inventory`](inventory.md): Recursively discover datasets and write their
+  file replica URIs to a resumable JSON manifest.
+- [`list` / `ls`](list.md): Browse scopes and datasets, filter with `--match`,
+  or discover children with `--expand` and `--recursive`.
+- [`ps`](ps.md): Inspect a dataset's files and storage locations. JSON output
+  includes common paths for each storage element.
+- [`pull`](pull.md): Download a dataset's files.
+- [`pull-manifest`](pull-manifest.md): Download Minoc files from an inventory
+  manifest with resumable transfer state.
+- [`scout`](scout.md): Compare registered and observed file counts and, after
+  confirmation, register missing Minoc replicas.
+- [`unregistered`](unregistered.md): Summarize registration failures or search
+  for records of a specific event.
+- [`verify`](verify.md): Compare registered Minoc files with Minoc and Luskan
+  metadata, reporting missing files, size or checksum mismatches, and
+  unavailable metadata.
+- [`version`](cli.md#datatrail-version): Show CLI and server version information.
 
-Detailed information on all of the CLI commands can be found on the
-[Reference](cli.md) page.
+For practical examples, start with the [User Guide](user_guide.md) or the
+[recursive discovery walkthrough](discovery.md). The
+[Reference](cli.md) lists every command and its options.
