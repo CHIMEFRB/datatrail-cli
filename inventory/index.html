@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://chimefrb.github.io/datatrail-cli/pull/">
+        <link rel="canonical" href="https://chimefrb.github.io/datatrail-cli/inventory/">
       
       
-        <link rel="prev" href="../ps/">
+        <link rel="prev" href="../clear/">
       
       
-        <link rel="next" href="../pull-manifest/">
+        <link rel="next" href="../list/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>pull - Datatrail CLI</title>
+        <title>inventory - Datatrail CLI</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#downloading-a-dataset-with-pull" class="md-skip">
+        <a href="#building-a-durable-inventory" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              pull
+              inventory
             
           </span>
         </div>
@@ -608,10 +608,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../inventory/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    inventory
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -627,6 +654,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#manifest-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest format
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -692,19 +750,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../pull/" class="md-nav__link">
         
   
   
@@ -720,7 +769,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -960,6 +1008,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#manifest-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest format
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -978,125 +1045,69 @@
   
 
 
-<h1 id="downloading-a-dataset-with-pull">⬇️  Downloading a dataset with <code>pull</code><a class="headerlink" href="#downloading-a-dataset-with-pull" title="Permanent link">&para;</a></h1>
-<div class="admonition warning">
-<p class="admonition-title">Requires a valid CADC certificate</p>
-<p>Downloading datasets requires a valid CADC certificate and the relevant
-permissions on CANFAR.</p>
-</div>
-<div class="termy" data-termynal data-ty-macos data-ty-title="bash"><span data-ty="input" data-ty-prompt="$">datatrail pull --help</span><span data-ty>Usage: datatrail pull [OPTIONS] SCOPE DATASET<br><br>  Download a dataset.<br><br>Options:<br>  -d, --directory DIRECTORY  Directory to pull data to.<br>  -c, --cores INTEGER RANGE  Number of parallel fetch processes to use.<br>                             [1&lt;=x&lt;=8]<br>  -v, --verbose              Verbosity: v=INFO, vv=DEBUG.<br>  -q, --quiet                Set log level to ERROR.<br>  -f, --force                Do not prompt for confirmation.<br>  --help                     Show this message and exit.<br></span></div>
-
-<p>To download a dataset from MINOC, we use <code>datatrail pull</code>. Without any flags,
-this starts a single process to download the dataset. However, if you have
-multiple cores, you can start multiple processes to download the dataset
-faster. To start multiple processes, use the <code>--cores</code> flag, the help will
-indicte how many cores are availble.</p>
-<p>If you'd like to download a dataset to a different directory than the root
-mount for your site, you can use the <code>--directory</code> flag. Note, that this
-also affects the check for existing files.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Single process download</label><label for="__tabbed_1_2">Multi process download</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>datatrail<span class="w"> </span>pull<span class="w"> </span>kko.event.baseband.raw<span class="w"> </span><span class="m">308892599</span><span class="w"> </span><span class="c1"># (1)!</span>
-
-Searching<span class="w"> </span><span class="k">for</span><span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="m">308892599</span><span class="w"> </span>kko.event.baseband.raw...
-
-<span class="w"> </span>-<span class="w"> </span><span class="m">0</span><span class="w"> </span>files<span class="w"> </span>found<span class="w"> </span>at<span class="w"> </span>local.<span class="w"> </span><span class="c1"># (2)!</span>
-<span class="w"> </span>-<span class="w"> </span><span class="m">1024</span><span class="w"> </span>files<span class="w"> </span>can<span class="w"> </span>be<span class="w"> </span>downloaded<span class="w"> </span>from<span class="w"> </span>minoc.<span class="w"> </span><span class="c1"># (3)!</span>
-<span class="w">     </span>-<span class="w"> </span>Size<span class="w"> </span>to<span class="w"> </span>download:<span class="w"> </span><span class="m">5</span>.34<span class="w"> </span>GB.
-
-Download<span class="w"> </span><span class="m">1024</span><span class="w"> </span>files?<span class="w"> </span><span class="o">[</span>y/n<span class="o">]</span>:<span class="w"> </span>y<span class="w"> </span><span class="c1"># (4)!</span>
-<span class="m">1024</span><span class="w"> </span>files<span class="w"> </span>missing.
-Downloading<span class="w"> </span><span class="m">1024</span><span class="w"> </span>missing<span class="w"> </span>files.
+<h1 id="building-a-durable-inventory">Building a durable inventory<a class="headerlink" href="#building-a-durable-inventory" title="Permanent link">&para;</a></h1>
+<p><code>datatrail inventory</code> recursively discovers terminal datasets and records each
+file replica URI in a versioned JSON manifest. The manifest can later drive a
+batch download without repeating the archive crawl.</p>
+<p>Every run must be bounded in one of these ways:</p>
+<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>datatrail<span class="w"> </span>inventory<span class="w"> </span>chime.event.baseband.raw
+$&gt;<span class="w"> </span>datatrail<span class="w"> </span>inventory<span class="w"> </span>--match<span class="w"> </span>classified,baseband
+$&gt;<span class="w"> </span>datatrail<span class="w"> </span>inventory<span class="w"> </span>gbo.acquisition.processed<span class="w"> </span>--parent<span class="w"> </span>complex_gains
 </code></pre></div>
-<ol>
-<li>The <code>--cores</code> flag can be used to download multiple files simultaneously.
-The number of cores that can be set is limited by the host machine.</li>
-<li>If files belonging to the dataset already exist and are found they are
-not re-downloaded.</li>
-<li>Remaining files that were not found locally are availble to download and
-their size is calculated.</li>
-<li>Confirming with <code>y</code> will start the download. This can be skipped by adding
-the <code>--force</code> flag.</li>
-</ol>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>datatrail<span class="w"> </span>pull<span class="w"> </span>kko.event.baseband.raw<span class="w"> </span><span class="m">308892599</span><span class="w"> </span>--cores<span class="w"> </span><span class="m">4</span><span class="w">  </span><span class="c1"># (1)!</span>
-
-Searching<span class="w"> </span><span class="k">for</span><span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="m">308892599</span><span class="w"> </span>kko.event.baseband.raw...
-
-<span class="w"> </span>-<span class="w"> </span><span class="m">0</span><span class="w"> </span>files<span class="w"> </span>found<span class="w"> </span>at<span class="w"> </span>local.<span class="w"> </span><span class="c1"># (2)!</span>
-<span class="w"> </span>-<span class="w"> </span><span class="m">1024</span><span class="w"> </span>files<span class="w"> </span>can<span class="w"> </span>be<span class="w"> </span>downloaded<span class="w"> </span>from<span class="w"> </span>minoc.<span class="w"> </span><span class="c1"># (3)!</span>
-<span class="w">     </span>-<span class="w"> </span>Size<span class="w"> </span>to<span class="w"> </span>download:<span class="w"> </span><span class="m">5</span>.34<span class="w"> </span>GB.
-
-Download<span class="w"> </span><span class="m">1024</span><span class="w"> </span>files?<span class="w"> </span><span class="o">[</span>y/n<span class="o">]</span>:<span class="w"> </span>y<span class="w"> </span><span class="c1"># (4)!</span>
-<span class="m">1024</span><span class="w"> </span>files<span class="w"> </span>missing.
-Downloading<span class="w"> </span><span class="m">1024</span><span class="w"> </span>missing<span class="w"> </span>files.
+<p>A scope limits traversal to that scope. <code>--match</code> may search across scopes but
+only opens matching larger datasets. <code>--parent</code> requires a scope and starts at
+one known dataset. It cannot be combined with <code>--match</code>.</p>
+<p>Use <code>--output</code> to choose the manifest path:</p>
+<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>datatrail<span class="w"> </span>inventory<span class="w"> </span>chime.event.baseband.raw<span class="w"> </span>--match<span class="w"> </span>classified<span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>--output<span class="w"> </span>baseband-inventory.json
 </code></pre></div>
-<ol>
-<li>The <code>--cores</code> flag can be used to download multiple files simultaneously.
-The number of cores that can be set is limited by the host machine.</li>
-<li>If files belonging to the dataset already exist and are found they are
-not re-downloaded.</li>
-<li>Remaining files that were not found locally are availble to download and
-their size is calculated.</li>
-<li>Confirming with <code>y</code> will start the download. This can be skipped by adding
-the <code>--force</code> flag.</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="admonition tip">
-<p class="admonition-title">View progress</p>
-<p>By default, there is no progress indicator while downloading a dataset. If
-you'd like to reassure yourself that something is happening, you can add
-verbosity to see the current file being downloaded.</p>
-<div class="highlight"><pre><span></span><code>$&gt;<span class="w"> </span>datatrail<span class="w"> </span>pull<span class="w"> </span>kko.event.baseband.raw<span class="w"> </span><span class="m">308892599</span><span class="w"> </span>-vv<span class="w"> </span>--force
-<span class="o">[</span><span class="m">16</span>:48:37<span class="o">]</span><span class="w"> </span>DEBUG<span class="w">    </span><span class="sb">`</span>pull<span class="sb">`</span><span class="w"> </span>called<span class="w"> </span>with:<span class="w">                                                  </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>scope:<span class="w"> </span>kko.event.baseband.raw<span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'str'</span>&gt;<span class="o">]</span><span class="w">                        </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>dataset:<span class="w"> </span><span class="m">308892599</span><span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'str'</span>&gt;<span class="o">]</span><span class="w">                                   </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>verbose:<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'int'</span>&gt;<span class="o">]</span><span class="w">                                           </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>quiet:<span class="w"> </span>False<span class="w"> </span><span class="o">[</span>&lt;class<span class="w"> </span><span class="s1">'bool'</span>&gt;<span class="o">]</span><span class="w">                                        </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Loading<span class="w"> </span>config.<span class="w">                                                      </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Site<span class="w"> </span><span class="nb">set</span><span class="w"> </span>to:<span class="w"> </span>local.<span class="w">                                                  </span>
-<span class="w">           </span>INFO<span class="w">     </span>No<span class="w"> </span>directory,<span class="w"> </span>setting<span class="w"> </span>to:<span class="w"> </span>./.<span class="w">                                        </span>
-
-Searching<span class="w"> </span><span class="k">for</span><span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="m">308892599</span><span class="w"> </span>kko.event.baseband.raw...
-
-<span class="w">           </span>INFO<span class="w">     </span>Finding<span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="m">308892599</span><span class="w"> </span><span class="k">in</span><span class="w"> </span>kko.event.baseband.raw.<span class="w">               </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Payload:<span class="w"> </span><span class="o">{</span><span class="s1">'scope'</span>:<span class="w"> </span><span class="s1">'kko.event.baseband.raw'</span>,<span class="w"> </span><span class="s1">'name'</span>:<span class="w"> </span><span class="s1">'308892599'</span><span class="o">}</span><span class="w">    </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>URL:<span class="w"> </span>https://frb.chimenet.ca/datatrail/query/dataset/find<span class="w">            </span>
-<span class="o">[</span><span class="m">16</span>:48:40<span class="o">]</span><span class="w"> </span>DEBUG<span class="w">    </span>Status:<span class="w"> </span><span class="m">200</span>.<span class="w">                                                         </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Decoding<span class="w"> </span>response.<span class="w">                                                   </span>
-<span class="w">           </span>INFO<span class="w">     </span>Checking<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nb">local</span><span class="w"> </span>copies<span class="w"> </span>of<span class="w"> </span>files.<span class="w">                                  </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>-<span class="w">                                                                    </span>
-<span class="w">                    </span>data/kko/baseband/raw/2023/08/07/astro_308892599/baseband_308892599926.h5<span class="w"> </span>:<span class="w"> </span>✘
-...<span class="w"> </span><span class="c1"># (1)!</span>
-<span class="w"> </span>-<span class="w"> </span><span class="m">1</span><span class="w"> </span>files<span class="w"> </span>found<span class="w"> </span>at<span class="w"> </span>local.
-<span class="w"> </span>-<span class="w"> </span><span class="m">1023</span><span class="w"> </span>files<span class="w"> </span>can<span class="w"> </span>be<span class="w"> </span>downloaded<span class="w"> </span>from<span class="w"> </span>minoc.
-<span class="w">     </span>-<span class="w"> </span>Size<span class="w"> </span>to<span class="w"> </span>download:<span class="w"> </span><span class="m">5</span>.34<span class="w"> </span>GB.
-
-<span class="m">1023</span><span class="w"> </span>files<span class="w"> </span>missing.
-Downloading<span class="w"> </span><span class="m">1023</span><span class="w"> </span>missing<span class="w"> </span>files.
-<span class="w">           </span>INFO<span class="w">     </span>Starting<span class="w"> </span><span class="m">1</span><span class="w"> </span>processes.<span class="w">                                               </span>
-<span class="o">[</span><span class="m">16</span>:48:44<span class="o">]</span><span class="w"> </span>INFO<span class="w">     </span>Connecting<span class="w"> </span>to<span class="w"> </span>CADC...<span class="w">                                               </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Checking<span class="w"> </span><span class="nb">source</span><span class="w"> </span>and<span class="w"> </span>destination<span class="w"> </span>length<span class="w"> </span>match.<span class="w">                       </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Source<span class="w"> </span>length:<span class="w"> </span><span class="m">1023</span><span class="w">                                                 </span>
-<span class="w">           </span>DEBUG<span class="w">    </span>Destination<span class="w"> </span>length:<span class="w"> </span><span class="m">1023</span><span class="w">                                            </span>
-<span class="o">[</span><span class="m">16</span>:48:47<span class="o">]</span><span class="w"> </span>DEBUG<span class="w">    </span>cadc:CHIMEFRB/data/kko/baseband/raw/2023/08/07/astro_308892599/base<span class="w"> </span>
-<span class="w">                    </span>band_308892599_926.h5<span class="w"> </span>➜
-<span class="w">                    </span>./data/kko/baseband/raw/2023/08/07/astro_308892599/baseband_3088925
-<span class="w">                    </span>99_926.h5<span class="w"> </span>✔
-<span class="o">[</span><span class="m">16</span>:48:51<span class="o">]</span><span class="w"> </span>DEBUG<span class="w">    </span>cadc:CHIMEFRB/data/kko/baseband/raw/2023/08/07/astro_308892599/base<span class="w"> </span>
-<span class="w">                    </span>band_308892599_129.h5<span class="w"> </span>➜
-<span class="w">                    </span>./data/kko/baseband/raw/2023/08/07/astro_308892599/baseband_3088925
-<span class="w">                    </span>99_129.h5<span class="w"> </span>✔
+<p>The command writes the manifest atomically after discovery and after every
+dataset query. A rerun with the same selection reuses <code>ready</code> and <code>empty</code>
+entries, then retries <code>pending</code> and <code>failed</code> entries. A different selection is
+refused so unrelated inventories cannot be mixed.</p>
+<p>Successful discovery replaces obsolete entries with the current terminal
+datasets. If a failed parent lookup recovers, its placeholder is replaced by
+the discovered descendants. A discovery outage preserves earlier checkpoints.</p>
+<p>Only one inventory command may own an output at a time. A competing run exits
+with an error before reading or changing the manifest, including when a symlink
+refers to the same output. Ownership is released when the process exits. Leave
+the hidden <code>.lock</code> file in place; its presence does not mean a run is active.</p>
+<p>An inventory with any failed discovery branch or file query exits nonzero.
+<code>--allow-incomplete</code> keeps the incomplete manifest but exits zero when a caller
+wants to inspect or process the available subset.</p>
+<h2 id="manifest-format">Manifest format<a class="headerlink" href="#manifest-format" title="Permanent link">&para;</a></h2>
+<p>The first format is <code>datatrail.inventory/v1</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"datatrail.inventory/v1"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"selection"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gbo.acquisition.processed"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"match"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">    </span><span class="nt">"parent"</span><span class="p">:</span><span class="w"> </span><span class="s2">"complex_gains"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"complete"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"discovery_failures"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"datasets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gbo.acquisition.processed"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"dataset"</span><span class="p">:</span><span class="w"> </span><span class="s2">"20230525"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"parent"</span><span class="p">:</span><span class="w"> </span><span class="s2">"complex_gains"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"complex_gains"</span><span class="p">,</span><span class="w"> </span><span class="s2">"20230525"</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ready"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"replicas"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"storage_element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"minoc"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"uri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cadc:CHIMEFRB/example/file.h5"</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
 </code></pre></div>
-<ol>
-<li>Note: You will also see all of the output that checks if the files already exist.
-Truncated for clarity here.</li>
-</ol>
-</div>
+<p>Replica rows contain only Datatrail information. Size and checksum fields may
+be added in a later schema when they can be obtained without requiring a CADC
+credential during inventory creation. A valid dataset with no replica URIs has
+status <code>empty</code>; an unavailable or invalid file response has status <code>failed</code>
+and an <code>error</code> field.</p>
 
 
 
