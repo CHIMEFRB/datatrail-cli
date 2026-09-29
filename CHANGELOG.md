@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v1.0.1...datatrail-cli-v1.0.2) (2026-09-29)
+
+
+### Documentation
+
+* cover readiness, verification, and recursive discovery ([#201](https://github.com/CHIMEFRB/datatrail-cli/issues/201)) ([b7b4808](https://github.com/CHIMEFRB/datatrail-cli/commit/b7b48084b094f89ce5812182ac85b487478057d7))
+* restore standalone GitHub Pages build ([#199](https://github.com/CHIMEFRB/datatrail-cli/issues/199)) ([476935e](https://github.com/CHIMEFRB/datatrail-cli/commit/476935e9530f196f64ea2551deb89f65f0fece55))
+
 ## [1.0.1](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v1.0.0...datatrail-cli-v1.0.1) (2026-09-29)
 
 
