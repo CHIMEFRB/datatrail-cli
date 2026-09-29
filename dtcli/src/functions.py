@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import shutil
-import subprocess
+import stat
 import time
 from collections import Counter
 from collections.abc import Sequence
@@ -461,6 +461,63 @@ def find_missing_dataset_files(
     return {"missing": missing_files, "existing": existing_files}
 
 
+def _apply_file_group_permissions(
+    filename: str, directory_fd: int, group_id: Optional[int]
+) -> None:
+    """Update a regular file relative to its directory without following links."""
+    try:
+        metadata = os.stat(filename, dir_fd=directory_fd, follow_symlinks=False)
+        if not stat.S_ISREG(metadata.st_mode):
+            return
+        if group_id is not None:
+            try:
+                os.chown(
+                    filename, -1, group_id, dir_fd=directory_fd, follow_symlinks=False
+                )
+            except OSError as error:
+                logger.warning("Could not update CANFAR ownership: %s", error)
+        metadata = os.stat(filename, dir_fd=directory_fd, follow_symlinks=False)
+        if stat.S_ISREG(metadata.st_mode):
+            os.chmod(
+                filename,
+                stat.S_IMODE(metadata.st_mode) | stat.S_IWGRP,
+                dir_fd=directory_fd,
+                follow_symlinks=False,
+            )
+    except (OSError, ValueError, NotImplementedError) as error:
+        # If a symlink replaces the file, do not follow it. Some platforms
+        # reject no-follow chmod rather than applying it.
+        logger.warning("Could not update CANFAR permissions: %s", error)
+
+
+def _apply_chime_frb_rw_permissions(folder: str, group_id: Optional[int]) -> None:
+    """Set group ownership and write permission without following symlinks."""
+
+    def report_error(error: OSError) -> None:
+        logger.warning("Could not update CANFAR permissions: %s", error)
+
+    try:
+        # fwalk keeps directory access relative to open descriptors and skips
+        # symlinked directories, including a symlink passed as the root folder.
+        for _, _, filenames, directory_fd in os.fwalk(
+            folder, follow_symlinks=False, onerror=report_error
+        ):
+            if group_id is not None:
+                try:
+                    os.fchown(directory_fd, -1, group_id)
+                except OSError as error:
+                    report_error(error)
+            try:
+                mode = stat.S_IMODE(os.fstat(directory_fd).st_mode)
+                os.fchmod(directory_fd, mode | stat.S_IWGRP)
+            except OSError as error:
+                report_error(error)
+            for filename in filenames:
+                _apply_file_group_permissions(filename, directory_fd, group_id)
+    except OSError as error:
+        report_error(error)
+
+
 def get_files(
     files: List[str],
     site: str,
@@ -499,10 +556,16 @@ def get_files(
         # make directory structure if it does not exist.
         folders = {os.path.dirname(path) for path in destinations}
         if site == "canfar":
+            import grp
+
+            try:
+                group_id = grp.getgrnam("chime-frb-rw").gr_gid
+            except (KeyError, OSError) as error:
+                logger.warning("Could not resolve CANFAR group: %s", error)
+                group_id = None
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
-                subprocess.run(["chgrp", "-R", "chime-frb-rw", folder])
-                subprocess.run(["chmod", "-R", "g+w", folder])
+                _apply_chime_frb_rw_permissions(folder, group_id)
         else:
             for folder in folders:
                 os.makedirs(folder, exist_ok=True)
