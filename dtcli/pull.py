@@ -4,7 +4,13 @@ import logging
 from os import cpu_count, path
 
 import click
-from requests.exceptions import ConnectionError, SSLError
+from cadcutils.exceptions import (
+    HttpException,
+    InternalServerException,
+    TransferException,
+    UnexpectedException,
+)
+from requests.exceptions import ConnectionError, SSLError, Timeout
 from rich.console import Console
 from rich.prompt import Confirm
 
@@ -149,6 +155,18 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
 """
             )
             return None
+        except (ConnectionError, Timeout, HttpException) as error:
+            # CADC also uses the base HttpException for failed connections/retries.
+            # Preserve its authentication, certificate, and invalid-request errors.
+            if isinstance(error, HttpException) and type(error) not in (
+                HttpException,
+                InternalServerException,
+                TransferException,
+                UnexpectedException,
+            ):
+                raise
+            logger.debug("Unable to query Luskan for download size", exc_info=True)
+            to_download_size = -1
     elif not luskan_up:
         to_download_size = -1
     else:
@@ -161,7 +179,7 @@ Create one using 'cadc-get-cert -u <USERNAME>'.
         f" - {len(files['missing'])} files can be downloaded from minoc.",
         style="yellow",
     )
-    if luskan_up:
+    if to_download_size >= 0:
         console.print(
             f"     - Size to download: {to_download_size:.2f} GB.\n",
             style="yellow",
