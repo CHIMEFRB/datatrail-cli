@@ -31,3 +31,7 @@ Downloading a dataset.
 ## 🕵️  [scout](scout.md)
 
 Investigating number of files for a dataset across storage elements.
+
+## [Registration and early access](registration.md)
+
+Check an event, request authorized on-site registration, and follow its progress to CANFAR.

@@ -8,6 +8,7 @@ nav:
       - Welcome: user_guide.md
       - Install: install.md
       - Initialise: initialising.md
+      - Registration and early access: registration.md
       - Commands:
           - clear: clear.md
           - inventory: inventory.md

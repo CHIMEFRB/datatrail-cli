@@ -26,6 +26,9 @@ unregistered datasets bucket along with the reason it failed. The
 This is usually the first place to look when an event you expect to find with
 [`scout`](scout.md) or [`ps`](ps.md) is missing entirely from Datatrail.
 
+For an authorized manual registration request, see
+[Registration and early access](registration.md).
+
 ## `search`
 
 ```bash
