@@ -11,10 +11,11 @@ permissions:
 
 jobs:
   close_stale_prs:
+    if: github.repository == 'CHIMEFRB/datatrail-cli'
     runs-on: ubuntu-latest
     steps:
       - name: Close stale pull requests
-        uses: actions/stale@v9
+        uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
         with:
           days-before-stale: 90
           days-before-close: 7
