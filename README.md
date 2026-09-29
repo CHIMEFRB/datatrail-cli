@@ -85,3 +85,19 @@ datatrail config init --site chime
 # Ensure valid CADC Certificate exists
 cadc-get-cert -u [username]
 ```
+
+## Building the documentation
+
+From the repository root, install the locked documentation dependencies with
+[uv](https://docs.astral.sh/uv/), then build the standalone public site:
+
+```shell
+uv sync --locked --group docs
+uv run --no-sync mkdocs build --strict --config-file mkdocs-site.yml
+```
+
+The site is written to `site/`. To preview it locally, run
+`uv run --no-sync mkdocs serve --config-file mkdocs-site.yml`.
+The installed checkout supplies the generated CLI reference. `mkdocs-site.yml`
+adds the public site's theme and rendering extensions while inheriting the
+navigation from `mkdocs.yml`, which remains the handbook configuration.
