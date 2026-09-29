@@ -1,5 +1,8 @@
 name: Continuous Integration
 
+permissions:
+  contents: read
+
 on:
   push:
     paths-ignore:
@@ -15,10 +18,10 @@ jobs:
   Pre-commit-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.13
 
@@ -30,65 +33,64 @@ jobs:
   Testing:
     needs: pre-commit-checks
     runs-on: ubuntu-latest
+    env:
+      RUN_CADC_TESTS: ${{ github.repository == 'CHIMEFRB/datatrail-cli' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python-version:
-          - "3.9"
+          - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
         with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          cache-python: true
           python-version: ${{ matrix.python-version }}
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.cache/pypoetry
-          key: poetry-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
-
       - name: Installation
-        run: |
-          pip install --upgrade pip
-          pip install poetry==2.1.2
-          pip install vos
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
-          poetry config cache-dir ~/.cache/pypoetry
-          poetry config virtualenvs.path ~/.cache/pypoetry/venv
-          poetry install --with dev
+        run: uv sync --locked
 
       - name: Create NETRC file
+        if: env.RUN_CADC_TESTS == 'true'
+        env:
+          CANFAR_NETRC: ${{ secrets.CANFAR_NETRC }}
         run: |
-          export CANFAR_NETRC_FILE=$RUNNER_TEMP"/CANFAR_NETRC"
-          echo ${{ secrets.CANFAR_NETRC }} > $CANFAR_NETRC_FILE
-          echo CANFAR_NETRC_FILE=$CANFAR_NETRC_FILE >> "$GITHUB_ENV"
+          umask 077
+          test -n "$CANFAR_NETRC"
+          printf '%s\n' "$CANFAR_NETRC" > "$RUNNER_TEMP/CANFAR_NETRC"
 
       - name: Obtain CADC certificate
+        if: env.RUN_CADC_TESTS == 'true'
         run: |
-          export CADC_CERT=$HOME"/.ssl/cadcproxy.pem"
-          cadc-get-cert --netrc-file ${{ env.CANFAR_NETRC_FILE }} --days-valid 1 --cert-filename $CADC_CERT
-          echo CADC_CERT=$CADC_CERT >> "$GITHUB_ENV"
+          umask 077
+          mkdir -p "$HOME/.ssl"
+          uv run --no-sync cadc-get-cert --netrc-file "$RUNNER_TEMP/CANFAR_NETRC" --days-valid 1 --cert-filename "$HOME/.ssl/cadcproxy.pem"
+          test -s "$HOME/.ssl/cadcproxy.pem"
+          openssl x509 -in "$HOME/.ssl/cadcproxy.pem" -noout -checkend 0
 
-      - name: Run Tests
+      - name: Run tests
+        if: env.RUN_CADC_TESTS == 'true'
         run: |
-          poetry run pytest tests/ --cov . --cov-report=lcov --cov-report=xml
+          uv run --no-sync pytest tests/ --cov . --cov-report=lcov --cov-report=xml
+
+      - name: Run tests without CADC credentials
+        if: env.RUN_CADC_TESTS != 'true'
+        run: |
+          uv run --no-sync pytest tests/ -m "not cadc" --cov . --cov-report=lcov --cov-report=xml
 
       - name: Remove NETRC file and CADC certificate
+        if: ${{ always() && env.RUN_CADC_TESTS == 'true' }}
         run: |
-          echo "Removing file: "$CANFAR_NETRC_FILE
-          rm $CANFAR_NETRC_FILE
-          echo "Removing file: "$CADC_CERT
-          rm $CADC_CERT
+          rm -f -- "$RUNNER_TEMP/CANFAR_NETRC" "$HOME/.ssl/cadcproxy.pem"
 
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2

@@ -11,6 +11,13 @@ Options:
   -v, --verbose  Verbosity: v=INFO, vv=DEBUG.
   -q, --quiet    Only errors shown in logs.
   --write        Write the events to file.
+  --json         Output as JSON.
+  --match TEXT   Comma-separated, case-insensitive terms a larger dataset must
+                 all contain.
+  --expand       Open each matched larger dataset one level and list its
+                 children.
+  --recursive    Open each matched larger dataset through all descendant
+                 levels.
   --help         Show this message and exit.
 
 ```
@@ -100,3 +107,161 @@ Within Datatrail, there are two types of datasets:
 
     Please see the CLI reference page for more information on the `list` command:
     [datatrail list](../cli/#datatrail-list)
+
+## Finding datasets with `--match` and `--expand`
+
+Navigating the hierarchy one name at a time gets slow when you do not know
+where a dataset lives. `--match` filters the larger datasets of a scope, or
+of **every** scope when no scope is given, by one or more comma-separated,
+case-insensitive terms, which must all appear in the combined
+`scope dataset` text. At least one nonempty term is required; whitespace and
+commas alone are rejected:
+
+```shell
+$> datatrail ls chime.acquisition.processed --match gains
+      Datatrail: Dataset Map
++-----------------------------+---------------+
+| Scope                       | Dataset       |
++-----------------------------+---------------+
+| chime.acquisition.processed | complex_gains |
++-----------------------------+---------------+
+```
+
+A hit may be a container whose children are the datasets you actually want.
+`--expand` opens each matched larger dataset one level and lists the children
+it finds, recording the parent; a match whose children cannot be listed keeps
+its own row:
+
+```shell
+$> datatrail ls --match gain --expand
+                    Datatrail: Dataset Map
++-----------------------------+---------------+---------------+
+| Scope                       | Dataset       | Parent        |
++-----------------------------+---------------+---------------+
+| chime.acquisition.processed | complex_gains |               |
++-----------------------------+---------------+---------------+
+| gbo.acquisition.processed   | 20230716      | complex_gains |
+| gbo.acquisition.processed   | 20230715      | complex_gains |
+| ...                         | ...           | ...           |
++-----------------------------+---------------+---------------+
+```
+
+Rows reached through a parent resolve directly with
+`datatrail ps <scope> <dataset>`; a row kept for a matched dataset whose
+children could not be listed (or that has none) may still be a container.
+
+!!! warning "Incomplete maps"
+
+    If Datatrail does not answer for a scope or dataset during the walk, the
+    map is reported as **incomplete** and the unanswered queries are listed,
+    rather than silently showing them as empty. With `--json`, those queries
+    appear in the `failed` list. A partial map still exits 0; a map with **no**
+    rows and unanswered queries exits 1, since nothing was determined.
+
+`--recursive` follows every descendant of each matched larger dataset instead
+of stopping after one level. It emits terminal datasets and records the full
+path used to reach each one:
+
+```shell
+$> datatrail ls gbo.acquisition.processed --match gains --recursive
+```
+
+The walk visits each dataset once, so shared descendants are not duplicated
+and hierarchy cycles cannot loop forever. The first path found in sorted order
+is retained. An answered empty child list is a terminal dataset. A branch that
+does not answer is retained as a partial row and also listed under `failed`.
+Like `--expand`, a recursive walk across all scopes requires `--match` to keep
+the request bounded.
+
+With `--json`, the map is emitted as structured rows for scripting; `parent`
+is `null` for rows that were not reached through expansion. Recursive rows
+also include `path`, from the matched larger dataset through the terminal row:
+
+```bash
+$ datatrail ls --match gain --expand --json
+{
+  "results": [
+    {
+      "scope": "gbo.acquisition.processed",
+      "dataset": "20230525",
+      "parent": "complex_gains"
+    },
+    ...
+  ],
+  "failed": []
+}
+```
+
+```bash
+$ datatrail ls gbo.acquisition.processed --match gains --recursive --json
+{
+  "results": [
+    {
+      "scope": "gbo.acquisition.processed",
+      "dataset": "20230525",
+      "parent": "complex_gains",
+      "path": ["complex_gains", "20230525"]
+    }
+  ],
+  "failed": []
+}
+```
+
+## 🤖 Machine-readable JSON output
+
+The `--json` flag outputs structured JSON instead of formatted tables, making it easy to parse the output in scripts and pipelines:
+
+```bash
+# Get all scopes as JSON
+$ datatrail ls --json
+{
+  "scopes": [
+    "chime.event.baseband.raw",
+    "chime.event.intensity.raw",
+    "kko.acquisition.processed",
+    ...
+  ]
+}
+
+# Get larger datasets as JSON
+$ datatrail ls kko.scheduled.baseband.raw --json
+{
+  "scope": "kko.scheduled.baseband.raw",
+  "larger_datasets": [
+    "20230804095251",
+    "scheduled.commissioning.steady"
+  ]
+}
+
+# Get child datasets as JSON
+$ datatrail ls kko.scheduled.baseband.raw scheduled.commissioning.steady --json
+{
+  "datasets": [
+    "20230616150511",
+    "20230604135840",
+    "20230604134842",
+    ...
+  ]
+}
+```
+
+### Usage in scripts
+
+```python
+import json
+import subprocess
+
+# Get all scopes
+result = subprocess.run(["datatrail", "ls", "--json"], capture_output=True, text=True)
+data = json.loads(result.stdout)
+scopes = data["scopes"]
+
+# Get datasets for a scope
+result = subprocess.run(
+    ["datatrail", "ls", "chime.event.baseband.raw", "--json"],
+    capture_output=True,
+    text=True,
+)
+data = json.loads(result.stdout)
+larger_datasets = data["larger_datasets"]
+```

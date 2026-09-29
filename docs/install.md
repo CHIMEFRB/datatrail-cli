@@ -1,5 +1,7 @@
 # 🛠️ Installation
 
+Python 3.10 or newer is required.
+
 There are two ways to install the Datatrail CLI:
 
 === "PYPI"
@@ -29,12 +31,12 @@ There are two ways to install the Datatrail CLI:
         pip install .
         ```
 
-    It can also be installed from source using git and poetry:
+    It can also be installed from source using git and uv:
 
-    !!! example "git+poetry"
+    !!! example "git+uv"
 
         ``` shell
         git clone ssh+git://git@github.com/chimefrb/datatrail-cli
         cd datatrail-cli
-        poetry install --without docs
+        uv sync
         ```

@@ -2,6 +2,8 @@
 
 import json
 import logging
+import os
+from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import requests
@@ -12,6 +14,44 @@ try:
     from packaging.version import parse
 except ImportError:
     from pip._vendor.packaging.version import parse
+
+# Bound every REST call: a wedged connection should fail, not hang forever.
+# (connect, read): fail an unreachable host quickly; keep the read bound
+# generous, because some server-side queries are legitimately slow.
+REQUEST_TIMEOUT: Tuple[float, float] = (10.0, 300.0)
+
+
+def common_paths(
+    file_replica_locations: Dict[str, List[str]],
+) -> Dict[str, Dict[str, Any]]:
+    """Derive each storage element's common path and relative file names.
+
+    Args:
+        file_replica_locations (Dict[str, List[str]]): File paths per
+            storage element, as reported in a dataset's file information.
+
+    Returns:
+        Dict[str, Dict[str, Any]]: Per storage element, the deepest common
+            directory as 'common_path' and the file names relative to it as
+            'files'. When no common directory exists, 'common_path' is ""
+            and 'files' holds the original paths. A storage element with no
+            valid file list is omitted.
+    """
+    derived: Dict[str, Dict[str, Any]] = {}
+    for se, paths in file_replica_locations.items():
+        if (
+            not isinstance(paths, list)
+            or not paths
+            or not all(isinstance(p, str) and p for p in paths)
+        ):
+            continue
+        try:
+            base = os.path.commonpath([os.path.dirname(path) for path in paths])
+        except ValueError:
+            base = ""
+        names = [str(Path(p).relative_to(base)) for p in paths] if base else [*paths]
+        derived[se] = {"common_path": base, "files": names}
+    return derived
 
 
 def set_log_level(logger: logging.Logger, verbose: int = 0, quiet: bool = False) -> None:
@@ -70,6 +110,9 @@ def split(data: List[Any], count: int) -> List[List[Any]]:
     Returns:
         List[List[Any]]: List of batches.
     """
+    if count <= 0:
+        raise ValueError("count must be greater than 0")
+
     batch_size = len(data) // count
     remainder = len(data) % count
     batches: List[Any] = []
@@ -95,7 +138,10 @@ def validate_scope(scope: str) -> bool:
     Returns:
         bool: True if scope is valid.
     """
-    resp = requests.get("https://frb.chimenet.ca/datatrail/query/dataset/scopes")
+    resp = requests.get(
+        "https://frb.chimenet.ca/datatrail/query/dataset/scopes",
+        timeout=REQUEST_TIMEOUT,
+    )
     scopes = decode_response(resp)
     return scope in scopes
 
@@ -113,7 +159,8 @@ def get_latest_released_version(
     Returns:
         str: Latest released version.
     """
-    req = requests.get(url_pattern.format(package=package))
+    # Short timeout: this runs at CLI startup and must not delay it.
+    req = requests.get(url_pattern.format(package=package), timeout=5)
     version = parse("0")
     if req.status_code == requests.codes.ok:
         j = json.loads(req.text.encode(req.encoding))  # type: ignore
