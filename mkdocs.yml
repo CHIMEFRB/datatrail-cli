@@ -7,9 +7,11 @@ nav:
   - User Guide:
       - Welcome: user_guide.md
       - Install: install.md
-      - Initialise: initialising.md
+      - Initialize: initialising.md
+      - Recursive discovery: discovery.md
       - Commands:
           - clear: clear.md
+          - doctor: doctor.md
           - inventory: inventory.md
           - list: list.md
           - ps: ps.md
@@ -17,6 +19,7 @@ nav:
           - pull-manifest: pull-manifest.md
           - scout: scout.md
           - unregistered: unregistered.md
+          - verify: verify.md
   - Command Line Interface:
       - Commands: commands.md
       - Reference: cli.md
