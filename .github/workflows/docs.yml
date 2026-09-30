@@ -1,21 +1,44 @@
 name: Documentation
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "docs/**"
+      - "mkdocs*.yml"
+      - "pyproject.toml"
+      - "uv.lock"
       - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "mkdocs*.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  mkdocs:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Build chimefrb/handbook
-        uses: peter-evans/repository-dispatch@v3
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --locked --group docs
+      - run: uv run --no-sync mkdocs build --strict --config-file mkdocs-site.yml
+
+  handbook:
+    if: github.repository == 'CHIMEFRB/datatrail-cli' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build the upstream handbook
+        uses: peter-evans/repository-dispatch@v4.0.1
         with:
           token: ${{ secrets.BUILD_HANDBOOK_TOKEN }}
           repository: chimefrb/handbook

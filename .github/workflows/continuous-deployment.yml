@@ -9,6 +9,7 @@ permissions:
   pull-requests: write
 jobs:
   release-please:
+    if: github.repository == 'CHIMEFRB/datatrail-cli'
     runs-on: ubuntu-latest
     steps:
       - name: Create release
@@ -23,7 +24,7 @@ jobs:
 
       - name: Install uv
         if: ${{ steps.release-please.outputs.release_created }}
-        uses: astral-sh/setup-uv@v10.0.1
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: false
           python-version: "3.13"
