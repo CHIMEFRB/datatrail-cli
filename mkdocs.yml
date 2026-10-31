@@ -20,6 +20,7 @@ nav:
           - scout: scout.md
           - unregistered: unregistered.md
           - verify: verify.md
+      - In Workflow pipelines: workflow.md
   - Command Line Interface:
       - Commands: commands.md
       - Reference: cli.md
