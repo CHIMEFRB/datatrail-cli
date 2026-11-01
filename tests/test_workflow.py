@@ -70,6 +70,32 @@ def test_pull_dataset_returns_workflow_outcome(config, monkeypatch):
     assert products == [] and plots == []
 
 
+def test_pull_dataset_pulls_to_a_given_directory(config, tmp_path, monkeypatch):
+    config.write()
+    pull = FakeCommand("pull")
+    monkeypatch.setattr(workflow, "pull", pull)
+    checked = []
+    monkeypatch.setattr(
+        workflow,
+        "find_missing_dataset_files",
+        lambda scope, dataset, root, verbose: checked.append(root)
+        or {"missing": [], "existing": ["a"]},
+    )
+    scratch = tmp_path / "scratch"
+
+    results, _, _ = workflow.pull_dataset(
+        "scope", "1", site="canfar", directory=str(scratch)
+    )
+
+    assert scratch.is_dir()
+    assert pull.calls == [
+        ["scope", "1", "--force", "--cores", "1", "-v", "--directory", str(scratch)]
+    ]
+    # the files' paths are added to it, so it ends with a slash
+    assert checked == [str(scratch) + "/"]
+    assert results["directory"] == str(scratch) + "/"
+
+
 def test_pull_dataset_creates_the_configuration(config, monkeypatch):
     monkeypatch.setattr(workflow, "pull", FakeCommand("pull"))
     monkeypatch.setattr(

@@ -27,6 +27,9 @@ work:
   for this site (as `datatrail config init --site <site>`); if there is one for
   another site, the step fails.
 - `verbose`: 1 for INFO (default), 2 for DEBUG.
+- `directory`: where to pull to, created if it isn't there (default: the site's
+  root mount). The files go under it at their Datatrail paths, e.g.
+  `/scratch/data/chime/baseband/raw/...` for `directory: /scratch`.
 
 Results: `scope`, `dataset`, `files` (how many are here) and `directory`.
 
