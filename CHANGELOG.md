@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v1.0.2...datatrail-cli-v1.1.0) (2026-11-01)
+
+
+### Features
+
+* **workflow:** pull and clear as functions for Workflow pipelines ([de80e6d](https://github.com/CHIMEFRB/datatrail-cli/commit/de80e6dfd6f6092457af038002b0dec784a74cf5))
+
 ## [1.0.2](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v1.0.1...datatrail-cli-v1.0.2) (2026-09-29)
 
 
