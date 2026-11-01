@@ -1,6 +1,6 @@
 [project]
 name = "datatrail-cli"
-version = "1.0.2"
+version = "1.1.0"
 description = "CHIME/FRB Datatrail CLI"
 authors = [
   { name = "CHIME FRB Project Office" },
