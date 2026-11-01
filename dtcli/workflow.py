@@ -76,6 +76,7 @@ def pull_dataset(
     cores: int = 1,
     site: Optional[str] = None,
     verbose: int = 1,
+    directory: Optional[str] = None,
 ) -> Outcome:
     """Download a dataset, then check that all its files are here.
 
@@ -86,6 +87,9 @@ def pull_dataset(
         site (Optional[str]): Site this runs at; the configuration is created for it
             if there's none. Defaults to the configured site.
         verbose (int): Verbosity: 1=INFO, 2=DEBUG. Defaults to 1.
+        directory (Optional[str]): Directory to pull to, created if it isn't there;
+            the files go under it at their Datatrail paths. Defaults to the site's
+            root mount.
 
     Returns:
         Outcome: Results (scope, dataset, number of files and where they are), no
@@ -96,9 +100,15 @@ def pull_dataset(
             after the pull.
     """
     config = _configure(site)
-    directory = config["root_mounts"][config["site"]]
     dataset = str(dataset)
     args = [scope, dataset, "--force", "--cores", str(cores)] + ["-v"] * verbose
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+        args += ["--directory", directory]
+        # the file paths are added to it as they are
+        directory = os.path.join(directory, "")
+    else:
+        directory = config["root_mounts"][config["site"]]
     _run(pull, args)
 
     files = find_missing_dataset_files(scope, dataset, directory, verbose)

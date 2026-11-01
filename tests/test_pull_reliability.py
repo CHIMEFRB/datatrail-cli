@@ -274,6 +274,26 @@ def test_pull_exits_nonzero_when_file_is_still_missing(monkeypatch, tmp_path):
     assert "File not downloaded" in result.output
 
 
+def test_pull_checks_a_given_directory_for_existing_files(monkeypatch, tmp_path):
+    """Files already under --directory are found, though click drops its slash."""
+    configure_pull(monkeypatch, tmp_path, lambda *args, **kwargs: [])
+    roots = []
+    monkeypatch.setattr(
+        pull_module,
+        "find_missing_dataset_files",
+        lambda scope, dataset, root, verbose: roots.append(root)
+        or {"missing": [], "existing": ["data/file.dat"]},
+    )
+
+    result = CliRunner().invoke(
+        pull_module.pull,
+        ["scope", "dataset", "--directory", str(tmp_path), "--force"],
+    )
+
+    assert result.exit_code == 0
+    assert roots == [str(tmp_path) + "/"]
+
+
 def test_pull_interruption_exits_nonzero(monkeypatch, tmp_path):
     """An interrupted pull is not reported as successful."""
 

@@ -98,6 +98,8 @@ def pull(  # noqa: C901
         if directory is None:
             directory = config["root_mounts"][site]
             logger.info(f"No directory, setting to: {directory}.")
+        # The file paths are added to it as they are, and click drops the slash
+        directory = path.join(directory, "")
     except Exception:
         logger.exception(
             "Configuration Missing!! Run `datatrail config init`.",
