@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v1.1.0...datatrail-cli-v1.2.0) (2026-11-01)
+
+
+### Features
+
+* **workflow:** pull_dataset can pull to a given directory ([7f2da01](https://github.com/CHIMEFRB/datatrail-cli/commit/7f2da01a257668fd3b8efbd916c82d0d4d441340))
+* **workflow:** pull_dataset can pull to a given directory ([ae3bb39](https://github.com/CHIMEFRB/datatrail-cli/commit/ae3bb397ecea15c850fce33b38af6b38f76e44ee))
+
 ## [1.1.0](https://github.com/CHIMEFRB/datatrail-cli/compare/datatrail-cli-v1.0.2...datatrail-cli-v1.1.0) (2026-11-01)
 
 
